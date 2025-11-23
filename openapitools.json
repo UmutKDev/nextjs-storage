@@ -7,7 +7,7 @@
       "test": {
         "generatorName": "typescript-axios",
         "inputSpec": "http://localhost:8080/swagger-json",
-        "output": "lib/Service/Generates",
+        "output": "Service/Generates",
         "skipValidateSpec": true,
         "globalProperty": {
           "skipFormModel": false,

@@ -3,12 +3,20 @@
 import React from "react";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { getDefaultQueryClient } from "@/lib/queryClient";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   // SessionProvider enables useSession/useSession hooks in client components
+  const queryClient = getDefaultQueryClient();
   return (
     <SessionProvider>
-      {children}
+      <QueryClientProvider client={queryClient}>
+        {children}
+        {/* Devtools only show up in development */}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
       <Toaster
         position="bottom-center"
         toastOptions={{

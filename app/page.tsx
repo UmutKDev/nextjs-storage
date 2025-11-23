@@ -3,10 +3,7 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 
 export default async function Home() {
-  // get server session (if any)
   const session = await getServerSession();
-
-  console.log(session);
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background">

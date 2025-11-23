@@ -18,7 +18,6 @@ export function Navbar() {
   const router = useRouter();
   const { data: session, status } = useSession();
   
-  console.log(session)
   const isLoggedIn = status === "authenticated" && !!session?.user;
 
   return (

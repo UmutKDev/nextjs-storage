@@ -34,3 +34,21 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## API client (axios) — usage
+
+This project includes a shared Axios helper at `lib/axios.ts` with a factory `createApiClient` and a default client `api`.
+
+Example usage:
+
+```ts
+import { createApiClient, api } from "./lib/axios";
+
+// server side: create an instance for the API base url
+const client = createApiClient({ axiosConfig: { baseURL: process.env.NESTJS_API_URL } });
+
+// client side: there's also a default `api` instance that reads tokens from localStorage
+await api.get('/some/resource');
+
+// We also handle refresh token flow automatically when a 401 is encountered (if a refresh token is present).
+```
