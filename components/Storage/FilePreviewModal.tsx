@@ -2,13 +2,11 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, DownloadCloud } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
 
 import type { CloudObjectModel } from "@/Service/Generates/api";
-
-type CloudObject = CloudObjectModel;
 
 export default function FilePreviewModal({
   file,
@@ -17,8 +15,6 @@ export default function FilePreviewModal({
   file: CloudObjectModel | null;
   onClose: () => void;
 }) {
-  const url = file?.Path?.Url ?? file?.Path?.Key ?? undefined;
-
   // Lock background scroll while modal is open
   React.useEffect(() => {
     // running only in the browser when modal is mounted
@@ -40,98 +36,6 @@ export default function FilePreviewModal({
   }, []);
 
   if (!file) return null;
-
-  const mime = (file.MimeType ?? "").toLowerCase();
-
-  const renderPreview = () => {
-    if (!url)
-      return (
-        <div className="p-8 text-sm text-muted-foreground">
-          No URL available for preview.
-        </div>
-      );
-
-    if (
-      mime.startsWith("image") ||
-      ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(
-        (file.Extension || "").toLowerCase()
-      )
-    ) {
-      return (
-        <div className="flex items-center justify-center p-6">
-          <img
-            src={url}
-            alt={file.Name}
-            className="max-h-[60vh] max-w-full rounded-md object-contain"
-          />
-        </div>
-      );
-    }
-
-    if (mime.startsWith("video")) {
-      return (
-        <div className="p-6">
-          <video controls className="w-full max-h-[70vh] rounded-md bg-black">
-            <source src={url} type={file.MimeType} />
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      );
-    }
-
-    if (mime.startsWith("audio")) {
-      return (
-        <div className="p-6">
-          <audio controls className="w-full">
-            <source src={url} type={file.MimeType} />
-            Your browser does not support the audio element.
-          </audio>
-        </div>
-      );
-    }
-
-    if (
-      mime.includes("pdf") ||
-      (file.Extension || "").toLowerCase() === "pdf"
-    ) {
-      return (
-        <div className="p-6">
-          <iframe
-            src={url}
-            title={file.Name}
-            className="w-full min-h-[70vh] rounded-md"
-          />
-        </div>
-      );
-    }
-
-    if (
-      mime.startsWith("text") ||
-      mime.includes("json") ||
-      mime.includes("xml")
-    ) {
-      if (loading)
-        return (
-          <div className="p-6 text-sm text-muted-foreground">
-            Loading preview…
-          </div>
-        );
-      return (
-        <div className="p-4 max-h-[60vh] overflow-auto bg-muted/5 rounded-md border border-muted/20">
-          <pre className="whitespace-pre-wrap text-xs leading-relaxed">
-            {textContent ?? "No preview available"}
-          </pre>
-        </div>
-      );
-    }
-
-    // Fallback
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        No preview available for this file type.
-      </div>
-    );
-  };
 
   const modal = (
     <AnimatePresence>
@@ -167,12 +71,33 @@ export default function FilePreviewModal({
                 {file.Extension?.toUpperCase()}
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="rounded-md p-1 hover:bg-muted/10"
-            >
-              <X />
-            </button>
+            <div className="flex items-center gap-2">
+              {file.Path?.Url || file.Path?.Host ? (
+                <a
+                  href={
+                    file.Path?.Url ??
+                    `${String(file.Path?.Host).replace(/\/$/, "")}/${
+                      file.Path?.Key
+                    }`
+                  }
+                  download={file.Name}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  onClick={(e) => e.stopPropagation()}
+                  className="rounded px-2 py-1 text-sm hover:bg-muted/10 flex items-center gap-2"
+                >
+                  <DownloadCloud size={16} />
+                  <span className="hidden sm:inline">Download</span>
+                </a>
+              ) : null}
+
+              <button
+                onClick={onClose}
+                className="rounded-md p-1 hover:bg-muted/10"
+              >
+                <X />
+              </button>
+            </div>
           </div>
 
           <div className="p-4 overflow-auto flex-1">

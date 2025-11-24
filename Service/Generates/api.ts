@@ -28,28 +28,28 @@ export interface AccountChangePasswordRequestModel {
     'new_password': string;
     'new_password_confirmation': string;
 }
-export interface AccountPutBodyRequestModel {
-    'fullName': string;
-    'phoneNumber': string;
+export interface AccountProfileResponseGetModel {
+    'result': AccountProfileResponseModel;
+    'status': BaseStatusModel;
 }
-export interface AccountResponseModel {
+export interface AccountProfileResponseModel {
     'id': string;
     'email': string;
     'fullName': string;
     'phoneNumber': string;
     'avatar': string;
-    'role': AccountResponseModelRoleEnum;
-    'status': AccountResponseModelStatusEnum;
+    'role': AccountProfileResponseModelRoleEnum;
+    'status': AccountProfileResponseModelStatusEnum;
     'date': UserDateModel;
 }
 
-export const AccountResponseModelRoleEnum = {
+export const AccountProfileResponseModelRoleEnum = {
     Admin: 'ADMIN',
     User: 'USER'
 } as const;
 
-export type AccountResponseModelRoleEnum = typeof AccountResponseModelRoleEnum[keyof typeof AccountResponseModelRoleEnum];
-export const AccountResponseModelStatusEnum = {
+export type AccountProfileResponseModelRoleEnum = typeof AccountProfileResponseModelRoleEnum[keyof typeof AccountProfileResponseModelRoleEnum];
+export const AccountProfileResponseModelStatusEnum = {
     Active: 'ACTIVE',
     Inactive: 'INACTIVE',
     Pending: 'PENDING',
@@ -57,11 +57,11 @@ export const AccountResponseModelStatusEnum = {
     Approval: 'APPROVAL'
 } as const;
 
-export type AccountResponseModelStatusEnum = typeof AccountResponseModelStatusEnum[keyof typeof AccountResponseModelStatusEnum];
+export type AccountProfileResponseModelStatusEnum = typeof AccountProfileResponseModelStatusEnum[keyof typeof AccountProfileResponseModelStatusEnum];
 
-export interface AccountResponseModel1 {
-    'result': AccountResponseModel;
-    'status': BaseStatusModel;
+export interface AccountPutBodyRequestModel {
+    'fullName': string;
+    'phoneNumber': string;
 }
 export interface ArrayResponseModel {
     'options': PaginationResponseModel;
@@ -85,14 +85,14 @@ export interface AuthenticationSignUpRequestModel {
     'password': string;
     'password_confirmation': string;
 }
+export interface AuthenticationTokenResponseGetModel {
+    'result': AuthenticationTokenResponseModel;
+    'status': BaseStatusModel;
+}
 export interface AuthenticationTokenResponseModel {
     'accessToken': string;
     'refreshToken': string;
     'expiresIn': number;
-}
-export interface AuthenticationTokenResponseModel1 {
-    'result': AuthenticationTokenResponseModel;
-    'status': BaseStatusModel;
 }
 export interface BaseDateModel {
     'created': string;
@@ -151,6 +151,10 @@ export interface CloudCompleteMultipartUploadRequestModel {
     'UploadId': string;
     'Parts': Array<CloudMultipartPartModel>;
 }
+export interface CloudCompleteMultipartUploadResponseGetModel {
+    'result': CloudCompleteMultipartUploadResponseModel;
+    'status': BaseStatusModel;
+}
 export interface CloudCompleteMultipartUploadResponseModel {
     'Location': string;
     'Key': string;
@@ -158,22 +162,18 @@ export interface CloudCompleteMultipartUploadResponseModel {
     'ETag': string;
     'Metadata'?: object;
 }
-export interface CloudCompleteMultipartUploadResponseModel1 {
-    'result': CloudCompleteMultipartUploadResponseModel;
-    'status': BaseStatusModel;
-}
 export interface CloudCreateMultipartUploadRequestModel {
     'Key': string;
     'ContentType'?: string;
     'Metadata'?: object;
 }
+export interface CloudCreateMultipartUploadResponseGetModel {
+    'result': CloudCreateMultipartUploadResponseModel;
+    'status': BaseStatusModel;
+}
 export interface CloudCreateMultipartUploadResponseModel {
     'UploadId': string;
     'Key': string;
-}
-export interface CloudCreateMultipartUploadResponseModel1 {
-    'result': CloudCreateMultipartUploadResponseModel;
-    'status': BaseStatusModel;
 }
 export interface CloudDeleteRequestModel {
     'Key': Array<string>;
@@ -187,25 +187,25 @@ export interface CloudGetMultipartPartUrlRequestModel {
     'UploadId': string;
     'PartNumber': number;
 }
+export interface CloudGetMultipartPartUrlResponseGetModel {
+    'result': CloudGetMultipartPartUrlResponseModel;
+    'status': BaseStatusModel;
+}
 export interface CloudGetMultipartPartUrlResponseModel {
     'Url': string;
     'Expires': number;
 }
-export interface CloudGetMultipartPartUrlResponseModel1 {
-    'result': CloudGetMultipartPartUrlResponseModel;
-    'status': BaseStatusModel;
-}
 export interface CloudKeyRequestModel {
     'Key': string;
+}
+export interface CloudListResponseGetModel {
+    'result': CloudListResponseModel;
+    'status': BaseStatusModel;
 }
 export interface CloudListResponseModel {
     'Breadcrumb': Array<CloudBreadCrumbModel>;
     'Directories': Array<CloudDirectoryModel>;
     'Contents': Array<CloudObjectModel>;
-}
-export interface CloudListResponseModel1 {
-    'result': CloudListResponseModel;
-    'status': BaseStatusModel;
 }
 export interface CloudMoveRequestModel {
     'SourceKey': string;
@@ -230,12 +230,12 @@ export interface CloudPathModel {
     'Key': string;
     'Url': string;
 }
-export interface CloudUploadPartResponseModel {
-    'ETag': string;
-}
-export interface CloudUploadPartResponseModel1 {
+export interface CloudUploadPartResponseGetModel {
     'result': CloudUploadPartResponseModel;
     'status': BaseStatusModel;
+}
+export interface CloudUploadPartResponseModel {
+    'ETag': string;
 }
 export interface DefinitionGroupResponseListModel {
     'result': DefinitionGroupResponseListResultModelResult;
@@ -264,6 +264,10 @@ export interface InternalServerErrorResponseModelAllOfStatus {
     'code'?: number;
     'message'?: string;
 }
+export interface JWTTokenDecodeResponseGetModel {
+    'result': JWTTokenDecodeResponseModel;
+    'status': BaseStatusModel;
+}
 export interface JWTTokenDecodeResponseModel {
     'id': string;
     'email': string;
@@ -290,10 +294,6 @@ export const JWTTokenDecodeResponseModelStatusEnum = {
 
 export type JWTTokenDecodeResponseModelStatusEnum = typeof JWTTokenDecodeResponseModelStatusEnum[keyof typeof JWTTokenDecodeResponseModelStatusEnum];
 
-export interface JWTTokenDecodeResponseModel1 {
-    'result': JWTTokenDecodeResponseModel;
-    'status': BaseStatusModel;
-}
 export interface PaginationResponseModel {
     'search': string;
     'skip': number;
@@ -315,6 +315,72 @@ export interface UserDateModel {
     'updated': string;
     'lastLogin': string;
 }
+export interface UserFindResponseGetModel {
+    'result': UserFindResponseModel;
+    'status': BaseStatusModel;
+}
+export interface UserFindResponseModel {
+    'id': string;
+    'email': string;
+    'fullName': string;
+    'phoneNumber': string;
+    'avatar': string;
+    'role': UserFindResponseModelRoleEnum;
+    'status': UserFindResponseModelStatusEnum;
+    'date': UserDateModel;
+}
+
+export const UserFindResponseModelRoleEnum = {
+    Admin: 'ADMIN',
+    User: 'USER'
+} as const;
+
+export type UserFindResponseModelRoleEnum = typeof UserFindResponseModelRoleEnum[keyof typeof UserFindResponseModelRoleEnum];
+export const UserFindResponseModelStatusEnum = {
+    Active: 'ACTIVE',
+    Inactive: 'INACTIVE',
+    Pending: 'PENDING',
+    Suspended: 'SUSPENDED',
+    Approval: 'APPROVAL'
+} as const;
+
+export type UserFindResponseModelStatusEnum = typeof UserFindResponseModelStatusEnum[keyof typeof UserFindResponseModelStatusEnum];
+
+export interface UserListResponseListModel {
+    'result': UserListResponseListResultModelResult;
+    'status': BaseStatusModel;
+}
+export interface UserListResponseListResultModelResult {
+    'options': PaginationResponseModel;
+    'items': Array<UserListResponseModel>;
+}
+export interface UserListResponseModel {
+    'id': string;
+    'email': string;
+    'fullName': string;
+    'phoneNumber': string;
+    'avatar': string;
+    'role': UserListResponseModelRoleEnum;
+    'status': UserListResponseModelStatusEnum;
+    'date': UserDateModel;
+}
+
+export const UserListResponseModelRoleEnum = {
+    Admin: 'ADMIN',
+    User: 'USER'
+} as const;
+
+export type UserListResponseModelRoleEnum = typeof UserListResponseModelRoleEnum[keyof typeof UserListResponseModelRoleEnum];
+export const UserListResponseModelStatusEnum = {
+    Active: 'ACTIVE',
+    Inactive: 'INACTIVE',
+    Pending: 'PENDING',
+    Suspended: 'SUSPENDED',
+    Approval: 'APPROVAL'
+} as const;
+
+export type UserListResponseModelStatusEnum = typeof UserListResponseModelStatusEnum[keyof typeof UserListResponseModelStatusEnum];
+
 export interface UserPostBodyRequestModel {
     'email': string;
     'fullName': string;
@@ -364,45 +430,6 @@ export const UserPutBodyRequestModelStatusEnum = {
 
 export type UserPutBodyRequestModelStatusEnum = typeof UserPutBodyRequestModelStatusEnum[keyof typeof UserPutBodyRequestModelStatusEnum];
 
-export interface UserResponseListModel {
-    'result': UserResponseListResultModelResult;
-    'status': BaseStatusModel;
-}
-export interface UserResponseListResultModelResult {
-    'options': PaginationResponseModel;
-    'items': Array<UserResponseModel>;
-}
-export interface UserResponseModel {
-    'id': string;
-    'email': string;
-    'fullName': string;
-    'phoneNumber': string;
-    'avatar': string;
-    'role': UserResponseModelRoleEnum;
-    'status': UserResponseModelStatusEnum;
-    'date': UserDateModel;
-}
-
-export const UserResponseModelRoleEnum = {
-    Admin: 'ADMIN',
-    User: 'USER'
-} as const;
-
-export type UserResponseModelRoleEnum = typeof UserResponseModelRoleEnum[keyof typeof UserResponseModelRoleEnum];
-export const UserResponseModelStatusEnum = {
-    Active: 'ACTIVE',
-    Inactive: 'INACTIVE',
-    Pending: 'PENDING',
-    Suspended: 'SUSPENDED',
-    Approval: 'APPROVAL'
-} as const;
-
-export type UserResponseModelStatusEnum = typeof UserResponseModelStatusEnum[keyof typeof UserResponseModelStatusEnum];
-
-export interface UserResponseModel1 {
-    'result': UserResponseModel;
-    'status': BaseStatusModel;
-}
 
 /**
  * AccountApi - axios parameter creator
@@ -558,7 +585,7 @@ export const AccountApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async profile(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccountResponseModel1>> {
+        async profile(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccountProfileResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.profile(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AccountApi.profile']?.[localVarOperationServerIndex]?.url;
@@ -596,7 +623,7 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        profile(options?: RawAxiosRequestConfig): AxiosPromise<AccountResponseModel1> {
+        profile(options?: RawAxiosRequestConfig): AxiosPromise<AccountProfileResponseGetModel> {
             return localVarFp.profile(options).then((request) => request(axios, basePath));
         },
     };
@@ -885,7 +912,7 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async decodeToken(authenticationDecodeTokenBodyRequestModel: AuthenticationDecodeTokenBodyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<JWTTokenDecodeResponseModel1>> {
+        async decodeToken(authenticationDecodeTokenBodyRequestModel: AuthenticationDecodeTokenBodyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<JWTTokenDecodeResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.decodeToken(authenticationDecodeTokenBodyRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.decodeToken']?.[localVarOperationServerIndex]?.url;
@@ -897,7 +924,7 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async login(authenticationSignInRequestModel: AuthenticationSignInRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseModel1>> {
+        async login(authenticationSignInRequestModel: AuthenticationSignInRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.login(authenticationSignInRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.login']?.[localVarOperationServerIndex]?.url;
@@ -923,7 +950,7 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async refreshToken(authenticationRefreshTokenRequestModel: AuthenticationRefreshTokenRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseModel1>> {
+        async refreshToken(authenticationRefreshTokenRequestModel: AuthenticationRefreshTokenRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(authenticationRefreshTokenRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.refreshToken']?.[localVarOperationServerIndex]?.url;
@@ -936,7 +963,7 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async register(authenticationSignUpRequestModel: AuthenticationSignUpRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseModel1>> {
+        async register(authenticationSignUpRequestModel: AuthenticationSignUpRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.register(authenticationSignUpRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.register']?.[localVarOperationServerIndex]?.url;
@@ -969,7 +996,7 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        decodeToken(requestParameters: AuthenticationApiDecodeTokenRequest, options?: RawAxiosRequestConfig): AxiosPromise<JWTTokenDecodeResponseModel1> {
+        decodeToken(requestParameters: AuthenticationApiDecodeTokenRequest, options?: RawAxiosRequestConfig): AxiosPromise<JWTTokenDecodeResponseGetModel> {
             return localVarFp.decodeToken(requestParameters.authenticationDecodeTokenBodyRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -978,7 +1005,7 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(requestParameters: AuthenticationApiLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseModel1> {
+        login(requestParameters: AuthenticationApiLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseGetModel> {
             return localVarFp.login(requestParameters.authenticationSignInRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -998,7 +1025,7 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken(requestParameters: AuthenticationApiRefreshTokenRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseModel1> {
+        refreshToken(requestParameters: AuthenticationApiRefreshTokenRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseGetModel> {
             return localVarFp.refreshToken(requestParameters.authenticationRefreshTokenRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -1008,7 +1035,7 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        register(requestParameters: AuthenticationApiRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseModel1> {
+        register(requestParameters: AuthenticationApiRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseGetModel> {
             return localVarFp.register(requestParameters.authenticationSignUpRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -1663,7 +1690,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async list(path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseModel1>> {
+        async list(path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.list(path, delimiter, isMetadataProcessing, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.list']?.[localVarOperationServerIndex]?.url;
@@ -1699,7 +1726,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseModel1>> {
+        async uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadCompleteMultipartUpload']?.[localVarOperationServerIndex]?.url;
@@ -1711,7 +1738,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCreateMultipartUploadResponseModel1>> {
+        async uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCreateMultipartUploadResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadCreateMultipartUpload']?.[localVarOperationServerIndex]?.url;
@@ -1723,7 +1750,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudGetMultipartPartUrlResponseModel1>> {
+        async uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudGetMultipartPartUrlResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadGetMultipartPartUrl']?.[localVarOperationServerIndex]?.url;
@@ -1738,7 +1765,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadPart(key?: string, uploadId?: string, partNumber?: number, file?: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseModel1>> {
+        async uploadPart(key?: string, uploadId?: string, partNumber?: number, file?: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(key, uploadId, partNumber, file, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadPart']?.[localVarOperationServerIndex]?.url;
@@ -1795,7 +1822,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudListResponseModel1> {
+        list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudListResponseGetModel> {
             return localVarFp.list(requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
         },
         /**
@@ -1822,7 +1849,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCompleteMultipartUpload(requestParameters: CloudApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCompleteMultipartUploadResponseModel1> {
+        uploadCompleteMultipartUpload(requestParameters: CloudApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCompleteMultipartUploadResponseGetModel> {
             return localVarFp.uploadCompleteMultipartUpload(requestParameters.cloudCompleteMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -1831,7 +1858,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCreateMultipartUpload(requestParameters: CloudApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCreateMultipartUploadResponseModel1> {
+        uploadCreateMultipartUpload(requestParameters: CloudApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCreateMultipartUploadResponseGetModel> {
             return localVarFp.uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -1840,7 +1867,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadGetMultipartPartUrl(requestParameters: CloudApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudGetMultipartPartUrlResponseModel1> {
+        uploadGetMultipartPartUrl(requestParameters: CloudApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudGetMultipartPartUrlResponseGetModel> {
             return localVarFp.uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -1849,7 +1876,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadPart(requestParameters: CloudApiUploadPartRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseModel1> {
+        uploadPart(requestParameters: CloudApiUploadPartRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseGetModel> {
             return localVarFp.uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, options).then((request) => request(axios, basePath));
         },
     };
@@ -2846,7 +2873,7 @@ export const UserApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async find(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserResponseModel1>> {
+        async find(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserFindResponseGetModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.find(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UserApi.find']?.[localVarOperationServerIndex]?.url;
@@ -2860,7 +2887,7 @@ export const UserApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async list(search?: string, skip?: number, take?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserResponseListModel>> {
+        async list(search?: string, skip?: number, take?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponseListModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UserApi.list']?.[localVarOperationServerIndex]?.url;
@@ -2908,7 +2935,7 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        find(requestParameters: UserApiFindRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseModel1> {
+        find(requestParameters: UserApiFindRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserFindResponseGetModel> {
             return localVarFp.find(requestParameters.id, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2917,7 +2944,7 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        list(requestParameters: UserApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<UserResponseListModel> {
+        list(requestParameters: UserApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<UserListResponseListModel> {
             return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, options).then((request) => request(axios, basePath));
         },
     };
