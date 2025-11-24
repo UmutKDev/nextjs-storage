@@ -23,8 +23,10 @@ export default function ConfirmDeleteModal({
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
     const prevPaddingRight = document.body.style.paddingRight || "";
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+    if (scrollbarWidth > 0)
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prevOverflow;
@@ -75,15 +77,22 @@ export default function ConfirmDeleteModal({
               <Trash2 className="text-destructive" />
               <div className="text-sm font-semibold">Delete item</div>
             </div>
-            <button onClick={onClose} className="rounded-md p-1 hover:bg-muted/10">
+            <button
+              onClick={onClose}
+              className="rounded-md p-1 hover:bg-muted/10"
+            >
               <X />
             </button>
           </div>
 
           <div className="p-4 text-sm text-muted-foreground">
-            <div className="font-medium text-foreground">{name ?? "Are you sure?"}</div>
+            <div className="font-medium text-foreground">
+              {name ?? "Are you sure?"}
+            </div>
             {description ? <div className="mt-1">{description}</div> : null}
-            <div className="mt-3 text-xs text-muted-foreground">This action cannot be undone.</div>
+            <div className="mt-3 text-xs text-muted-foreground">
+              This action cannot be undone.
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10">

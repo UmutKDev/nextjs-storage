@@ -45,7 +45,9 @@ export default function ContentsList({
 
     setDeleting((s) => ({ ...s, [key]: true }));
     try {
-      await cloudApiFactory._delete({ cloudDeleteRequestModel: { Key: [key], IsDirectory: false } });
+      await cloudApiFactory._delete({
+        cloudDeleteRequestModel: { Key: [key], IsDirectory: false },
+      });
       toast.success("Deleted");
       await qc.invalidateQueries({ queryKey: ["cloud", "list"] });
       await qc.invalidateQueries({ queryKey: ["cloud-root-folders"] });
@@ -102,7 +104,9 @@ export default function ContentsList({
                   handleDelete(c);
                 }}
                 className="rounded p-1 hover:bg-muted/10"
-                disabled={Boolean(deleting[c.Path?.Key ?? c.Name ?? String(idx)])}
+                disabled={Boolean(
+                  deleting[c.Path?.Key ?? c.Name ?? String(idx)]
+                )}
               >
                 <Trash2 className="size-4 text-destructive" />
               </button>
