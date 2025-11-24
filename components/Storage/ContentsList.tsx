@@ -4,6 +4,7 @@ import React from "react";
 import { MoreHorizontal } from "lucide-react";
 import { Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useStorage } from "./StorageProvider";
 import { cloudApiFactory } from "@/Service/Factories";
 import toast from "react-hot-toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
@@ -25,15 +26,20 @@ function humanFileSize(bytes?: number) {
 export default function ContentsList({
   contents,
   onPreview,
+  loading = false,
+  skeletonCount = 4,
 }: {
   contents?: CloudObject[];
   onPreview?: (file: CloudObject) => void;
+  loading?: boolean;
+  skeletonCount?: number;
 }) {
-  if (!contents || contents.length === 0) return null;
-
   const qc = useQueryClient();
+  const { currentPath } = useStorage();
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
   const [toDelete, setToDelete] = React.useState<CloudObject | null>(null);
+
+  if ((!contents || contents.length === 0) && !loading) return null;
 
   function handleDelete(file: CloudObject) {
     setToDelete(file);
@@ -49,7 +55,12 @@ export default function ContentsList({
         cloudDeleteRequestModel: { Key: [key], IsDirectory: false },
       });
       toast.success("Deleted");
-      await qc.invalidateQueries({ queryKey: ["cloud", "list"] });
+      await qc.invalidateQueries({
+        queryKey: ["cloud", "objects", currentPath],
+      });
+      await qc.invalidateQueries({
+        queryKey: ["cloud", "directories", currentPath],
+      });
       await qc.invalidateQueries({ queryKey: ["cloud-root-folders"] });
     } catch (err) {
       console.error(err);
@@ -61,61 +72,96 @@ export default function ContentsList({
 
   return (
     <div className="divide-y rounded-md border bg-background/50">
-      {contents.map((c, idx) => (
-        <motion.div
-          layout
-          key={c.Path?.Key ?? `${c.Name}-${idx}`}
-          onClick={() => onPreview?.(c)}
-          role={onPreview ? "button" : undefined}
-          tabIndex={onPreview ? 0 : undefined}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 4 }}
-          whileHover={{ scale: 1.01 }}
-          transition={{ duration: 0.18 }}
-          className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer"
-        >
-          <div className="w-8 h-8 flex items-center justify-center rounded-md bg-muted/20">
-            <FileIcon extension={c.Extension} />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground truncate">
-              {c.Name}
-              <span className="text-xs text-muted-foreground">
-                .{c.Extension}
-              </span>
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {c.MimeType ?? "—"}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="whitespace-nowrap">{humanFileSize(c.Size)}</div>
-            <div className="whitespace-nowrap">
-              {c.LastModified ? new Date(c.LastModified).toLocaleString() : "—"}
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                aria-label={`Delete ${c.Name}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(c);
-                }}
-                className="rounded p-1 hover:bg-muted/10"
-                disabled={Boolean(
-                  deleting[c.Path?.Key ?? c.Name ?? String(idx)]
+      {(loading ? Array.from({ length: skeletonCount }) : contents ?? []).map(
+        (item: unknown, idx) => {
+          const c = loading ? undefined : (item as CloudObject);
+          return (
+            <motion.div
+              layout
+              key={c?.Path?.Key ?? `${c?.Name}-${idx}`}
+              onClick={() => !loading && c && onPreview?.(c)}
+              role={onPreview && !loading ? "button" : undefined}
+              tabIndex={onPreview && !loading ? 0 : undefined}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              whileHover={{ scale: 1.01 }}
+              transition={{ duration: 0.18 }}
+              className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer"
+            >
+              <div className="w-8 h-8 flex items-center justify-center rounded-md bg-muted/20">
+                {loading ? (
+                  <div className="h-5 w-5 rounded bg-muted/30 animate-pulse" />
+                ) : (
+                  <FileIcon extension={c!.Extension} />
                 )}
-              >
-                <Trash2 className="size-4 text-destructive" />
-              </button>
+              </div>
 
-              <MoreHorizontal size={16} className="text-muted-foreground" />
-            </div>
-          </div>
-        </motion.div>
-      ))}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground truncate">
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-48 rounded bg-muted/30 animate-pulse" />
+                      <div className="h-3 w-10 rounded bg-muted/30 animate-pulse" />
+                    </div>
+                  ) : (
+                    <>
+                      {c!.Name}
+                      <span className="text-xs text-muted-foreground">
+                        .{c!.Extension}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {loading ? (
+                    <div className="h-3 w-24 rounded bg-muted/30 animate-pulse" />
+                  ) : (
+                    c!.MimeType ?? "—"
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="whitespace-nowrap">
+                  {loading ? (
+                    <div className="h-3 w-14 rounded bg-muted/30 animate-pulse" />
+                  ) : (
+                    humanFileSize(c!.Size)
+                  )}
+                </div>
+                <div className="whitespace-nowrap">
+                  {c?.LastModified
+                    ? new Date(c!.LastModified).toLocaleString()
+                    : "—"}
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    aria-label={`Delete ${loading ? "item" : c!.Name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!loading && c) handleDelete(c);
+                    }}
+                    className="rounded p-1 hover:bg-muted/10"
+                    disabled={
+                      loading ||
+                      Boolean(deleting[c!.Path?.Key ?? c!.Name ?? String(idx)])
+                    }
+                  >
+                    {loading ? (
+                      <div className="h-4 w-4 rounded bg-muted/30 animate-pulse" />
+                    ) : (
+                      <Trash2 className="size-4 text-destructive" />
+                    )}
+                  </button>
+
+                  <MoreHorizontal size={16} className="text-muted-foreground" />
+                </div>
+              </div>
+            </motion.div>
+          );
+        }
+      )}
       <ConfirmDeleteModal
         open={Boolean(toDelete)}
         onClose={() => setToDelete(null)}

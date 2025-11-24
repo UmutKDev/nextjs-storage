@@ -78,6 +78,9 @@ export default function FileUpload() {
       controllersRef.current[id] = controller;
 
       (async () => {
+        // keep these in outer scope so we can reference them in error handling (abort cleanup)
+        let uploadId: string | undefined;
+        let finalKey: string | undefined;
         try {
           const prefix = currentPath
             ? currentPath.endsWith("/")
@@ -93,32 +96,73 @@ export default function FileUpload() {
             },
           });
 
-          const uploadId = createResp.data?.result?.UploadId;
-          const finalKey = createResp.data?.result?.Key ?? key;
+          uploadId = createResp.data?.result?.UploadId;
+          finalKey = createResp.data?.result?.Key ?? key;
 
-          // upload part 1 and track progress
-          const partResp = await cloudApiFactory.uploadPart(
-            { key: finalKey, uploadId, partNumber: 1, file: f },
-            {
-              signal: controller.signal,
-              onUploadProgress: (e: AxiosProgressEvent) => {
-                const loaded = (e?.loaded as number | undefined) ?? 0;
-                const total = (e?.total as number | undefined) ?? 0;
-                if (!total) return;
-                const p = Math.round((loaded / total) * 100);
-                updateUpload(id, { progress: p });
+          if (!uploadId) {
+            throw new Error("Missing uploadId from create multipart response");
+          }
+
+          // Upload in chunks: split file into multiple parts and upload each part.
+          // This keeps a running total of bytes uploaded so we can compute overall progress.
+          const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB per part (adjustable)
+          const totalSize = f.size;
+          const totalParts = Math.max(1, Math.ceil(totalSize / CHUNK_SIZE));
+
+          const parts: { PartNumber: number; ETag: string }[] = [];
+          let uploadedBytesSoFar = 0;
+
+          for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
+            // if upload has been aborted externally, stop processing further parts
+            if (controller.signal.aborted) throw new Error("canceled");
+
+            const start = (partNumber - 1) * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, totalSize);
+            const chunk = f.slice(start, end);
+
+            // create a File for the chunk so the generated API accepts it (form-data File expected)
+            const chunkFile = new File([chunk], `${f.name}`, {
+              type: f.type || "application/octet-stream",
+            });
+
+            const partResp = await cloudApiFactory.uploadPart(
+              {
+                key: finalKey,
+                uploadId,
+                partNumber,
+                file: chunkFile,
+                totalPart: totalParts,
               },
+              {
+                signal: controller.signal,
+                onUploadProgress: (e: AxiosProgressEvent) => {
+                  const loaded = (e?.loaded as number | undefined) ?? 0;
+                  // loaded is per-chunk; derive overall progress using uploadedBytesSoFar
+                  const overallLoaded = uploadedBytesSoFar + loaded;
+                  const p = Math.round((overallLoaded / totalSize) * 100);
+                  updateUpload(id, { progress: Math.min(100, p) });
+                },
+              }
+            );
+
+            const etag = partResp.data?.result?.ETag;
+            if (!etag) {
+              throw new Error(`Missing ETag for part ${partNumber}`);
             }
-          );
+            parts.push({ PartNumber: partNumber, ETag: etag });
+            // account for the completed chunk size
+            uploadedBytesSoFar += chunk.size;
+          }
 
-          const etag = partResp.data?.result?.ETag;
-
-          // complete upload
+          // complete upload with all parts
           await cloudApiFactory.uploadCompleteMultipartUpload({
             cloudCompleteMultipartUploadRequestModel: {
               Key: finalKey,
               UploadId: uploadId,
-              Parts: [{ PartNumber: 1, ETag: etag }],
+              Parts: parts.map((p) => ({
+                PartNumber: p.PartNumber,
+                ETag: p.ETag,
+              })),
             },
           });
 
@@ -132,6 +176,20 @@ export default function FileUpload() {
 
           toast.success(`Uploaded ${f.name}`);
         } catch (err: unknown) {
+          // If something failed mid-upload, attempt to abort the multipart upload on the server
+          try {
+            if (uploadId && finalKey) {
+              await cloudApiFactory.uploadAbortMultipartUpload({
+                cloudAbortMultipartUploadRequestModel: {
+                  Key: finalKey,
+                  UploadId: uploadId,
+                },
+              });
+            }
+          } catch (abortErr) {
+            // ignore abort errors — main error takes precedence
+            console.warn("Failed to abort multipart upload", abortErr);
+          }
           const e = err as { name?: string; message?: string };
           if (e?.name === "CanceledError" || e?.message === "canceled") {
             updateUpload(id, { status: "failed", error: "Canceled" });

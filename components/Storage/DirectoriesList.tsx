@@ -9,19 +9,26 @@ type Directory = { Prefix: string };
 
 export default function DirectoriesList({
   directories,
+  loading = false,
+  skeletonCount = 4,
 }: {
   directories?: Directory[];
+  loading?: boolean;
+  skeletonCount?: number;
 }) {
   const { currentPath, setCurrentPath } = useStorage();
 
-  if (!directories || directories.length === 0) {
+  if ((!directories || directories.length === 0) && !loading) {
     return null;
   }
 
   return (
     <div className="space-y-2">
-      {directories.map((d, idx) => {
-        const prefix = d.Prefix ?? "";
+      {(loading
+        ? Array.from({ length: skeletonCount })
+        : directories ?? []
+      ).map((d: any, idx) => {
+        const prefix = d?.Prefix ?? "";
         // display name is last non-empty segment
         const segments = prefix.split("/").filter(Boolean);
         const name = segments.length
@@ -33,6 +40,8 @@ export default function DirectoriesList({
             layout
             key={prefix || idx}
             onClick={() =>
+              // disable clicks while loading
+              !loading &&
               setCurrentPath(currentPath ? `${currentPath}/${name}` : name)
             }
             initial={{ opacity: 0, y: 6 }}
@@ -40,10 +49,20 @@ export default function DirectoriesList({
             exit={{ opacity: 0, y: 4 }}
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.16 }}
-            className="w-full flex items-center gap-3 rounded-md px-3 py-2 hover:bg-accent/30 text-sm text-foreground"
+            className={`w-full flex items-center gap-3 rounded-md px-3 py-2 ${
+              loading
+                ? "opacity-60 cursor-default"
+                : "hover:bg-accent/30 cursor-pointer"
+            } text-sm text-foreground`}
           >
             <Folder className="text-muted-foreground" />
-            <div className="flex-1 text-left">{name || prefix}</div>
+            <div className="flex-1 text-left">
+              {loading ? (
+                <div className="h-3 w-28 rounded bg-muted/30 animate-pulse" />
+              ) : (
+                name || prefix
+              )}
+            </div>
             <div className="text-xs text-muted-foreground">Folder</div>
           </motion.button>
         );

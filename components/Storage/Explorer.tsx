@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
 import FileUploadModal from "./FileUploadModal";
 import toast from "react-hot-toast";
-import { FolderPlus, UploadIcon } from "lucide-react";
+import { FolderPlus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import FilePreviewModal from "./FilePreviewModal";
 
@@ -89,7 +89,12 @@ export default function Explorer() {
 
       // invalidate relevant queries so UI refreshes
       await Promise.all([
-        qc.invalidateQueries({ queryKey: ["cloud", "list"] }),
+        qc.invalidateQueries({
+          queryKey: ["cloud", "directories", currentPath],
+        }),
+        qc.invalidateQueries({
+          queryKey: ["cloud", "breadcrumb", currentPath],
+        }),
         qc.invalidateQueries({ queryKey: ["cloud-root-folders"] }),
       ]);
 
@@ -104,7 +109,9 @@ export default function Explorer() {
     }
   }
 
-  if (isLoading) return <LoadingState />;
+  // Don't hide the whole page while loading — keep cards visible and render
+  // per-card placeholders (skeletons). This keeps layout stable when navigating
+  // into a folder or refreshing the page.
   if (isError)
     return (
       <div className="p-6 text-sm text-red-500">Failed to load storage.</div>
@@ -181,27 +188,29 @@ export default function Explorer() {
                 loading={creating}
                 onSubmit={createFolder}
               />
-
-              {isFetching || isNavigating ? (
-                <div className="h-full flex items-center justify-center">
-                  <LoadingState compact message="Loading folders..." />
-                </div>
-              ) : search ? (
-                <div className="h-full overflow-auto p-4">
-                  <DirectoriesList directories={filteredDirectories} />
-                </div>
-              ) : directories.length === 0 ? (
-                <div className="h-full flex items-center justify-center">
-                  <EmptyState
-                    title="No folders"
-                    description="No subfolders in this path."
-                  />
-                </div>
-              ) : (
-                <div className="h-full overflow-auto p-4">
-                  <DirectoriesList directories={directories} />
-                </div>
-              )}
+              <FileUploadModal
+                open={showUpload}
+                onClose={() => setShowUpload(false)}
+              />
+              <div className="h-full overflow-auto p-4 min-h-[180px] sm:min-h-60">
+                <DirectoriesList
+                  directories={search ? filteredDirectories : directories}
+                  loading={isFetching || isNavigating || isLoading}
+                />
+                {/* when not loading and there are no results, show EmptyState */}
+                {!isFetching &&
+                !isNavigating &&
+                !isLoading &&
+                !search &&
+                directories.length === 0 ? (
+                  <div className="absolute inset-0 grid place-items-center p-4">
+                    <EmptyState
+                      title="No folders"
+                      description="No subfolders in this path."
+                    />
+                  </div>
+                ) : null}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -217,43 +226,45 @@ export default function Explorer() {
                     variant="secondary"
                     onClick={() => setShowUpload(true)}
                   >
-                    <UploadIcon size={14} />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      className="mr-1"
+                      aria-hidden
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12 3v10l4-4h-3V3h-2zM5 20h14v-2H5v2z"
+                      />
+                    </svg>
                     <span>Upload</span>
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="h-full p-0 overflow-hidden">
-              <FileUploadModal
-                open={showUpload}
-                onClose={() => setShowUpload(false)}
-              />
-              {isFetching || isNavigating ? (
-                <div className="h-full flex items-center justify-center">
-                  <LoadingState compact message="Loading files..." />
-                </div>
-              ) : search ? (
-                <div className="h-full overflow-auto p-4">
-                  <ContentsList
-                    contents={filteredContents}
-                    onPreview={setPreviewFile}
-                  />
-                </div>
-              ) : contents.length === 0 ? (
-                <div className="h-full flex items-center justify-center">
-                  <EmptyState
-                    title="No files"
-                    description="No files in this folder."
-                  />
-                </div>
-              ) : (
-                <div className="h-full overflow-auto p-4">
-                  <ContentsList
-                    contents={contents}
-                    onPreview={setPreviewFile}
-                  />
-                </div>
-              )}
+              <div className="h-full overflow-auto p-4 relative min-h-[180px] sm:min-h-60">
+                <ContentsList
+                  contents={search ? filteredContents : contents}
+                  onPreview={setPreviewFile}
+                  loading={isFetching || isNavigating || isLoading}
+                />
+
+                {!isFetching &&
+                !isNavigating &&
+                !isLoading &&
+                !search &&
+                contents.length === 0 ? (
+                  <div className="absolute inset-0 grid place-items-center p-4">
+                    <EmptyState
+                      title="No files"
+                      description="No files in this folder."
+                    />
+                  </div>
+                ) : null}
+              </div>
             </CardContent>
           </Card>
         </div>
