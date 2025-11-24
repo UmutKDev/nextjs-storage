@@ -25,7 +25,7 @@ export default async function Home() {
           </div>
           <div className="space-x-4">
             {session ? (
-              <Link href="/depo">
+              <Link href="/storage">
                 <Button variant="outline" size="lg" className="h-11 px-8">
                   Depoya Git
                 </Button>

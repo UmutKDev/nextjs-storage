@@ -1,5 +1,6 @@
 import { API_URL } from "@/Constants";
 import axios, { AxiosError, AxiosResponse } from "axios";
+import { getSession } from "next-auth/react";
 
 const Instance = axios.create({
   baseURL: API_URL,
@@ -14,7 +15,7 @@ const onSuccess = (response: AxiosResponse) => {
 const onError = (error: AxiosError<any>) => {
   if (error?.response) {
     // Yanıt varsa (API'den dönen hata)
-    const { status, data } = error.response;
+    const { data } = error.response;
     console.log(data);
   }
 
@@ -32,30 +33,56 @@ const onError = (error: AxiosError<any>) => {
 
 Instance.interceptors.response.use(onSuccess, onError);
 
-// Instance.interceptors.request.use(
-//   (config) => {
-
-//     if (!decodedUser && !config.url?.includes("/api/crmusers/login")) {
-//       const cancelTokenSource = axios.CancelToken.source();
-//       config.cancelToken = cancelTokenSource.token;
-//       cancelTokenSource.cancel("No access token available. Request canceled.");
-//       window.location.replace("/");
-
-//       return Promise.reject("Oturum Sonlandırıldı");
-//     }
-
-//     config.headers["AccessToken"] =
-//       config.headers["AccessToken"] || decodedUser?.accessToken;
-
-//     if (config.method !== "get") {
-//       console.log(config);
-//     }
-
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
+/**
+ * Request interceptor
+ * - In browser: try to get token from next-auth's session (preferred) and fallback to localStorage
+ * - On server: do not attempt to read session/cookies here — pass token from server code using setServerToken
+ */
+Instance.interceptors.request.use(
+  async (config) => {
+    if (typeof window !== "undefined") {
+      try {
+        const session = await getSession();
+        const token =
+          session?.accessToken || localStorage.getItem("accessToken");
+        if (token) {
+          config.headers = config.headers || {};
+          config.headers["Authorization"] =
+            config.headers["Authorization"] || `Bearer ${token}`;
+        }
+      } catch (error) {
+        // non-fatal: log and try fallback below
+        console.warn("Failed to retrieve next-auth session:", error);
+        // if getSession fails for any reason, keep whatever Authorization header exists (or fallback to localStorage)
+        config.headers = config.headers || {};
+        config.headers["Authorization"] =
+          config.headers["Authorization"] ||
+          `Bearer ${
+            (typeof window !== "undefined" &&
+              localStorage.getItem("accessToken")) ||
+            ""
+          }`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export default Instance;
+
+/**
+ * setServerToken
+ * Use this helper in server-side code (API routes, getServerSideProps, route handlers, etc.) to set
+ * the Authorization header when calling APIs from server code. Server code should retrieve the
+ * token via getToken/getServerSession and then call setServerToken(token) before using the Instance.
+ */
+export function setServerToken(token?: string | null) {
+  if (!token) {
+    delete Instance.defaults.headers.common["Authorization"];
+  } else {
+    Instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
+}

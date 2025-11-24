@@ -136,7 +136,16 @@ export interface CloudAbortMultipartUploadRequestModel {
 export interface CloudBreadCrumbModel {
     'Name': string;
     'Path': string;
+    'Type': CloudBreadCrumbModelTypeEnum;
 }
+
+export const CloudBreadCrumbModelTypeEnum = {
+    Root: 'ROOT',
+    Subfolder: 'SUBFOLDER'
+} as const;
+
+export type CloudBreadCrumbModelTypeEnum = typeof CloudBreadCrumbModelTypeEnum[keyof typeof CloudBreadCrumbModelTypeEnum];
+
 export interface CloudCompleteMultipartUploadRequestModel {
     'Key': string;
     'UploadId': string;
@@ -168,6 +177,7 @@ export interface CloudCreateMultipartUploadResponseModel1 {
 }
 export interface CloudDeleteRequestModel {
     'Key': Array<string>;
+    'IsDirectory'?: boolean;
 }
 export interface CloudDirectoryModel {
     'Prefix': string;

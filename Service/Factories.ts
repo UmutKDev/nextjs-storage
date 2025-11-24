@@ -1,4 +1,4 @@
-import { AuthenticationApiFactory } from "./Generates";
+import { AuthenticationApiFactory, CloudApiFactory } from "./Generates";
 import Instance from "./Instance";
 
 export const authenticationApiFactory = AuthenticationApiFactory(
@@ -6,3 +6,5 @@ export const authenticationApiFactory = AuthenticationApiFactory(
   undefined,
   Instance
 );
+
+export const cloudApiFactory = CloudApiFactory(undefined, undefined, Instance);

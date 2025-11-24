@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export function Navbar() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  
+
   const isLoggedIn = status === "authenticated" && !!session?.user;
 
   return (
@@ -34,7 +34,7 @@ export function Navbar() {
             Anasayfa
           </Link>
           <Link
-            href="/depo"
+            href="/storage"
             className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground hover:bg-accent px-4 py-2 rounded-full"
           >
             Depo
