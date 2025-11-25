@@ -1,6 +1,6 @@
 import { parseJwt } from "@/lib/utils";
 import { authenticationApiFactory } from "@/Service/Factories";
-import Instance from "@/Service/Instance";
+import Instance, { setServerToken } from "@/Service/Instance";
 import { AccessTokenPayload } from "@/types/next-auth";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -55,11 +55,15 @@ export const authOptions: NextAuthOptions = {
         token.refreshToken = user.refreshToken;
       }
 
+      setServerToken(token.accessToken as string);
+
       return token;
     },
     async session({ session, token }) {
       if (token?.accessToken) session.accessToken = token.accessToken;
       if (token?.refreshToken) session.refreshToken = token.refreshToken;
+
+      setServerToken(token.accessToken as string);
 
       return session;
     },

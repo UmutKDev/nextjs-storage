@@ -175,6 +175,7 @@ export interface CloudCreateMultipartUploadRequestModel {
     'Key': string;
     'ContentType'?: string;
     'Metadata'?: object;
+    'TotalSize': number;
 }
 export interface CloudCreateMultipartUploadResponseBaseModel {
     'result': CloudCreateMultipartUploadResponseModel;
@@ -254,6 +255,12 @@ export interface CloudPathModel {
     'Host': string;
     'Key': string;
     'Url': string;
+}
+export interface CloudUploadPartRequestModel {
+    'Key': string;
+    'UploadId': string;
+    'PartNumber': number;
+    'File': File;
 }
 export interface CloudUploadPartResponseBaseModel {
     'result': CloudUploadPartResponseModel;
@@ -554,13 +561,6 @@ export const SubscriptionResponseModelStatusEnum = {
 
 export type SubscriptionResponseModelStatusEnum = typeof SubscriptionResponseModelStatusEnum[keyof typeof SubscriptionResponseModelStatusEnum];
 
-export interface UploadPartRequest {
-    'Key'?: string;
-    'UploadId'?: string;
-    'PartNumber'?: number;
-    'TotalPart'?: number;
-    'File'?: File;
-}
 export interface UserDateModel {
     'created': string;
     'updated': string;
@@ -1988,15 +1988,22 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
-         * @param {string} [key] 
-         * @param {string} [uploadId] 
-         * @param {number} [partNumber] 
-         * @param {number} [totalPart] 
-         * @param {File} [file] 
+         * @param {string} key 
+         * @param {string} uploadId 
+         * @param {number} partNumber 
+         * @param {File} file 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadPart: async (key?: string, uploadId?: string, partNumber?: number, totalPart?: number, file?: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadPart: async (key: string, uploadId: string, partNumber: number, file: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('uploadPart', 'key', key)
+            // verify required parameter 'uploadId' is not null or undefined
+            assertParamExists('uploadPart', 'uploadId', uploadId)
+            // verify required parameter 'partNumber' is not null or undefined
+            assertParamExists('uploadPart', 'partNumber', partNumber)
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('uploadPart', 'file', file)
             const localVarPath = `/Api/Cloud/Upload/UploadPart`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2025,10 +2032,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             if (partNumber !== undefined) { 
                 localVarFormParams.append('PartNumber', partNumber as any);
-            }
-    
-            if (totalPart !== undefined) { 
-                localVarFormParams.append('TotalPart', totalPart as any);
             }
     
             if (file !== undefined) { 
@@ -2254,16 +2257,15 @@ export const CloudApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {string} [key] 
-         * @param {string} [uploadId] 
-         * @param {number} [partNumber] 
-         * @param {number} [totalPart] 
-         * @param {File} [file] 
+         * @param {string} key 
+         * @param {string} uploadId 
+         * @param {number} partNumber 
+         * @param {File} file 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadPart(key?: string, uploadId?: string, partNumber?: number, totalPart?: number, file?: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(key, uploadId, partNumber, totalPart, file, options);
+        async uploadPart(key: string, uploadId: string, partNumber: number, file: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(key, uploadId, partNumber, file, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadPart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -2411,8 +2413,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadPart(requestParameters: CloudApiUploadPartRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseBaseModel> {
-            return localVarFp.uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.totalPart, requestParameters.file, options).then((request) => request(axios, basePath));
+        uploadPart(requestParameters: CloudApiUploadPartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseBaseModel> {
+            return localVarFp.uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2532,15 +2534,13 @@ export interface CloudApiUploadGetMultipartPartUrlRequest {
  * Request parameters for uploadPart operation in CloudApi.
  */
 export interface CloudApiUploadPartRequest {
-    readonly key?: string
+    readonly key: string
 
-    readonly uploadId?: string
+    readonly uploadId: string
 
-    readonly partNumber?: number
+    readonly partNumber: number
 
-    readonly totalPart?: number
-
-    readonly file?: File
+    readonly file: File
 }
 
 /**
@@ -2683,8 +2683,8 @@ export class CloudApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public uploadPart(requestParameters: CloudApiUploadPartRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.totalPart, requestParameters.file, options).then((request) => request(this.axios, this.basePath));
+    public uploadPart(requestParameters: CloudApiUploadPartRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

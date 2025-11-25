@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { setClientToken } from "@/Service/Instance";
 import { Toaster } from "react-hot-toast";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -14,6 +16,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
         {children}
+        {/* Sync next-auth session -> Instance token cache once here so we don't call getSession per request */}
+        <AuthTokenSync />
         {/* Devtools only show up in development */}
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
@@ -33,4 +37,17 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       />
     </SessionProvider>
   );
+}
+
+function AuthTokenSync() {
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    const token = session?.accessToken ?? session?.user?.accessToken ?? null;
+    setClientToken(token);
+    // clear token on unmount if needed
+    return () => setClientToken(null);
+  }, [session]);
+
+  return null;
 }

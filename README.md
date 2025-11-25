@@ -17,6 +17,12 @@ bun dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ 
+## Storage: optimistic delete behavior
+
+The Storage UI uses optimistic updates when deleting a file. When you confirm a delete the UI will remove the file immediately from the list (optimistic update) and call the backend. If the delete succeeds the UI stays updated; if it fails, the previous state is restored and the user is shown an error toast.
+
+This improves perceived performance and makes the UI feel more responsive while the backend request completes.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

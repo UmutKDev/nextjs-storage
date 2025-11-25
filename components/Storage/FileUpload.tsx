@@ -93,6 +93,7 @@ export default function FileUpload() {
             cloudCreateMultipartUploadRequestModel: {
               Key: key,
               ContentType: f.type || undefined,
+              TotalSize: f.size,
             },
           });
 
