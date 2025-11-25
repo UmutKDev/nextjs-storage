@@ -4,19 +4,19 @@ import { getSession } from "next-auth/react";
 
 const Instance = axios.create({
   baseURL: API_URL,
+  headers: {
+    "X-Tunnel-Skip-AntiPhishing-Page": "true",
+  },
 });
 
 const onSuccess = (response: AxiosResponse) => {
-  console.log(response);
   return response;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const onError = (error: AxiosError<any>) => {
   if (error?.response) {
-    // Yanıt varsa (API'den dönen hata)
     const { data } = error.response;
-    console.log(data);
   }
 
   if (error.response && error.response.data) {

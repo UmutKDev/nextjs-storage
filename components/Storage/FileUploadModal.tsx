@@ -66,7 +66,7 @@ export default function FileUploadModal({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 12, scale: 0.98 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className="relative z-10 w-[95vw] max-w-4xl rounded-xl bg-card border border-border shadow-2xl overflow-hidden max-h-[calc(100vh-6rem)] flex flex-col"
+          className="relative z-10 w-[95vw] max-w-xl rounded-xl bg-card border border-border shadow-2xl overflow-hidden max-h-[calc(100vh-6rem)] flex flex-col"
         >
           <div className="flex items-center justify-between p-4 border-b border-muted/10 shrink-0">
             <div className="text-sm font-semibold">Upload files</div>

@@ -9,10 +9,6 @@ type Crumb = { Name?: string; Path?: string; Type?: string };
 
 export default function Breadcrumb({ items }: { items?: Crumb[] }) {
   const { setCurrentPath, currentPath } = useStorage();
-
-  console.log(items && items.length);
-  console.log(items && items.length > 1 ? items : "zort");
-
   // Helper that builds a breadcrumb list using the currentPath when the API doesn't provide full crumbs
   const buildFromPath = (path?: string) => {
     const normalized =

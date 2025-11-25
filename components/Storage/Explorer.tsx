@@ -12,6 +12,7 @@ import type {
   CloudDirectoryModel,
   CloudObjectModel,
   CloudBreadCrumbModel,
+  CloudUserStorageUsageResponseModel,
 } from "@/Service/Generates/api";
 import { useStorage } from "./StorageProvider";
 import { cloudApiFactory } from "@/Service/Factories";
@@ -20,8 +21,10 @@ import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
 import FileUploadModal from "./FileUploadModal";
 import toast from "react-hot-toast";
-import { FolderPlus } from "lucide-react";
+import { FolderPlus, UploadCloudIcon } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import StorageUsage from "./StorageUsage";
+import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import FilePreviewModal from "./FilePreviewModal";
 
 export default function Explorer() {
@@ -134,8 +137,14 @@ export default function Explorer() {
 
   const breadcrumbs: CloudBreadCrumbModel[] = data?.Breadcrumb ?? [];
 
+  // usage hook
+  const usageQuery = useUserStorageUsage();
+  const usage = usageQuery.data as CloudUserStorageUsageResponseModel | undefined;
+
   return (
-    <div className="space-y-10">
+    // make explorer take full height of its parent card and use flex so header
+    // is fixed-height and panels stretch to fill remaining space
+    <div className="space-y-10 h-full flex flex-col">
       {/* increased spacing between header and panels */}
       <Card className="mb-10">
         <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-2 md:py-2 px-4 md:px-6">
@@ -149,18 +158,22 @@ export default function Explorer() {
                   Type: b.Type,
                 }))}
               />
+              {/* compact mobile usage */}
             </div>
           </div>
 
-          <div className="mt-4 md:mt-0 md:ml-6 w-full md:w-1/3 flex items-center gap-3">
+          <div className="mt-4 md:mt-0 md:ml-6 w-full md:w-1/2 flex items-center gap-3">
+                      {usage ? <StorageUsage usage={usage} className="hidden md:flex md:items-center md:ml-4" /> : null}
+
             <div className="flex-1">
               <SearchBar value={search} onChange={setSearch} />
             </div>
+            {/* usage block shown on md+ to the right of search */}
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-12 gap-8 items-start lg:h-[520px] md:h-[480px] sm:h-auto mt-4">
+      <div className="grid grid-cols-12 gap-8 items-stretch flex-1 mt-4">
         {/* more horizontal gap between panels */}
         <div className="col-span-4">
           <Card className="h-full relative">
@@ -192,7 +205,8 @@ export default function Explorer() {
                 open={showUpload}
                 onClose={() => setShowUpload(false)}
               />
-              <div className="h-full overflow-auto p-4 min-h-[180px] sm:min-h-60">
+              {/* allow this area to shrink so overflow works inside flex children */}
+              <div className="h-full overflow-auto p-4 min-h-0">
                 <DirectoriesList
                   directories={search ? filteredDirectories : directories}
                   loading={isFetching || isNavigating || isLoading}
@@ -226,26 +240,14 @@ export default function Explorer() {
                     variant="secondary"
                     onClick={() => setShowUpload(true)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      width="14"
-                      height="14"
-                      className="mr-1"
-                      aria-hidden
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M12 3v10l4-4h-3V3h-2zM5 20h14v-2H5v2z"
-                      />
-                    </svg>
+                    <UploadCloudIcon size={14} /> 
                     <span>Upload</span>
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="h-full p-0 overflow-hidden">
-              <div className="h-full overflow-auto p-4 relative min-h-[180px] sm:min-h-60">
+              <div className="h-full overflow-auto p-4 relative min-h-0">
                 <ContentsList
                   contents={search ? filteredContents : contents}
                   onPreview={setPreviewFile}

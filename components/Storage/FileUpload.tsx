@@ -131,7 +131,6 @@ export default function FileUpload() {
                 uploadId,
                 partNumber,
                 file: chunkFile,
-                totalPart: totalParts,
               },
               {
                 signal: controller.signal,

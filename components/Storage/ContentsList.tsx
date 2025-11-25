@@ -51,18 +51,48 @@ export default function ContentsList({
 
     setDeleting((s) => ({ ...s, [key]: true }));
     try {
+      // optimistic update: remove the file from the cached lists immediately
+      const listQueryKey = ["cloud", "list", currentPath, true, false] as const;
+      const objectsQueryKey = ["cloud", "objects", currentPath] as const;
+
+      const prevList = qc.getQueryData(listQueryKey);
+      const prevObjects = qc.getQueryData(objectsQueryKey);
+
+      qc.setQueryData(listQueryKey, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          Contents: (old.Contents ?? []).filter((c: any) => c?.Path?.Key !== key),
+        };
+      });
+
+      qc.setQueryData(objectsQueryKey, (old: any) =>
+        Array.isArray(old) ? old.filter((o: any) => o?.Path?.Key !== key) : old
+      );
+
+      // call server to remove file
       await cloudApiFactory._delete({
         cloudDeleteRequestModel: { Key: [key], IsDirectory: false },
       });
+
+      // success — keep optimistic state and refresh other queries that may be affected
       toast.success("Deleted");
-      await qc.invalidateQueries({
-        queryKey: ["cloud", "objects", currentPath],
-      });
-      await qc.invalidateQueries({
-        queryKey: ["cloud", "directories", currentPath],
-      });
+      await qc.invalidateQueries({ queryKey: ["cloud", "directories", currentPath] });
       await qc.invalidateQueries({ queryKey: ["cloud-root-folders"] });
+
+      // also invalidate objects to ensure full canonical state if server changed anything
+      await qc.invalidateQueries({ queryKey: objectsQueryKey });
     } catch (err) {
+      // rollback optimistic update on error
+      const listQueryKey = ["cloud", "list", currentPath, true, false] as const;
+      const objectsQueryKey = ["cloud", "objects", currentPath] as const;
+
+      try {
+        if (prevList !== undefined) qc.setQueryData(listQueryKey, prevList as any);
+        if (prevObjects !== undefined) qc.setQueryData(objectsQueryKey, prevObjects as any);
+      } catch (rollbackErr) {
+        console.error("Rollback failed", rollbackErr);
+      }
       console.error(err);
       toast.error("Delete failed");
     } finally {

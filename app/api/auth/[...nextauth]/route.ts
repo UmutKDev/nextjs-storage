@@ -27,7 +27,6 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
-          console.log(res);
           const tokens = res.data;
 
           const decoded = await parseJwt<AccessTokenPayload>(
