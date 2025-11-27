@@ -4,19 +4,23 @@ import React from "react";
 import Breadcrumb from "./Breadcrumb";
 import DirectoriesList from "./DirectoriesList";
 import ContentsList from "./ContentsList";
-import LoadingState from "./LoadingState";
 import EmptyState from "./EmptyState";
 import SearchBar from "./SearchBar";
-import useCloudList from "@/hooks/useCloudList";
 import type {
   CloudDirectoryModel,
   CloudObjectModel,
   CloudBreadCrumbModel,
   CloudUserStorageUsageResponseModel,
+  CloudBreadCrumbListModelResult,
+  CloudObjectListModelResult,
+  CloudDirectoryListModelResult,
 } from "@/Service/Generates/api";
-import { useStorage } from "./StorageProvider";
 import { cloudApiFactory } from "@/Service/Factories";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, UseQueryResult } from "@tanstack/react-query";
+import {
+  CLOUD_DIRECTORIES_QUERY_KEY,
+  CLOUD_LIST_QUERY_KEY,
+} from "@/hooks/useCloudList";
 import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
 import FileUploadModal from "./FileUploadModal";
@@ -27,11 +31,18 @@ import StorageUsage from "./StorageUsage";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import FilePreviewModal from "./FilePreviewModal";
 
-export default function Explorer() {
-  const { currentPath } = useStorage();
-
+export default function Explorer({
+  queries: { breadcrumbQuery, objectsQuery, directoriesQuery },
+  currentPath,
+}: {
+  queries: {
+    breadcrumbQuery: UseQueryResult<CloudBreadCrumbListModelResult, Error>;
+    objectsQuery: UseQueryResult<CloudObjectListModelResult, Error>;
+    directoriesQuery: UseQueryResult<CloudDirectoryListModelResult, Error>;
+  };
+  currentPath: string;
+}) {
   // main data hook
-  const { data, isLoading, isFetching, isError } = useCloudList(currentPath);
 
   // UI state
   const [search, setSearch] = React.useState("");
@@ -58,12 +69,12 @@ export default function Explorer() {
 
   // When fetch completes, clear navigating state (small debounce to avoid flicker)
   React.useEffect(() => {
-    if (!isFetching) {
+    if (!objectsQuery.isFetching && !directoriesQuery.isFetching) {
       const t = setTimeout(() => setIsNavigating(false), 120);
       return () => clearTimeout(t);
     }
     return;
-  }, [isFetching]);
+  }, [objectsQuery.isFetching, directoriesQuery.isFetching]);
 
   async function createFolder() {
     const name = newFolderName.trim();
@@ -91,15 +102,13 @@ export default function Explorer() {
       });
 
       // invalidate relevant queries so UI refreshes
-      await Promise.all([
-        qc.invalidateQueries({
-          queryKey: ["cloud", "directories", currentPath],
-        }),
-        qc.invalidateQueries({
-          queryKey: ["cloud", "breadcrumb", currentPath],
-        }),
-        qc.invalidateQueries({ queryKey: ["cloud-root-folders"] }),
-      ]);
+      await qc.invalidateQueries({
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_DIRECTORIES_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_DIRECTORIES_QUERY_KEY[1] &&
+          q.queryKey[2] === currentPath,
+      });
 
       toast.success(`Folder created: ${key}`);
       setNewFolderName("");
@@ -115,13 +124,10 @@ export default function Explorer() {
   // Don't hide the whole page while loading — keep cards visible and render
   // per-card placeholders (skeletons). This keeps layout stable when navigating
   // into a folder or refreshing the page.
-  if (isError)
-    return (
-      <div className="p-6 text-sm text-red-500">Failed to load storage.</div>
-    );
-
-  const directories: CloudDirectoryModel[] = data?.Directories ?? [];
-  const contents: CloudObjectModel[] = data?.Contents ?? [];
+  const usageQuery = useUserStorageUsage();
+  const usage = usageQuery.userStorageUsageQuery.data;
+  const directories: CloudDirectoryModel[] = directoriesQuery.data?.items ?? [];
+  const contents: CloudObjectModel[] = objectsQuery.data?.items ?? [];
 
   // simple case-insensitive matches
   const searchLower = search.toLowerCase();
@@ -135,11 +141,7 @@ export default function Explorer() {
     return name.toLowerCase().includes(searchLower);
   });
 
-  const breadcrumbs: CloudBreadCrumbModel[] = data?.Breadcrumb ?? [];
-
-  // usage hook
-  const usageQuery = useUserStorageUsage();
-  const usage = usageQuery.data as CloudUserStorageUsageResponseModel | undefined;
+  const breadcrumbs: CloudBreadCrumbModel[] = breadcrumbQuery.data?.items ?? [];
 
   return (
     // make explorer take full height of its parent card and use flex so header
@@ -163,7 +165,12 @@ export default function Explorer() {
           </div>
 
           <div className="mt-4 md:mt-0 md:ml-6 w-full md:w-1/2 flex items-center gap-3">
-                      {usage ? <StorageUsage usage={usage} className="hidden md:flex md:items-center md:ml-4" /> : null}
+            {usage ? (
+              <StorageUsage
+                usage={usage}
+                className="hidden md:flex md:items-center md:ml-4"
+              />
+            ) : null}
 
             <div className="flex-1">
               <SearchBar value={search} onChange={setSearch} />
@@ -206,18 +213,22 @@ export default function Explorer() {
                 onClose={() => setShowUpload(false)}
               />
               {/* allow this area to shrink so overflow works inside flex children */}
-              <div className="h-full overflow-auto p-4 min-h-0">
+              <div className="h-full overflow-auto p-4 min-h-0 ">
                 <DirectoriesList
                   directories={search ? filteredDirectories : directories}
-                  loading={isFetching || isNavigating || isLoading}
+                  loading={
+                    directoriesQuery.isFetching ||
+                    isNavigating ||
+                    directoriesQuery.isLoading
+                  }
                 />
                 {/* when not loading and there are no results, show EmptyState */}
-                {!isFetching &&
+                {!directoriesQuery.isLoading &&
                 !isNavigating &&
-                !isLoading &&
+                !directoriesQuery.isLoading &&
                 !search &&
                 directories.length === 0 ? (
-                  <div className="absolute inset-0 grid place-items-center p-4">
+                  <div className="absolute inset-0 grid place-items-center p-4 top-14">
                     <EmptyState
                       title="No folders"
                       description="No subfolders in this path."
@@ -240,7 +251,7 @@ export default function Explorer() {
                     variant="secondary"
                     onClick={() => setShowUpload(true)}
                   >
-                    <UploadCloudIcon size={14} /> 
+                    <UploadCloudIcon size={14} />
                     <span>Upload</span>
                   </Button>
                 </div>
@@ -251,12 +262,16 @@ export default function Explorer() {
                 <ContentsList
                   contents={search ? filteredContents : contents}
                   onPreview={setPreviewFile}
-                  loading={isFetching || isNavigating || isLoading}
+                  loading={
+                    objectsQuery.isLoading ||
+                    isNavigating ||
+                    objectsQuery.isLoading
+                  }
                 />
 
-                {!isFetching &&
+                {!objectsQuery.isLoading &&
                 !isNavigating &&
-                !isLoading &&
+                !objectsQuery.isLoading &&
                 !search &&
                 contents.length === 0 ? (
                   <div className="absolute inset-0 grid place-items-center p-4">

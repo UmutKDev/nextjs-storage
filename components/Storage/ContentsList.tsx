@@ -12,6 +12,8 @@ import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
 
 import type { CloudObjectModel } from "@/Service/Generates/api";
+import { createCloudObjectsQueryKey, useCloudList } from "@/hooks/useCloudList";
+import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 
 // use the generated CloudObjectModel for accurate typing
 type CloudObject = CloudObjectModel;
@@ -36,6 +38,8 @@ export default function ContentsList({
 }) {
   const qc = useQueryClient();
   const { currentPath } = useStorage();
+  const { invalidate: invalidateUsage } = useUserStorageUsage();
+  const { invalidates: invalidatesObjects } = useCloudList(currentPath);
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
   const [toDelete, setToDelete] = React.useState<CloudObject | null>(null);
 
@@ -50,19 +54,26 @@ export default function ContentsList({
     if (!key) return toast.error("Unable to delete: missing key");
 
     setDeleting((s) => ({ ...s, [key]: true }));
+
+    const listQueryKey = createCloudObjectsQueryKey(currentPath, true, false);
+    const objectsQueryKey = createCloudObjectsQueryKey(currentPath);
+
+    const prevList = qc.getQueryData(
+      createCloudObjectsQueryKey(currentPath, true, false)
+    );
+    const prevObjects = qc.getQueryData(
+      createCloudObjectsQueryKey(currentPath)
+    );
     try {
       // optimistic update: remove the file from the cached lists immediately
-      const listQueryKey = ["cloud", "list", currentPath, true, false] as const;
-      const objectsQueryKey = ["cloud", "objects", currentPath] as const;
-
-      const prevList = qc.getQueryData(listQueryKey);
-      const prevObjects = qc.getQueryData(objectsQueryKey);
 
       qc.setQueryData(listQueryKey, (old: any) => {
         if (!old) return old;
         return {
           ...old,
-          Contents: (old.Contents ?? []).filter((c: any) => c?.Path?.Key !== key),
+          items: [
+            ...old.data.result.items.filter((c: any) => c?.Path?.Key !== key),
+          ],
         };
       });
 
@@ -77,19 +88,13 @@ export default function ContentsList({
 
       // success — keep optimistic state and refresh other queries that may be affected
       toast.success("Deleted");
-      await qc.invalidateQueries({ queryKey: ["cloud", "directories", currentPath] });
-      await qc.invalidateQueries({ queryKey: ["cloud-root-folders"] });
-
-      // also invalidate objects to ensure full canonical state if server changed anything
-      await qc.invalidateQueries({ queryKey: objectsQueryKey });
+      await invalidateUsage();
+      await invalidatesObjects.invalidateObjects();
     } catch (err) {
       // rollback optimistic update on error
-      const listQueryKey = ["cloud", "list", currentPath, true, false] as const;
-      const objectsQueryKey = ["cloud", "objects", currentPath] as const;
-
       try {
-        if (prevList !== undefined) qc.setQueryData(listQueryKey, prevList as any);
-        if (prevObjects !== undefined) qc.setQueryData(objectsQueryKey, prevObjects as any);
+        qc.setQueryData(listQueryKey, prevList);
+        qc.setQueryData(objectsQueryKey, prevObjects);
       } catch (rollbackErr) {
         console.error("Rollback failed", rollbackErr);
       }

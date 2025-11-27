@@ -41,6 +41,7 @@ export const authOptions: NextAuthOptions = {
             refreshToken: tokens.result.refreshToken,
           };
         } catch (error) {
+          console.log(error);
           console.error("Authorize err", error);
           return null;
         }

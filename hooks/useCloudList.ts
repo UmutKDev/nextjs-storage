@@ -1,146 +1,211 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type {
-  CloudListResponseModel,
-  CloudDirectoryModel,
-} from "@/Service/Generates/api";
+import type { CloudListResponseModel } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
+import { useSession } from "next-auth/react";
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Fetch cloud list for a path. Returns the API model result (Breadcrumb, Directories, Contents)
- */
-export function useCloudList(
-  path?: string,
-  opts?: {
-    delimiter?: boolean;
-    isMetadataProcessing?: boolean;
-    /** When true, the hook will try to prefetch a couple of sibling/child queries for faster navigation */
-    prefetchNeighbors?: boolean;
-    /** 'always' will always refetch when the query is mounted (e.g. navigating back to a previous path) */
-    refetchOnMount?: boolean | "always";
-  }
-) {
-  // Normalize incoming path: treat `"/"` and falsy as root (empty string), strip leading slashes for consistency
-  const normalized = path === "/" || !path ? "" : path.replace(/^\/+/, "");
+interface UseCloudListOptions {
+  delimiter?: boolean;
+  isMetadataProcessing?: boolean;
+  prefetchNeighbors?: boolean;
+  refetchOnMount?: boolean | "always";
+}
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const CLOUD_LIST_QUERY_KEY = ["cloud", "list"] as const;
+export const CLOUD_BREADCRUMB_QUERY_KEY = ["cloud", "breadcrumb"] as const;
+export const CLOUD_OBJECTS_QUERY_KEY = ["cloud", "objects"] as const;
+export const CLOUD_DIRECTORIES_QUERY_KEY = ["cloud", "directories"] as const;
+export const STALE_TIME = 60 * 1000; // 1 minute
+
+/** "/" veya boş string'i normalize eder */
+const normalizePath = (path?: string): string => {
+  if (!path || path === "/") return "";
+  return path.replace(/^\/+/, "");
+};
+
+/** Parent path'i hesaplar, root için null döner */
+const getParentPath = (path: string): string | null => {
+  if (!path) return null;
+  const segments = path.split("/").filter(Boolean);
+  segments.pop();
+  return segments.join("/");
+};
+
+/** Query key oluşturur */
+export const createCloudListQueryKey = (
+  path: string,
+  delimiter = true,
+  isMetadataProcessing = false
+) => [...CLOUD_LIST_QUERY_KEY, path, delimiter, isMetadataProcessing] as const;
+
+export const createCloudBreadcrumbQueryKey = (path: string, delimiter = true) =>
+  [...CLOUD_BREADCRUMB_QUERY_KEY, path, delimiter] as const;
+
+export const createCloudObjectsQueryKey = (
+  path: string,
+  delimiter = true,
+  isMetadataProcessing = false
+) =>
+  [...CLOUD_OBJECTS_QUERY_KEY, path, delimiter, isMetadataProcessing] as const;
+
+export const createCloudDirectoriesQueryKey = (
+  path: string,
+  delimiter = true
+) => [...CLOUD_DIRECTORIES_QUERY_KEY, path, delimiter] as const;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function useCloudList(path?: string, options?: UseCloudListOptions) {
+  const { status } = useSession();
   const {
     delimiter = true,
-    isMetadataProcessing = false,
-    // default off to avoid unexpected prefetches on refresh; enable when desired
-    prefetchNeighbors = false,
+    isMetadataProcessing = true,
     refetchOnMount = "always",
-  } = opts ?? {};
+  } = options ?? {};
 
-  // Build a deterministic key so React Query caching works across callers
-  const key = [
-    "cloud",
-    "list",
-    normalized,
-    delimiter,
-    isMetadataProcessing,
-  ] as const;
+  const queryClient = useQueryClient();
+  const normalizedPath = useMemo(() => normalizePath(path), [path]);
 
-  // Query function supports cancellation via the provided `signal` so navigations can abort inflight requests
-  const queryFn = async ({ signal }: { signal?: AbortSignal }) => {
-    const res = await cloudApiFactory.list(
-      { path: normalized, delimiter, isMetadataProcessing },
-      { signal }
-    );
+  const breadcrumbQueryKey = useMemo(
+    () => createCloudBreadcrumbQueryKey(normalizedPath, delimiter),
+    [normalizedPath, delimiter]
+  );
 
-    // The generated client returns a wrapper like { data: { result: CloudListResponseModel } }
-    return res.data?.result;
-  };
+  const directoriesQueryKey = useMemo(
+    () => createCloudDirectoriesQueryKey(normalizedPath, delimiter),
+    [normalizedPath, delimiter]
+  );
 
-  const query = useQuery<
-    CloudListResponseModel | undefined,
-    unknown,
-    CloudListResponseModel | undefined
-  >({
-    queryKey: key,
-    queryFn,
-    staleTime: 1000 * 60, // 1 minute
+  const objectsQueryKey = useMemo(
+    () =>
+      createCloudObjectsQueryKey(
+        normalizedPath,
+        delimiter,
+        isMetadataProcessing
+      ),
+    [normalizedPath, delimiter, isMetadataProcessing]
+  );
+
+  // Ana query
+  const breadcrumbQuery = useQuery({
+    queryKey: breadcrumbQueryKey,
+    queryFn: async ({ signal }) =>
+      await cloudApiFactory.listBreadcrumb(
+        { path: normalizedPath, delimiter },
+        { signal }
+      ),
+    select: (res) => res.data?.result,
+    staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
+    enabled: status === "authenticated",
   });
 
-  // Prefetch some neighbors for faster navigation
-  const queryClient = useQueryClient();
+  const objectsQuery = useQuery({
+    queryKey: objectsQueryKey,
+    queryFn: async ({ signal }) =>
+      await cloudApiFactory.listObjects(
+        { path: normalizedPath, delimiter, isMetadataProcessing },
+        { signal }
+      ),
+    select: (res) => res.data?.result,
+    staleTime: STALE_TIME,
+    refetchOnMount,
+    refetchOnWindowFocus: false,
+    enabled: status === "authenticated",
+  });
 
-  useEffect(() => {
-    // Don't prefetch children/parent until the main query successfully returned data.
-    // This prevents extra background requests on page load/refresh.
-    if (!prefetchNeighbors) return;
-    if (!query.isSuccess) return;
+  const directoriesQuery = useQuery({
+    queryKey: directoriesQueryKey,
+    queryFn: async ({ signal }) =>
+      await cloudApiFactory.listDirectories(
+        { path: normalizedPath, delimiter },
+        { signal }
+      ),
+    select: (res) => res.data?.result,
+    staleTime: STALE_TIME,
+    refetchOnMount,
+    refetchOnWindowFocus: false,
+    enabled: status === "authenticated",
+  });
 
-    // Prefetch parent path (if exists) and the first few directory prefixes
-    const parent = (() => {
-      if (!normalized) return null;
-      const segments = normalized.split("/").filter(Boolean);
-      segments.pop();
-      return segments.join("/");
-    })();
-
-    if (parent !== null) {
-      // parent may be empty string meaning root
-      queryClient.prefetchQuery({
-        queryKey: ["cloud", "list", parent, delimiter, isMetadataProcessing],
-        queryFn: async () => {
-          const r = await cloudApiFactory.list({ path: parent }, {});
-          return r.data?.result;
-        },
-      });
-    }
-
-    const directories = (query.data?.Directories ??
-      []) as CloudDirectoryModel[];
-    // prefetch the first two directories so navigation to them feels instantaneous
-    directories.slice(0, 2).forEach((d) => {
-      const prefix = d.Prefix ?? "";
-      if (!prefix) return;
-      queryClient.prefetchQuery({
-        queryKey: ["cloud", "list", prefix, delimiter, isMetadataProcessing],
-        queryFn: async () => {
-          const r = await cloudApiFactory.list({ path: prefix }, {});
-          return r.data?.result;
-        },
-      });
-    });
-  }, [
-    normalized,
-    prefetchNeighbors,
-    delimiter,
-    isMetadataProcessing,
-    query.data,
-    query.isSuccess,
-    queryClient,
-  ]);
-
-  // Helper: compute if current path is root
-  const isRoot = normalized === "";
-
-  // Helper to quickly trigger a prefetch for a given path
-  const prefetchPath = useCallback(
-    (p: string) =>
-      queryClient.prefetchQuery({
-        queryKey: ["cloud", "list", p, delimiter, isMetadataProcessing],
-        queryFn: async () => {
-          const r = await cloudApiFactory.list({ path: p }, {});
-          return r.data?.result;
-        },
+  // Invalidate helper - mevcut path için cache'i temizler
+  const invalidate = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: CLOUD_LIST_QUERY_KEY,
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_LIST_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_LIST_QUERY_KEY[1] &&
+          q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, delimiter, isMetadataProcessing]
+    [queryClient, normalizedPath]
+  );
+
+  const invalidateBreadcrumb = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: CLOUD_BREADCRUMB_QUERY_KEY,
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_BREADCRUMB_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_BREADCRUMB_QUERY_KEY[1] &&
+          q.queryKey[2] === normalizedPath,
+      }),
+    [queryClient, normalizedPath]
+  );
+
+  const invalidateObjects = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: CLOUD_OBJECTS_QUERY_KEY,
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_OBJECTS_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_OBJECTS_QUERY_KEY[1] &&
+          q.queryKey[2] === normalizedPath,
+      }),
+    [queryClient, normalizedPath]
+  );
+
+  const invalidateDirectories = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: CLOUD_DIRECTORIES_QUERY_KEY,
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_DIRECTORIES_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_DIRECTORIES_QUERY_KEY[1] &&
+          q.queryKey[2] === normalizedPath,
+      }),
+    [queryClient, normalizedPath]
   );
 
   return {
-    // React Query result spread (isLoading, data, etc.)
-    ...query,
-    // contextual helpers
-    currentPath: normalized,
-    isRoot,
-    prefetchPath,
-  } as const;
+    breadcrumbQuery,
+    objectsQuery,
+    directoriesQuery,
+    invalidates: {
+      invalidate,
+      invalidateBreadcrumb,
+      invalidateObjects,
+      invalidateDirectories,
+    },
+    currentPath: normalizedPath,
+    isRoot: normalizedPath === "",
+  };
 }
 
 export default useCloudList;

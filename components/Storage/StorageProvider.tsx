@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCloudList } from "@/hooks/useCloudList";
 
 type StorageContextType = {
   currentPath: string; // path used as query param for cloudApiFactory.list
@@ -22,8 +23,7 @@ export default function StorageProvider({
   initialPath = "",
 }: React.PropsWithChildren<{ initialPath?: string }>) {
   const [currentPath, setCurrentPathRaw] = useState<string>(initialPath);
-
-  const queryClient = useQueryClient();
+  const { invalidates } = useCloudList(currentPath);
 
   const setCurrentPath = useCallback(
     (path: string) => {
@@ -34,18 +34,14 @@ export default function StorageProvider({
 
       // Ensure we refetch for this path so navigating back always hits the API
       try {
-        queryClient.invalidateQueries({
-          predicate: (q) =>
-            Array.isArray(q.queryKey) &&
-            q.queryKey[0] === "cloud" &&
-            q.queryKey[1] === "list" &&
-            q.queryKey[2] === normalized,
-        });
+        invalidates.invalidateBreadcrumb();
+        invalidates.invalidateObjects();
+        invalidates.invalidateDirectories();
       } catch {
         // ignore in environments where query client isn't available
       }
     },
-    [queryClient]
+    [invalidates]
   );
 
   const reset = useCallback(() => setCurrentPathRaw(""), []);

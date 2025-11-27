@@ -2,9 +2,15 @@
 
 import React from "react";
 import Explorer from "@/components/Storage/Explorer";
+import { useCloudList } from "@/hooks/useCloudList";
+import { useStorage } from "@/components/Storage/StorageProvider";
 // page only composes Explorer — cards are handled inside Explorer
 
 export default function StoragePage() {
+  const { currentPath } = useStorage();
+  const { breadcrumbQuery, objectsQuery, directoriesQuery } =
+    useCloudList(currentPath);
+
   return (
     // make the page exactly the viewport and prevent body/page scrolling —
     // keep the header fixed and let the inner container scroll instead
@@ -20,7 +26,14 @@ export default function StoragePage() {
         {/* content area should take remaining height and be scrollable */}
         <div className="mx-auto w-full flex-1 overflow-auto">
           <div className="bg-card/90 backdrop-blur-sm border border-border rounded-2xl p-8 shadow-xl h-full">
-            <Explorer />
+            <Explorer
+              queries={{
+                breadcrumbQuery,
+                objectsQuery,
+                directoriesQuery,
+              }}
+              currentPath={currentPath}
+            />
           </div>
         </div>
       </div>

@@ -14,22 +14,33 @@ import { getToken } from "next-auth/jwt";
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // only act for the authentication page route(s)
-  if (pathname.startsWith("/authentication")) {
-    // getToken checks the request cookies for a valid next-auth JWT
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-    if (token) {
-      // already authenticated -> redirect away from login
-      const url = req.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
-    }
+  // only act for the authentication page route(s)
+  if (!token && pathname.startsWith("/storage")) {
+    // getToken checks the request cookies for a valid next-auth JWT
+    return NextResponse.redirect(new URL("/authentication", req.url));
+  } else if (token && pathname.startsWith("/authentication")) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+
+  if (token) {
+    res.headers.set("Authorization", `Bearer ${token.accessToken}`);
+    req.headers.set("Authorization", `Bearer ${token.accessToken}`);
+  }
+
+  return res;
 }
 
 export const config = {
-  matcher: ["/authentication", "/authentication/:path*"],
+  matcher: [
+    "/authentication",
+    "/authentication/:path*",
+    "/storage",
+    "/storage/:path*",
+  ],
 };
