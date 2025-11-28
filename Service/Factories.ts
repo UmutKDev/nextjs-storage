@@ -1,4 +1,8 @@
-import { AuthenticationApiFactory, CloudApiFactory } from "./Generates";
+import {
+  AccountApiFactory,
+  AuthenticationApiFactory,
+  CloudApiFactory,
+} from "./Generates";
 import Instance from "./Instance";
 
 export const authenticationApiFactory = AuthenticationApiFactory(
@@ -7,13 +11,10 @@ export const authenticationApiFactory = AuthenticationApiFactory(
   Instance
 );
 
-export const cloudApiFactory = CloudApiFactory(undefined, undefined, Instance);
+export const accountApiFactory = AccountApiFactory(
+  undefined,
+  undefined,
+  Instance
+);
 
-/**
- * Convenience wrapper: fetch user storage usage and return the typed result object.
- * This avoids consumers having to unwrap response.data.result everywhere.
- */
-export async function userStorageUsage() {
-  const resp = await cloudApiFactory.userStorageUsage();
-  return resp.data?.result;
-}
+export const cloudApiFactory = CloudApiFactory(undefined, undefined, Instance);

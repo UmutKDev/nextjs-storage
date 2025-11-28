@@ -1,15 +1,5 @@
 // Project-wide next-auth typings and access token shape
-import 'next-auth';
-
-interface AccessTokenPayload {
-  // Basic fields returned by your backend's JWT
-  id: string;
-  fullName?: string;
-  email?: string;
-  iat?: number;
-  exp?: number;
-  [k: string]: any;
-}
+import "next-auth";
 
 declare module "next-auth" {
   interface User {
@@ -20,7 +10,9 @@ declare module "next-auth" {
 
   interface Session {
     accessToken?: string;
+    accessTokenExpires?: number;
     refreshToken?: string;
+    error?: string | null;
     user?: User;
   }
 }
@@ -28,6 +20,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     accessToken?: string;
+    accessTokenExpires?: number;
     refreshToken?: string;
     id?: string;
   }

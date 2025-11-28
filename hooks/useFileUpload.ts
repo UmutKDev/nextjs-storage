@@ -83,6 +83,9 @@ export function useFileUpload(currentPath: string | null) {
             Key: key,
             ContentType: file.type || undefined,
             TotalSize: file.size,
+            Metadata: {
+              originalFileName: file.name,
+            },
           },
         });
 

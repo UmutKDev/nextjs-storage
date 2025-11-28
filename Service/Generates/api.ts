@@ -37,7 +37,7 @@ export interface AccountProfileResponseModel {
     'email': string;
     'fullName': string;
     'phoneNumber': string;
-    'avatar': string;
+    'image': string;
     'role': AccountProfileResponseModelRoleEnum;
     'status': AccountProfileResponseModelStatusEnum;
     'subscription'?: UserSubscriptionResponseModel;
@@ -278,6 +278,7 @@ export interface CloudUserStorageUsageResponseModel {
     'MaxStorageInBytes': number;
     'IsLimitExceeded': boolean;
     'UsagePercentage': number;
+    'MaxUploadSizeBytes': number;
 }
 export interface DefinitionGroupResponseListBaseModel {
     'result': DefinitionGroupResponseListModelResult;
@@ -314,10 +315,15 @@ export interface JWTTokenDecodeResponseModel {
     'id': string;
     'email': string;
     'fullName': string;
+    'image': string;
     'role': JWTTokenDecodeResponseModelRoleEnum;
     'status': JWTTokenDecodeResponseModelStatusEnum;
     'iat': number;
     'exp': number;
+    'nbf': number;
+    'iss': string;
+    'aud': string;
+    'sub': string;
 }
 
 export const JWTTokenDecodeResponseModelRoleEnum = {
@@ -575,7 +581,7 @@ export interface UserFindResponseModel {
     'email': string;
     'fullName': string;
     'phoneNumber': string;
-    'avatar': string;
+    'image': string;
     'role': UserFindResponseModelRoleEnum;
     'status': UserFindResponseModelStatusEnum;
     'subscription'?: UserSubscriptionResponseModel;
@@ -611,7 +617,7 @@ export interface UserListResponseModel {
     'email': string;
     'fullName': string;
     'phoneNumber': string;
-    'avatar': string;
+    'image': string;
     'role': UserListResponseModelRoleEnum;
     'status': UserListResponseModelStatusEnum;
     'subscription'?: UserSubscriptionResponseModel;
@@ -638,7 +644,7 @@ export interface UserPostBodyRequestModel {
     'email': string;
     'fullName': string;
     'phoneNumber': string;
-    'avatar': string;
+    'image': string;
     'role': UserPostBodyRequestModelRoleEnum;
     'status': UserPostBodyRequestModelStatusEnum;
     'subscription'?: UserSubscriptionResponseModel;
@@ -663,7 +669,7 @@ export type UserPostBodyRequestModelStatusEnum = typeof UserPostBodyRequestModel
 export interface UserPutBodyRequestModel {
     'fullName': string;
     'phoneNumber': string;
-    'avatar': string;
+    'image': string;
     'role': UserPutBodyRequestModelRoleEnum;
     'status': UserPutBodyRequestModelStatusEnum;
     'subscription'?: UserSubscriptionResponseModel;

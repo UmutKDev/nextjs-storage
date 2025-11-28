@@ -17,7 +17,7 @@ bun dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
- 
+
 ## Storage: optimistic delete behavior
 
 The Storage UI uses optimistic updates when deleting a file. When you confirm a delete the UI will remove the file immediately from the list (optimistic update) and call the backend. If the delete succeeds the UI stays updated; if it fails, the previous state is restored and the user is shown an error toast.
@@ -57,4 +57,11 @@ const client = createApiClient({ axiosConfig: { baseURL: process.env.NESTJS_API_
 await api.get('/some/resource');
 
 // We also handle refresh token flow automatically when a 401 is encountered (if a refresh token is present).
+
+## Authentication / Refresh Token
+
+- The NextAuth credentials provider now receives both accessToken and refreshToken from the API on sign-in.
+- The server-side NextAuth jwt callback stores the refreshToken inside the server JWT and automatically refreshes the access token using the backend `Authentication/RefreshToken` endpoint when the access token is near expiry.
+- For safety we do NOT expose the refresh token to the client session. Instead the session contains the accessToken and accessTokenExpires timestamp so the client can react when needed.
+- When a user signs out, NextAuth calls the backend `Authentication/Logout` endpoint to revoke the refresh token (if present).
 ```

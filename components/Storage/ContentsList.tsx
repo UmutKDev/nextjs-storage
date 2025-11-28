@@ -141,7 +141,7 @@ export default function ContentsList({
                     </div>
                   ) : (
                     <>
-                      {c!.Name}
+                      {c!.Metadata.originalfilename}
                       <span className="text-xs text-muted-foreground">
                         .{c!.Extension}
                       </span>

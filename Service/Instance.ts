@@ -38,6 +38,7 @@ const onError = (error: AxiosError<any>) => {
     //     return Promise.reject("Bir hata oluştu.");
     //   }
     // } else {
+    console.log(error.response.data);
     return Promise.reject("Bir hata oluştu.");
   }
 };
