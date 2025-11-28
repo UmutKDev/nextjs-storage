@@ -2,7 +2,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
-import { DownloadCloud, X } from "lucide-react";
+import { DownloadCloud, X, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
 
@@ -15,6 +15,8 @@ export default function FilePreviewModal({
   file: CloudObjectModel | null;
   onClose: () => void;
 }) {
+  const [isFullScreen, setIsFullScreen] = React.useState(false);
+
   // Lock background scroll while modal is open
   React.useEffect(() => {
     // running only in the browser when modal is mounted
@@ -44,7 +46,9 @@ export default function FilePreviewModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.18 }}
-        className="fixed inset-0 z-50 grid place-items-center px-4 py-6 md:py-8"
+        className={`fixed inset-0 z-50 grid place-items-center ${
+          isFullScreen ? "p-0" : "p-4 sm:p-6"
+        }`}
       >
         <motion.div
           initial={{ opacity: 0 }}
@@ -58,18 +62,22 @@ export default function FilePreviewModal({
         <motion.div
           role="dialog"
           aria-modal="true"
-          initial={{ opacity: 0, y: 16, scale: 0.98 }}
+          initial={{ opacity: 0, y: 16, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 12, scale: 0.98 }}
-          transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className="relative z-10 w-[95vw] max-w-4xl rounded-xl bg-card border border-border shadow-2xl overflow-hidden max-h-[calc(100vh-6rem)] flex flex-col"
+          exit={{ opacity: 0, y: 12, scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className={`relative z-10 flex flex-col bg-card border border-border shadow-2xl overflow-hidden transition-all duration-200 ${
+            isFullScreen
+              ? "w-full h-full rounded-none"
+              : "w-full h-[92vh] sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl rounded-xl"
+          }`}
         >
           <div className="flex items-center justify-between p-4 border-b border-muted/10 shrink-0">
             <div className="flex items-center gap-3">
               <div className="text-sm font-semibold">{file.Name}</div>
-              <div className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-full uppercase">
                 {file.Extension?.toUpperCase()}
-              </div>
+              </span>
             </div>
             <div className="flex items-center gap-2">
               {file.Path?.Url || file.Path?.Host ? (
@@ -84,12 +92,24 @@ export default function FilePreviewModal({
                   target="_blank"
                   rel="noreferrer noopener"
                   onClick={(e) => e.stopPropagation()}
-                  className="rounded px-2 py-1 text-sm hover:bg-muted/10 flex items-center gap-2"
+                  className="rounded-2xl px-2 py-1 text-sm hover:bg-muted/55 flex items-center gap-2 bg-muted"
                 >
                   <DownloadCloud size={16} />
                   <span className="hidden sm:inline">Download</span>
                 </a>
               ) : null}
+
+              <button
+                onClick={() => setIsFullScreen(!isFullScreen)}
+                className="rounded-md p-1 hover:bg-muted/10"
+                title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+              >
+                {isFullScreen ? (
+                  <Minimize2 size={20} />
+                ) : (
+                  <Maximize2 size={20} />
+                )}
+              </button>
 
               <button
                 onClick={onClose}
@@ -100,8 +120,8 @@ export default function FilePreviewModal({
             </div>
           </div>
 
-          <div className="p-4 overflow-auto flex-1">
-            <LazyPreview file={file} />
+          <div className="p-4 overflow-auto flex-1 flex flex-col">
+            <LazyPreview file={file} isFullScreen={isFullScreen} />
           </div>
 
           <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10 text-xs text-muted-foreground shrink-0">

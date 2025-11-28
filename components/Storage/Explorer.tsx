@@ -143,6 +143,15 @@ export default function Explorer({
 
   const breadcrumbs: CloudBreadCrumbModel[] = breadcrumbQuery.data?.items ?? [];
 
+  // compute concise loading flags used throughout the UI
+  // - Query can be 'loading' for initial load or 'fetching' for background refresh
+  // - isNavigating indicates a local transition between paths (shows panel skeletons)
+  const directoriesLoading =
+    directoriesQuery.isFetching || directoriesQuery.isLoading || isNavigating;
+
+  const contentsLoading =
+    objectsQuery.isFetching || objectsQuery.isLoading || isNavigating;
+
   return (
     // make explorer take full height of its parent card and use flex so header
     // is fixed-height and panels stretch to fill remaining space
@@ -216,16 +225,12 @@ export default function Explorer({
               <div className="h-full overflow-auto p-4 min-h-0 ">
                 <DirectoriesList
                   directories={search ? filteredDirectories : directories}
-                  loading={
-                    directoriesQuery.isFetching ||
-                    isNavigating ||
-                    directoriesQuery.isLoading
-                  }
+                  loading={directoriesLoading}
                 />
                 {/* when not loading and there are no results, show EmptyState */}
-                {!directoriesQuery.isLoading &&
+                {directoriesQuery.isSuccess &&
+                !directoriesQuery.isFetching &&
                 !isNavigating &&
-                !directoriesQuery.isLoading &&
                 !search &&
                 directories.length === 0 ? (
                   <div className="absolute inset-0 grid place-items-center p-4 top-14">
@@ -262,16 +267,12 @@ export default function Explorer({
                 <ContentsList
                   contents={search ? filteredContents : contents}
                   onPreview={setPreviewFile}
-                  loading={
-                    objectsQuery.isLoading ||
-                    isNavigating ||
-                    objectsQuery.isLoading
-                  }
+                  loading={contentsLoading}
                 />
 
-                {!objectsQuery.isLoading &&
+                {objectsQuery.isSuccess &&
+                !objectsQuery.isFetching &&
                 !isNavigating &&
-                !objectsQuery.isLoading &&
                 !search &&
                 contents.length === 0 ? (
                   <div className="absolute inset-0 grid place-items-center p-4">
