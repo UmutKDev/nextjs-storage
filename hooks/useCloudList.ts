@@ -14,6 +14,12 @@ interface UseCloudListOptions {
   isMetadataProcessing?: boolean;
   prefetchNeighbors?: boolean;
   refetchOnMount?: boolean | "always";
+  /**
+   * Controls whether the internal list queries should run.
+   * Defaults to true (queries run when authenticated). Set to false to only
+   * use the helpers (invalidates) without triggering network requests.
+   */
+  enabled?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -72,6 +78,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     delimiter = true,
     isMetadataProcessing = true,
     refetchOnMount = "always",
+    enabled = true,
   } = options ?? {};
 
   const queryClient = useQueryClient();
@@ -109,7 +116,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
-    enabled: status === "authenticated",
+    enabled: status === "authenticated" && enabled,
   });
 
   const objectsQuery = useQuery({
@@ -123,7 +130,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
-    enabled: status === "authenticated",
+    enabled: status === "authenticated" && enabled,
   });
 
   const directoriesQuery = useQuery({
@@ -137,7 +144,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
-    enabled: status === "authenticated",
+    enabled: status === "authenticated" && enabled,
   });
 
   // Invalidate helper - mevcut path için cache'i temizler

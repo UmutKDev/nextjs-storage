@@ -8,7 +8,7 @@ import { useStorage } from "@/components/Storage/StorageProvider";
 
 export default function StoragePage() {
   const { currentPath } = useStorage();
-  const { breadcrumbQuery, objectsQuery, directoriesQuery } =
+  const { breadcrumbQuery, objectsQuery, directoriesQuery, invalidates } =
     useCloudList(currentPath);
 
   return (
@@ -33,6 +33,7 @@ export default function StoragePage() {
                 directoriesQuery,
               }}
               currentPath={currentPath}
+              invalidates={invalidates}
             />
           </div>
         </div>

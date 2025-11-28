@@ -307,8 +307,8 @@ export default function LazyPreview({
 
     // Fallback for unknown types
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-muted/5 rounded-lg border border-dashed border-border">
-        <div className="h-full w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+      <div className="flex flex-col items-center justify-center p-12 bg-muted/5 rounded-lg border border-dashed border-border h-full">
+        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <FileText className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-sm font-medium mb-1">Preview not available</h3>

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import React, { createContext, useContext, useCallback } from "react";
 import { useCloudList } from "@/hooks/useCloudList";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 type StorageContextType = {
   currentPath: string; // path used as query param for cloudApiFactory.list
@@ -22,7 +22,11 @@ export default function StorageProvider({
   children,
   initialPath = "",
 }: React.PropsWithChildren<{ initialPath?: string }>) {
-  const [currentPath, setCurrentPathRaw] = useState<string>(initialPath);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const currentPath = searchParams.get("path") || initialPath;
   const { invalidates } = useCloudList(currentPath);
 
   const setCurrentPath = useCallback(
@@ -30,7 +34,15 @@ export default function StorageProvider({
       // normalize empty / root to empty string
       const normalized =
         !path || path === "/" ? "" : path.replace(/^\/+|\/+$/g, "");
-      setCurrentPathRaw(normalized);
+
+      const params = new URLSearchParams(searchParams.toString());
+      if (normalized) {
+        params.set("path", normalized);
+      } else {
+        params.delete("path");
+      }
+
+      router.push(`${pathname}?${params.toString()}`);
 
       // Ensure we refetch for this path so navigating back always hits the API
       try {
@@ -41,10 +53,14 @@ export default function StorageProvider({
         // ignore in environments where query client isn't available
       }
     },
-    [invalidates]
+    [invalidates, searchParams, pathname, router]
   );
 
-  const reset = useCallback(() => setCurrentPathRaw(""), []);
+  const reset = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("path");
+    router.push(`${pathname}?${params.toString()}`);
+  }, [searchParams, pathname, router]);
 
   return (
     <StorageContext.Provider value={{ currentPath, setCurrentPath, reset }}>

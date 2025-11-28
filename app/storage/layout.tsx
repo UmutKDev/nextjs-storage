@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import StorageProvider from "@/components/Storage/StorageProvider";
 
 export default function StorageLayout({
@@ -8,5 +8,9 @@ export default function StorageLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <StorageProvider>{children}</StorageProvider>;
+  return (
+    <Suspense>
+      <StorageProvider>{children}</StorageProvider>
+    </Suspense>
+  );
 }

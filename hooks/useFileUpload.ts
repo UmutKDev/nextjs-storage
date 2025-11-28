@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from "react";
 import { cloudApiFactory } from "@/Service/Factories";
-import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import type { AxiosProgressEvent } from "axios";
 import useCloudList from "./useCloudList";
@@ -18,11 +17,14 @@ export interface UploadItem {
 }
 
 export function useFileUpload(currentPath: string | null) {
-  const { invalidates } = useCloudList(currentPath || "");
+  // We only need invalidation helpers here — don't run the list queries when
+  // the upload modal/component mounts to avoid unnecessary network requests.
+  const { invalidates } = useCloudList(currentPath || "", { enabled: false });
   const { invalidate: invalidatesUsage } = useUserStorageUsage(); // to ensure usage is up to date after upload
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const controllersRef = useRef<Record<string, AbortController>>({});
-  const qc = useQueryClient();
+  // query client is not required here; invalidation helpers from useCloudList
+  // and useUserStorageUsage are used instead, so remove unused qc.
 
   const updateUpload = useCallback((id: string, patch: Partial<UploadItem>) => {
     setUploads((prev) =>
@@ -149,7 +151,7 @@ export function useFileUpload(currentPath: string | null) {
         ]);
 
         toast.success(`Uploaded ${file.name}`);
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Cleanup on server if possible
         if (uploadId && finalKey) {
           try {
@@ -164,17 +166,19 @@ export function useFileUpload(currentPath: string | null) {
           }
         }
 
-        if (
+        const isCancelledError =
           err === "cancelled" ||
-          err?.message === "cancelled" ||
-          controller.signal.aborted
-        ) {
+          (err instanceof Error && err.message === "cancelled") ||
+          controller.signal.aborted;
+
+        if (isCancelledError) {
           updateUpload(id, { status: "cancelled" });
         } else {
           console.error("Upload error", err);
+          const msg = err instanceof Error ? err.message : String(err);
           updateUpload(id, {
             status: "failed",
-            error: err.message || String(err),
+            error: msg,
           });
           toast.error(`Failed ${file.name}`);
         }
@@ -182,7 +186,7 @@ export function useFileUpload(currentPath: string | null) {
         delete controllersRef.current[id];
       }
     },
-    [currentPath, qc, updateUpload]
+    [currentPath, updateUpload, invalidates, invalidatesUsage]
   );
 
   const handleFiles = useCallback(

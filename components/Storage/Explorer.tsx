@@ -34,6 +34,7 @@ import FilePreviewModal from "./FilePreviewModal";
 export default function Explorer({
   queries: { breadcrumbQuery, objectsQuery, directoriesQuery },
   currentPath,
+  invalidates,
 }: {
   queries: {
     breadcrumbQuery: UseQueryResult<CloudBreadCrumbListModelResult, Error>;
@@ -41,6 +42,11 @@ export default function Explorer({
     directoriesQuery: UseQueryResult<CloudDirectoryListModelResult, Error>;
   };
   currentPath: string;
+  invalidates: {
+    invalidateBreadcrumb: () => Promise<void>;
+    invalidateObjects: () => Promise<void>;
+    invalidateDirectories: () => Promise<void>;
+  };
 }) {
   // main data hook
 
@@ -102,13 +108,7 @@ export default function Explorer({
       });
 
       // invalidate relevant queries so UI refreshes
-      await qc.invalidateQueries({
-        predicate: (q) =>
-          Array.isArray(q.queryKey) &&
-          q.queryKey[0] === CLOUD_DIRECTORIES_QUERY_KEY[0] &&
-          q.queryKey[1] === CLOUD_DIRECTORIES_QUERY_KEY[1] &&
-          q.queryKey[2] === currentPath,
-      });
+      await Promise.all([invalidates.invalidateDirectories()]);
 
       toast.success(`Folder created: ${key}`);
       setNewFolderName("");
