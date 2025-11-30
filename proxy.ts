@@ -15,7 +15,6 @@ export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  console.log(token);
 
   // only act for the authentication page route(s)
   if (!token && pathname.startsWith("/storage")) {

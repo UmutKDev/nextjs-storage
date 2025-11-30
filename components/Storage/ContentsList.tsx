@@ -2,12 +2,19 @@
 
 import React from "react";
 import { MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStorage } from "./StorageProvider";
 import { cloudApiFactory } from "@/Service/Factories";
 import toast from "react-hot-toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import EditFileModal from "./EditFileModal";
 import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
 
@@ -42,6 +49,7 @@ export default function ContentsList({
   const { invalidates: invalidatesObjects } = useCloudList(currentPath);
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
   const [toDelete, setToDelete] = React.useState<CloudObject | null>(null);
+  const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
 
   if ((!contents || contents.length === 0) && !loading) return null;
 
@@ -105,6 +113,90 @@ export default function ContentsList({
     }
   }
 
+  async function performUpdate(
+    file: CloudObject,
+    payload: { name?: string; metadata?: Record<string, string> }
+  ) {
+    const key = file?.Path?.Key;
+    if (!key) return toast.error("Unable to update: missing key");
+
+    // mark updating (UI state handled in modal)
+
+    const listQueryKey = createCloudObjectsQueryKey(currentPath, true, false);
+    const objectsQueryKey = createCloudObjectsQueryKey(currentPath);
+
+    const prevList = qc.getQueryData(
+      createCloudObjectsQueryKey(currentPath, true, false)
+    );
+    const prevObjects = qc.getQueryData(
+      createCloudObjectsQueryKey(currentPath)
+    );
+
+    try {
+      // Prepare name value including extension (server expects full filename)
+      const nameToSend =
+        payload.name && file.Extension
+          ? `${payload.name}.${String(file.Extension).replace(/^\./, "")}`
+          : payload.name ?? undefined;
+
+      // Merge incoming metadata with existing to preserve default model fields
+      const mergedMetadata = {
+        ...(file?.Metadata ?? {}),
+        ...(payload.metadata ?? {}),
+      };
+
+      // optimistic update: update cached objects
+      qc.setQueryData(listQueryKey, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: [
+            ...old.data.result.items.map((c: any) =>
+              c?.Path?.Key === key
+                ? { ...c, Name: nameToSend ?? c.Name, Metadata: mergedMetadata }
+                : c
+            ),
+          ],
+        };
+      });
+
+      qc.setQueryData(objectsQueryKey, (old: any) =>
+        Array.isArray(old)
+          ? old.map((o: any) =>
+              o?.Path?.Key === key
+                ? { ...o, Name: nameToSend ?? o.Name, Metadata: mergedMetadata }
+                : o
+            )
+          : old
+      );
+
+      // call server
+      await cloudApiFactory.update({
+        cloudUpdateRequestModel: {
+          Key: key,
+          Name: nameToSend,
+          Metadata: mergedMetadata,
+        },
+      });
+
+      toast.success("Updated");
+      await invalidateUsage();
+      await invalidatesObjects.invalidateObjects();
+    } catch (err) {
+      // rollback
+      try {
+        qc.setQueryData(listQueryKey, prevList);
+        qc.setQueryData(objectsQueryKey, prevObjects);
+      } catch (rollbackErr) {
+        console.error("Rollback failed", rollbackErr);
+      }
+      console.error(err);
+      toast.error("Update failed");
+    } finally {
+      // done
+    }
+  }
+
   return (
     <div className="divide-y rounded-md border bg-background/50">
       {(loading ? Array.from({ length: skeletonCount }) : contents ?? []).map(
@@ -141,7 +233,7 @@ export default function ContentsList({
                     </div>
                   ) : (
                     <>
-                      {c!.Metadata.originalfilename}
+                      {c!.Metadata?.Originalfilename || c!.Name}
                       <span className="text-xs text-muted-foreground">
                         .{c!.Extension}
                       </span>
@@ -190,7 +282,31 @@ export default function ContentsList({
                     )}
                   </button>
 
-                  <MoreHorizontal size={16} className="text-muted-foreground" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`More ${loading ? "item" : c!.Name}`}
+                        className="rounded p-1 hover:bg-muted/10"
+                      >
+                        <MoreHorizontal
+                          size={16}
+                          className="text-muted-foreground"
+                        />
+                      </button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end" forceMount>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!loading && c) setToEdit(c);
+                        }}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </motion.div>
@@ -206,6 +322,16 @@ export default function ContentsList({
           if (!toDelete) return;
           await performDelete(toDelete);
           setToDelete(null);
+        }}
+      />
+      <EditFileModal
+        open={Boolean(toEdit)}
+        onClose={() => setToEdit(null)}
+        file={toEdit ?? undefined}
+        onConfirm={async ({ name, metadata }) => {
+          if (!toEdit) return;
+          await performUpdate(toEdit, { name, metadata });
+          setToEdit(null);
         }}
       />
     </div>

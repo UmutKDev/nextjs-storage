@@ -296,7 +296,7 @@ export default function LazyPreview({
                 <span className="text-sm">{error}</span>
               </div>
             ) : (
-              <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap break-words text-foreground/80">
+              <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap wrap-break-word text-foreground/80">
                 {text || "No content available"}
               </pre>
             )}

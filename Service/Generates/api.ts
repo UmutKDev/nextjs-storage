@@ -169,7 +169,7 @@ export interface CloudCompleteMultipartUploadResponseModel {
     'Key': string;
     'Bucket': string;
     'ETag': string;
-    'Metadata'?: object;
+    'Metadata'?: CloudMetadataDefaultModel;
 }
 export interface CloudCreateMultipartUploadRequestModel {
     'Key': string;
@@ -225,6 +225,11 @@ export interface CloudListResponseModel {
     'Directories': Array<CloudDirectoryModel>;
     'Contents': Array<CloudObjectModel>;
 }
+export interface CloudMetadataDefaultModel {
+    'Originalfilename': string;
+    'Width': string;
+    'Height': string;
+}
 export interface CloudMoveRequestModel {
     'SourceKey': string;
     'DestinationKey': string;
@@ -232,6 +237,10 @@ export interface CloudMoveRequestModel {
 export interface CloudMultipartPartModel {
     'PartNumber': number;
     'ETag': string;
+}
+export interface CloudObjectBaseModel {
+    'result': CloudObjectModel;
+    'status': BaseStatusModel;
 }
 export interface CloudObjectListBaseModel {
     'result': CloudObjectListModelResult;
@@ -246,7 +255,7 @@ export interface CloudObjectModel {
     'Extension': string;
     'MimeType': string;
     'Path': CloudPathModel;
-    'Metadata': object;
+    'Metadata'?: CloudMetadataDefaultModel;
     'LastModified': string;
     'ETag': string;
     'Size': number;
@@ -255,6 +264,11 @@ export interface CloudPathModel {
     'Host': string;
     'Key': string;
     'Url': string;
+}
+export interface CloudUpdateRequestModel {
+    'Key': string;
+    'Name'?: string;
+    'Metadata'?: object;
 }
 export interface CloudUploadPartRequestModel {
     'Key': string;
@@ -1536,6 +1550,47 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
+         * @summary Download a file for the authenticated user (streamed)
+         * @param {string} key Path/key to the file (user-scoped)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        download: async (key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('download', 'key', key)
+            const localVarPath = `/Api/Cloud/Download`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @param {string} key 
          * @param {*} [options] Override http request option.
@@ -1838,6 +1893,45 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update: async (cloudUpdateRequestModel: CloudUpdateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudUpdateRequestModel' is not null or undefined
+            assertParamExists('update', 'cloudUpdateRequestModel', cloudUpdateRequestModel)
+            const localVarPath = `/Api/Cloud/Update`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudUpdateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2124,6 +2218,19 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
+         * @summary Download a file for the authenticated user (streamed)
+         * @param {string} key Path/key to the file (user-scoped)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async download(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.download(key, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.download']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @param {string} key 
          * @param {*} [options] Override http request option.
@@ -2211,6 +2318,18 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.move(cloudMoveRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async update(cloudUpdateRequestModel: CloudUpdateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.update(cloudUpdateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.update']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2315,6 +2434,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.createDirectory(requestParameters.cloudKeyRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
+         * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
+         * @summary Download a file for the authenticated user (streamed)
+         * @param {CloudApiDownloadRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        download(requestParameters: CloudApiDownloadRequest, options?: RawAxiosRequestConfig): AxiosPromise<File> {
+            return localVarFp.download(requestParameters.key, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @param {CloudApiFindRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -2376,6 +2505,15 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.move(requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {CloudApiUpdateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update(requestParameters: CloudApiUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectBaseModel> {
+            return localVarFp.update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2448,6 +2586,16 @@ export interface CloudApiCreateDirectoryRequest {
 }
 
 /**
+ * Request parameters for download operation in CloudApi.
+ */
+export interface CloudApiDownloadRequest {
+    /**
+     * Path/key to the file (user-scoped)
+     */
+    readonly key: string
+}
+
+/**
  * Request parameters for find operation in CloudApi.
  */
 export interface CloudApiFindRequest {
@@ -2506,6 +2654,13 @@ export interface CloudApiListObjectsRequest {
  */
 export interface CloudApiMoveRequest {
     readonly cloudMoveRequestModel: CloudMoveRequestModel
+}
+
+/**
+ * Request parameters for update operation in CloudApi.
+ */
+export interface CloudApiUpdateRequest {
+    readonly cloudUpdateRequestModel: CloudUpdateRequestModel
 }
 
 /**
@@ -2571,6 +2726,17 @@ export class CloudApi extends BaseAPI {
      */
     public createDirectory(requestParameters: CloudApiCreateDirectoryRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).createDirectory(requestParameters.cloudKeyRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
+     * @summary Download a file for the authenticated user (streamed)
+     * @param {CloudApiDownloadRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public download(requestParameters: CloudApiDownloadRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).download(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2641,6 +2807,16 @@ export class CloudApi extends BaseAPI {
      */
     public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).move(requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {CloudApiUpdateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public update(requestParameters: CloudApiUpdateRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

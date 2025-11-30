@@ -74,7 +74,9 @@ export default function FilePreviewModal({
         >
           <div className="flex items-center justify-between p-4 border-b border-muted/10 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="text-sm font-semibold">{file.Name}</div>
+              <div className="text-sm font-semibold">
+                {file.Metadata?.Originalfilename ?? file.Name}
+              </div>
               <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-full uppercase">
                 {file.Extension?.toUpperCase()}
               </span>

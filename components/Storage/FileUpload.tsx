@@ -2,6 +2,8 @@
 
 import type React from "react";
 import { useRef } from "react";
+import useUserStorageUsage from "@/hooks/useUserStorageUsage";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
@@ -109,6 +111,18 @@ export default function FileUpload() {
   const { uploads, handleFiles, cancelUpload, removeUpload } =
     useFileUpload(currentPath);
   const filePickerRef = useRef<HTMLInputElement>(null);
+  const { userStorageUsageQuery } = useUserStorageUsage();
+  const maxUploadBytes = userStorageUsageQuery.data?.MaxUploadSizeBytes;
+  const [rejectedFiles, setRejectedFiles] = useState<
+    { name: string; size: number; reason: string }[]
+  >([]);
+
+  function humanFileSize(bytes?: number) {
+    if (!bytes || bytes === 0) return "0 B";
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i];
+  }
 
   const openFilePicker = () => {
     filePickerRef.current?.click();
@@ -116,7 +130,32 @@ export default function FileUpload() {
 
   const onFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
-    if (selectedFiles) handleFiles(Array.from(selectedFiles));
+    if (selectedFiles) {
+      const files = Array.from(selectedFiles);
+      if (typeof maxUploadBytes === "number") {
+        const allowed: File[] = [];
+        const rejected: File[] = [];
+        files.forEach((f) => {
+          if (f.size <= maxUploadBytes) allowed.push(f);
+          else rejected.push(f);
+        });
+
+        if (rejected.length > 0) {
+          setRejectedFiles((prev) => [
+            ...prev,
+            ...rejected.map((f) => ({
+              name: f.name,
+              size: f.size,
+              reason: `Çok büyük — maksimum ${humanFileSize(maxUploadBytes)}`,
+            })),
+          ]);
+        }
+
+        if (allowed.length > 0) handleFiles(allowed);
+      } else {
+        handleFiles(files);
+      }
+    }
     // Reset input so same file can be selected again if needed
     if (filePickerRef.current) filePickerRef.current.value = "";
   };
@@ -128,7 +167,32 @@ export default function FileUpload() {
   const onDropFiles = (event: React.DragEvent) => {
     event.preventDefault();
     const droppedFiles = event.dataTransfer.files;
-    if (droppedFiles) handleFiles(Array.from(droppedFiles));
+    if (droppedFiles) {
+      const files = Array.from(droppedFiles);
+      if (typeof maxUploadBytes === "number") {
+        const allowed: File[] = [];
+        const rejected: File[] = [];
+        files.forEach((f) => {
+          if (f.size <= maxUploadBytes) allowed.push(f);
+          else rejected.push(f);
+        });
+
+        if (rejected.length > 0) {
+          setRejectedFiles((prev) => [
+            ...prev,
+            ...rejected.map((f) => ({
+              name: f.name,
+              size: f.size,
+              reason: `Çok büyük — maksimum ${humanFileSize(maxUploadBytes)}`,
+            })),
+          ]);
+        }
+
+        if (allowed.length > 0) handleFiles(allowed);
+      } else {
+        handleFiles(files);
+      }
+    }
   };
 
   const activeUploads = uploads.filter((f) => f.status === "uploading");
@@ -137,9 +201,42 @@ export default function FileUpload() {
   const cancelledUploads = uploads.filter((f) => f.status === "cancelled");
 
   return (
-    <div className="mx-auto flex w-full max-w-sm flex-col gap-y-6">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-y-6">
+      {rejectedFiles.length > 0 && (
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive w-full">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <AlertCircle className="size-5 mt-0.5" />
+            <div className="flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <strong className="block">Dosya(lar) yüklenemedi</strong>
+                <button
+                  aria-label="Dismiss file warnings"
+                  className="text-destructive/80 hover:text-destructive shrink-0"
+                  onClick={() => setRejectedFiles([])}
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              <ul className="mt-3 space-y-2 text-sm text-destructive/90 max-h-48 overflow-auto">
+                {rejectedFiles.map((f, i) => (
+                  <li
+                    key={`${f.name}-${i}`}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2"
+                  >
+                    <div className="wrap-break-word">{f.name}</div>
+                    <div className="text-muted-foreground text-xs sm:text-sm">
+                      {humanFileSize(f.size)} • {f.reason}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
       <Card
-        className="group flex max-h-[200px] w-full flex-col items-center justify-center gap-4 py-8 border-dashed text-sm cursor-pointer hover:bg-muted/50 transition-colors"
+        className="group flex max-h-[220px] w-full flex-col items-center justify-center gap-4 py-10 px-6 border-dashed text-sm cursor-pointer hover:bg-muted/50 transition-colors"
         onDragOver={onDragOver}
         onDrop={onDropFiles}
         onClick={openFilePicker}
@@ -172,7 +269,8 @@ export default function FileUpload() {
           onChange={onFileInputChange}
         />
         <span className="text-base/6 text-muted-foreground group-disabled:opacity-50 mt-2 block sm:text-xs">
-          Supported: JPG, PNG, GIF (max 10 MB)
+          Supported: JPG, PNG, GIF (max{" "}
+          {maxUploadBytes ? humanFileSize(maxUploadBytes) : "10 MB"})
         </span>
       </Card>
 
