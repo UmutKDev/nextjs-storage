@@ -424,7 +424,9 @@ export default function StorageBrowser({
                 {loading ? (
                   <div className="h-8 w-8 rounded bg-muted/30 animate-pulse" />
                 ) : (
-                  <FileIcon extension={c!.Extension} className="w-8 h-8" />
+                  <div className="w-8 h-8">
+                    <FileIcon extension={c!.Extension} />
+                  </div>
                 )}
               </div>
 
