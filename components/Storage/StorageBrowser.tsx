@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { MoreHorizontal, Folder, Trash2, LayoutGrid, List as ListIcon } from "lucide-react";
+import {
+  MoreHorizontal,
+  Folder,
+  Trash2,
+  LayoutGrid,
+  List as ListIcon,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -18,7 +24,10 @@ import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
 import { Button } from "@/components/ui/button";
 
-import type { CloudObjectModel, CloudDirectoryModel } from "@/Service/Generates/api";
+import type {
+  CloudObjectModel,
+  CloudDirectoryModel,
+} from "@/Service/Generates/api";
 import { createCloudObjectsQueryKey, useCloudList } from "@/hooks/useCloudList";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 
@@ -57,7 +66,7 @@ export default function StorageBrowser({
   const [toDelete, setToDelete] = React.useState<CloudObject | null>(null);
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
 
-  const isEmpty = (!directories?.length && !contents?.length) && !loading;
+  const isEmpty = !directories?.length && !contents?.length && !loading;
 
   if (isEmpty) return null;
 
@@ -233,9 +242,7 @@ export default function StorageBrowser({
             <div className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500">
               <Folder size={18} fill="currentColor" className="opacity-80" />
             </div>
-            <div className="flex-1 min-w-0 font-medium text-sm">
-              {name}
-            </div>
+            <div className="flex-1 min-w-0 font-medium text-sm">{name}</div>
             <div className="text-xs text-muted-foreground">Folder</div>
           </motion.div>
         );
@@ -422,7 +429,10 @@ export default function StorageBrowser({
               </div>
 
               <div className="w-full min-w-0">
-                <div className="text-sm font-medium text-foreground truncate w-full px-2" title={c?.Name}>
+                <div
+                  className="text-sm font-medium text-foreground truncate w-full px-2"
+                  title={c?.Name}
+                >
                   {loading ? (
                     <div className="h-3 w-20 mx-auto rounded bg-muted/30 animate-pulse" />
                   ) : (

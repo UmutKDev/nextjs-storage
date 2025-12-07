@@ -227,7 +227,7 @@ export default function Explorer({
               open={showUpload}
               onClose={() => setShowUpload(false)}
             />
-            
+
             <StorageBrowser
               directories={search ? filteredDirectories : directories}
               contents={search ? filteredContents : contents}

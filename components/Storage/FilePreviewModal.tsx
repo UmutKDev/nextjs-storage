@@ -2,7 +2,14 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
-import { DownloadCloud, X, Maximize2, Minimize2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  DownloadCloud,
+  X,
+  Maximize2,
+  Minimize2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
 
@@ -23,7 +30,18 @@ export default function FilePreviewModal({
 
   const isMedia = React.useCallback((f: CloudObjectModel) => {
     const ext = f.Extension?.toLowerCase();
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext || '');
+    return [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp",
+      "mp4",
+      "webm",
+      "mov",
+      "avi",
+      "mkv",
+    ].includes(ext || "");
   }, []);
 
   const mediaFiles = React.useMemo(() => {
@@ -33,7 +51,7 @@ export default function FilePreviewModal({
 
   const currentIndex = React.useMemo(() => {
     if (!file || mediaFiles.length === 0) return -1;
-    return mediaFiles.findIndex(f => f.Path?.Key === file.Path?.Key);
+    return mediaFiles.findIndex((f) => f.Path?.Key === file.Path?.Key);
   }, [file, mediaFiles]);
 
   const hasNext = currentIndex !== -1 && currentIndex < mediaFiles.length - 1;
@@ -115,7 +133,7 @@ export default function FilePreviewModal({
         >
           <div className="flex items-center justify-between p-4 border-b border-muted/10 shrink-0 gap-4">
             <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-              <div 
+              <div
                 className="text-sm font-semibold truncate"
                 title={file.Metadata?.Originalfilename ?? file.Name}
               >
