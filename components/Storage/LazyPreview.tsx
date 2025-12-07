@@ -133,6 +133,11 @@ export default function LazyPreview({
   const [imgLoaded, setImgLoaded] = React.useState(false);
   const [imgError, setImgError] = React.useState(false);
 
+  React.useEffect(() => {
+    setImgLoaded(false);
+    setImgError(false);
+  }, [url]);
+
   // Embed URL Logic
   const getEmbedUrl = () => {
     if (!url) return "";

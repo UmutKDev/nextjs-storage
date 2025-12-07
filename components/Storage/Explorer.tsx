@@ -2,8 +2,7 @@
 
 import React from "react";
 import Breadcrumb from "./Breadcrumb";
-import DirectoriesList from "./DirectoriesList";
-import ContentsList from "./ContentsList";
+import StorageBrowser, { ViewMode } from "./StorageBrowser";
 import EmptyState from "./EmptyState";
 import SearchBar from "./SearchBar";
 import type {
@@ -52,6 +51,7 @@ export default function Explorer({
 
   // UI state
   const [search, setSearch] = React.useState("");
+  const [viewMode, setViewMode] = React.useState<ViewMode>("list");
   const [isNavigating, setIsNavigating] = React.useState(false);
   const [previewFile, setPreviewFile] = React.useState<CloudObjectModel | null>(
     null
@@ -155,9 +155,9 @@ export default function Explorer({
   return (
     // make explorer take full height of its parent card and use flex so header
     // is fixed-height and panels stretch to fill remaining space
-    <div className="space-y-10 h-full flex flex-col">
+    <div className="space-y-6 h-full flex flex-col">
       {/* increased spacing between header and panels */}
-      <Card className="mb-10">
+      <Card>
         <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-2 md:py-2 px-4 md:px-6">
           <div className="flex-1 min-w-0">
             <div className="text-xs text-muted-foreground">Storage</div>
@@ -189,109 +189,80 @@ export default function Explorer({
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-12 gap-8 items-stretch flex-1 mt-4">
-        {/* more horizontal gap between panels */}
-        <div className="col-span-4">
-          <Card className="h-full relative">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-3 w-full">
-                <CardTitle>Folders</CardTitle>
-                <div className="shrink-0 flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowCreate(true)}
-                  >
-                    <FolderPlus size={14} />
-                    <span>New</span>
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="h-full p-0 overflow-hidden">
-              <CreateFolderModal
-                open={showCreate}
-                onClose={() => setShowCreate(false)}
-                value={newFolderName}
-                onChange={setNewFolderName}
-                loading={creating}
-                onSubmit={createFolder}
-              />
-              <FileUploadModal
-                open={showUpload}
-                onClose={() => setShowUpload(false)}
-              />
-              {/* allow this area to shrink so overflow works inside flex children */}
-              <div className="h-full overflow-auto p-4 min-h-0 ">
-                <DirectoriesList
-                  directories={search ? filteredDirectories : directories}
-                  loading={directoriesLoading}
-                />
-                {/* when not loading and there are no results, show EmptyState */}
-                {directoriesQuery.isSuccess &&
-                !directoriesQuery.isFetching &&
-                !isNavigating &&
-                !search &&
-                directories.length === 0 ? (
-                  <div className="absolute inset-0 grid place-items-center p-4 top-14">
-                    <EmptyState
-                      title="No folders"
-                      description="No subfolders in this path."
-                    />
-                  </div>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <Card className="flex-1 flex flex-col min-h-0">
+        <CardHeader className="border-b py-4">
+          <div className="flex items-center justify-between gap-3 w-full">
+            <CardTitle>Explorer</CardTitle>
+            <div className="shrink-0 flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowCreate(true)}
+              >
+                <FolderPlus size={14} />
+                <span className="ml-2 hidden sm:inline">New Folder</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => setShowUpload(true)}
+              >
+                <UploadCloudIcon size={14} />
+                <span className="ml-2 hidden sm:inline">Upload</span>
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-hidden p-0">
+          <div className="h-full overflow-auto p-4">
+            <CreateFolderModal
+              open={showCreate}
+              onClose={() => setShowCreate(false)}
+              value={newFolderName}
+              onChange={setNewFolderName}
+              loading={creating}
+              onSubmit={createFolder}
+            />
+            <FileUploadModal
+              open={showUpload}
+              onClose={() => setShowUpload(false)}
+            />
+            
+            <StorageBrowser
+              directories={search ? filteredDirectories : directories}
+              contents={search ? filteredContents : contents}
+              onPreview={setPreviewFile}
+              loading={directoriesLoading || contentsLoading}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
 
-        <div className="col-span-8">
-          <Card className="h-full">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-3 w-full">
-                <CardTitle>Files</CardTitle>
-                <div className="shrink-0">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setShowUpload(true)}
-                  >
-                    <UploadCloudIcon size={14} />
-                    <span>Upload</span>
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="h-full p-0 overflow-hidden">
-              <div className="h-full overflow-auto p-4 relative min-h-0">
-                <ContentsList
-                  contents={search ? filteredContents : contents}
-                  onPreview={setPreviewFile}
-                  loading={contentsLoading}
+            {objectsQuery.isSuccess &&
+            directoriesQuery.isSuccess &&
+            !objectsQuery.isFetching &&
+            !directoriesQuery.isFetching &&
+            !isNavigating &&
+            !search &&
+            contents.length === 0 &&
+            directories.length === 0 ? (
+              <div className="h-full grid place-items-center">
+                <EmptyState
+                  title="Empty Folder"
+                  description="This folder is empty."
                 />
-
-                {objectsQuery.isSuccess &&
-                !objectsQuery.isFetching &&
-                !isNavigating &&
-                !search &&
-                contents.length === 0 ? (
-                  <div className="absolute inset-0 grid place-items-center p-4">
-                    <EmptyState
-                      title="No files"
-                      description="No files in this folder."
-                    />
-                  </div>
-                ) : null}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* file preview modal - rendered when a file is selected */}
       {previewFile ? (
         <FilePreviewModal
           file={previewFile}
           onClose={() => setPreviewFile(null)}
+          onChange={setPreviewFile}
+          files={search ? filteredContents : contents}
         />
       ) : null}
     </div>
