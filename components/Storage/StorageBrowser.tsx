@@ -19,7 +19,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useStorage } from "./StorageProvider";
 import { cloudApiFactory } from "@/Service/Factories";
 import toast from "react-hot-toast";
-import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import EditFileModal from "./EditFileModal";
 import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
@@ -50,7 +49,7 @@ function GridThumbnail({ file }: { file: CloudObject }) {
   if (!isImage || !url || error) {
     return (
       <div className="w-12 h-12 flex items-center justify-center rounded-md bg-muted/20">
-        <FileIcon extension={file.Extension} className="w-8 h-8" />
+        <FileIcon extension={file.Extension} />
       </div>
     );
   }
