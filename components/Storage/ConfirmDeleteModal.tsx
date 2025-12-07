@@ -18,6 +18,8 @@ export default function ConfirmDeleteModal({
   description?: string;
   onConfirm: () => Promise<void> | void;
 }) {
+  const [loading, setLoading] = React.useState(false);
+
   // lock scroll while modal open
   React.useEffect(() => {
     if (!open) return;
@@ -98,17 +100,29 @@ export default function ConfirmDeleteModal({
           <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10">
             <button
               onClick={onClose}
-              className="rounded-md px-3 py-1 text-sm hover:bg-muted/10"
+              disabled={loading}
+              className="rounded-md px-3 py-1 text-sm hover:bg-muted/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               onClick={async () => {
-                await onConfirm();
-                onClose();
+                setLoading(true);
+                try {
+                  await onConfirm();
+                  onClose();
+                } catch (e) {
+                  console.error(e);
+                } finally {
+                  setLoading(false);
+                }
               }}
-              className="rounded-md px-3 py-1 text-sm bg-destructive text-white hover:bg-destructive/90"
+              disabled={loading}
+              className="rounded-md px-3 py-1 text-sm bg-destructive text-white hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
+              {loading ? (
+                <div className="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ) : null}
               Delete
             </button>
           </div>

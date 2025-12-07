@@ -9,6 +9,7 @@ import {
   Minimize2,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
@@ -20,11 +21,13 @@ export default function FilePreviewModal({
   onClose,
   onChange,
   files = [],
+  onDelete,
 }: {
   file: CloudObjectModel | null;
   onClose: () => void;
   onChange?: (file: CloudObjectModel) => void;
   files?: CloudObjectModel[];
+  onDelete?: (file: CloudObjectModel) => void;
 }) {
   const [isFullScreen, setIsFullScreen] = React.useState(false);
 
@@ -162,6 +165,14 @@ export default function FilePreviewModal({
                   <span className="hidden sm:inline">Download</span>
                 </a>
               ) : null}
+
+              <button
+                onClick={() => onDelete?.(file)}
+                className="rounded-md p-1 hover:bg-muted/10 text-destructive hover:bg-destructive/10"
+                title="Delete"
+              >
+                <Trash2 size={20} />
+              </button>
 
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}

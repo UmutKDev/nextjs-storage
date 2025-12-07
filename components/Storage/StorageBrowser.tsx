@@ -7,6 +7,7 @@ import {
   Trash2,
   LayoutGrid,
   List as ListIcon,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -34,6 +35,47 @@ import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 type CloudObject = CloudObjectModel;
 type Directory = CloudDirectoryModel;
 
+function GridThumbnail({ file }: { file: CloudObject }) {
+  const [loaded, setLoaded] = React.useState(false);
+  const [error, setError] = React.useState(false);
+
+  const url = file?.Path?.Url ?? file?.Path?.Key;
+  const mime = (file?.MimeType ?? "").toLowerCase();
+  const ext = (file.Extension || "").toLowerCase();
+
+  const isImage =
+    mime.startsWith("image") ||
+    ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"].includes(ext);
+
+  if (!isImage || !url || error) {
+    return (
+      <div className="w-12 h-12 flex items-center justify-center rounded-md bg-muted/20">
+        <FileIcon extension={file.Extension} className="w-8 h-8" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full relative rounded-md overflow-hidden bg-muted/5">
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />
+        </div>
+      )}
+      <img
+        src={url}
+        alt={file.Name}
+        className={`w-full h-full object-cover transition-all duration-300 ${
+          loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
+        }`}
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
 function humanFileSize(bytes?: number) {
   if (!bytes || bytes === 0) return "0 B";
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
@@ -50,6 +92,8 @@ export default function StorageBrowser({
   loading = false,
   viewMode = "list",
   onViewModeChange,
+  onDelete,
+  deleting = {},
 }: {
   directories?: Directory[];
   contents?: CloudObject[];
@@ -57,78 +101,18 @@ export default function StorageBrowser({
   loading?: boolean;
   viewMode?: ViewMode;
   onViewModeChange?: (mode: ViewMode) => void;
+  onDelete?: (file: CloudObject) => void;
+  deleting?: Record<string, boolean>;
 }) {
   const qc = useQueryClient();
   const { currentPath, setCurrentPath } = useStorage();
   const { invalidate: invalidateUsage } = useUserStorageUsage();
   const { invalidates: invalidatesObjects } = useCloudList(currentPath);
-  const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
-  const [toDelete, setToDelete] = React.useState<CloudObject | null>(null);
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
 
   const isEmpty = !directories?.length && !contents?.length && !loading;
 
   if (isEmpty) return null;
-
-  function handleDelete(file: CloudObject) {
-    setToDelete(file);
-  }
-
-  async function performDelete(file: CloudObject) {
-    const key = file?.Path?.Key;
-    if (!key) return toast.error("Unable to delete: missing key");
-
-    setDeleting((s) => ({ ...s, [key]: true }));
-
-    const listQueryKey = createCloudObjectsQueryKey(currentPath, true, false);
-    const objectsQueryKey = createCloudObjectsQueryKey(currentPath);
-
-    const prevList = qc.getQueryData(
-      createCloudObjectsQueryKey(currentPath, true, false)
-    );
-    const prevObjects = qc.getQueryData(
-      createCloudObjectsQueryKey(currentPath)
-    );
-    try {
-      // optimistic update: remove the file from the cached lists immediately
-
-      qc.setQueryData(listQueryKey, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          items: [
-            ...old.data.result.items.filter((c: any) => c?.Path?.Key !== key),
-          ],
-        };
-      });
-
-      qc.setQueryData(objectsQueryKey, (old: any) =>
-        Array.isArray(old) ? old.filter((o: any) => o?.Path?.Key !== key) : old
-      );
-
-      // call server to remove file
-      await cloudApiFactory._delete({
-        cloudDeleteRequestModel: { Key: [key], IsDirectory: false },
-      });
-
-      // success — keep optimistic state and refresh other queries that may be affected
-      toast.success("Deleted");
-      await invalidateUsage();
-      await invalidatesObjects.invalidateObjects();
-    } catch (err) {
-      // rollback optimistic update on error
-      try {
-        qc.setQueryData(listQueryKey, prevList);
-        qc.setQueryData(objectsQueryKey, prevObjects);
-      } catch (rollbackErr) {
-        console.error("Rollback failed", rollbackErr);
-      }
-      console.error(err);
-      toast.error("Delete failed");
-    } finally {
-      setDeleting((s) => ({ ...s, [key]: false }));
-    }
-  }
 
   async function performUpdate(
     file: CloudObject,
@@ -317,7 +301,7 @@ export default function StorageBrowser({
                     aria-label={`Delete ${loading ? "item" : c!.Name}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (!loading && c) handleDelete(c);
+                      if (!loading && c) onDelete?.(c);
                     }}
                     className="rounded p-1 hover:bg-muted/10"
                     disabled={
@@ -418,21 +402,19 @@ export default function StorageBrowser({
               exit={{ opacity: 0, scale: 0.9 }}
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.18 }}
-              className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-xl border bg-card hover:bg-accent/50 cursor-pointer transition-colors aspect-square text-center group"
+              className="relative flex flex-col items-center justify-between p-3 rounded-xl border bg-card hover:bg-accent/50 cursor-pointer transition-colors aspect-square text-center group overflow-hidden"
             >
-              <div className="w-12 h-12 flex items-center justify-center rounded-md bg-muted/20">
+              <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative rounded-md min-h-0">
                 {loading ? (
-                  <div className="h-8 w-8 rounded bg-muted/30 animate-pulse" />
+                  <div className="h-full w-full rounded bg-muted/30 animate-pulse" />
                 ) : (
-                  <div className="w-8 h-8">
-                    <FileIcon extension={c!.Extension} />
-                  </div>
+                  <GridThumbnail file={c!} />
                 )}
               </div>
 
-              <div className="w-full min-w-0">
+              <div className="w-full min-w-0 mt-3 shrink-0">
                 <div
-                  className="text-sm font-medium text-foreground truncate w-full px-2"
+                  className="text-sm font-medium text-foreground truncate w-full px-1"
                   title={c?.Name}
                 >
                   {loading ? (
@@ -456,7 +438,7 @@ export default function StorageBrowser({
                     aria-label={`Delete ${c!.Name}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(c!);
+                      onDelete?.(c!);
                     }}
                     className="rounded p-1.5 bg-background/80 hover:bg-destructive/10 hover:text-destructive shadow-sm border"
                   >
@@ -519,17 +501,6 @@ export default function StorageBrowser({
 
       {viewMode === "list" ? renderList() : renderGrid()}
 
-      <ConfirmDeleteModal
-        open={Boolean(toDelete)}
-        onClose={() => setToDelete(null)}
-        name={toDelete?.Name ?? toDelete?.Path?.Key}
-        description={toDelete?.Path?.Key}
-        onConfirm={async () => {
-          if (!toDelete) return;
-          await performDelete(toDelete);
-          setToDelete(null);
-        }}
-      />
       <EditFileModal
         open={Boolean(toEdit)}
         onClose={() => setToEdit(null)}

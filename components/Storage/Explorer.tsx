@@ -19,10 +19,12 @@ import { useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import {
   CLOUD_DIRECTORIES_QUERY_KEY,
   CLOUD_LIST_QUERY_KEY,
+  createCloudObjectsQueryKey,
 } from "@/hooks/useCloudList";
 import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
 import FileUploadModal from "./FileUploadModal";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import toast from "react-hot-toast";
 import { FolderPlus, UploadCloudIcon } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -63,6 +65,11 @@ export default function Explorer({
   const [showUpload, setShowUpload] = React.useState(false);
   const [newFolderName, setNewFolderName] = React.useState("");
   const [creating, setCreating] = React.useState(false);
+
+  // delete UI state
+  const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
+  const [toDelete, setToDelete] = React.useState<CloudObjectModel | null>(null);
+
   const qc = useQueryClient();
 
   // When path changes set navigating state so panels immediately show loading
@@ -125,6 +132,7 @@ export default function Explorer({
   // per-card placeholders (skeletons). This keeps layout stable when navigating
   // into a folder or refreshing the page.
   const usageQuery = useUserStorageUsage();
+  const { invalidate: invalidateUsage } = usageQuery;
   const usage = usageQuery.userStorageUsageQuery.data;
   const directories: CloudDirectoryModel[] = directoriesQuery.data?.items ?? [];
   const contents: CloudObjectModel[] = objectsQuery.data?.items ?? [];
@@ -140,6 +148,81 @@ export default function Explorer({
     const name = (c?.Name ?? "") + "." + (c?.Extension ?? "");
     return name.toLowerCase().includes(searchLower);
   });
+
+  async function performDelete(file: CloudObjectModel) {
+    const key = file?.Path?.Key;
+    if (!key) return toast.error("Unable to delete: missing key");
+
+    // Determine next file to preview if we are deleting the current one
+    let nextFile: CloudObjectModel | null = null;
+    if (previewFile?.Path?.Key === key) {
+      const currentList = search ? filteredContents : contents;
+      const idx = currentList.findIndex((f) => f.Path?.Key === key);
+      if (idx !== -1) {
+        if (idx < currentList.length - 1) {
+          nextFile = currentList[idx + 1];
+        } else if (idx > 0) {
+          nextFile = currentList[idx - 1];
+        }
+      }
+    }
+
+    setDeleting((s) => ({ ...s, [key]: true }));
+
+    const listQueryKey = createCloudObjectsQueryKey(currentPath, true, false);
+    const objectsQueryKey = createCloudObjectsQueryKey(currentPath);
+
+    const prevList = qc.getQueryData(listQueryKey);
+    const prevObjects = qc.getQueryData(objectsQueryKey);
+
+    try {
+      // optimistic update: remove the file from the cached lists immediately
+      qc.setQueryData(listQueryKey, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: [
+            ...old.data.result.items.filter((c: any) => c?.Path?.Key !== key),
+          ],
+        };
+      });
+
+      qc.setQueryData(objectsQueryKey, (old: any) =>
+        Array.isArray(old) ? old.filter((o: any) => o?.Path?.Key !== key) : old
+      );
+
+      // call server to remove file
+      await cloudApiFactory._delete({
+        cloudDeleteRequestModel: { Key: [key], IsDirectory: false },
+      });
+
+      // success — keep optimistic state and refresh other queries that may be affected
+      toast.success("Deleted");
+      await invalidateUsage();
+      await invalidates.invalidateObjects();
+
+      // if we deleted the file currently being previewed, switch to next or close
+      if (previewFile?.Path?.Key === key) {
+        if (nextFile) {
+          setPreviewFile(nextFile);
+        } else {
+          setPreviewFile(null);
+        }
+      }
+    } catch (err) {
+      // rollback optimistic update on error
+      try {
+        qc.setQueryData(listQueryKey, prevList);
+        qc.setQueryData(objectsQueryKey, prevObjects);
+      } catch (rollbackErr) {
+        console.error("Rollback failed", rollbackErr);
+      }
+      console.error(err);
+      toast.error("Delete failed");
+    } finally {
+      setDeleting((s) => ({ ...s, [key]: false }));
+    }
+  }
 
   const breadcrumbs: CloudBreadCrumbModel[] = breadcrumbQuery.data?.items ?? [];
 
@@ -235,6 +318,8 @@ export default function Explorer({
               loading={directoriesLoading || contentsLoading}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              onDelete={setToDelete}
+              deleting={deleting}
             />
 
             {objectsQuery.isSuccess &&
@@ -263,8 +348,21 @@ export default function Explorer({
           onClose={() => setPreviewFile(null)}
           onChange={setPreviewFile}
           files={search ? filteredContents : contents}
+          onDelete={setToDelete}
         />
       ) : null}
+
+      <ConfirmDeleteModal
+        open={Boolean(toDelete)}
+        onClose={() => setToDelete(null)}
+        name={toDelete?.Name ?? toDelete?.Path?.Key}
+        description={toDelete?.Path?.Key}
+        onConfirm={async () => {
+          if (!toDelete) return;
+          await performDelete(toDelete);
+          // setToDelete(null) is handled by the modal's onClose which is called after onConfirm
+        }}
+      />
     </div>
   );
 }
