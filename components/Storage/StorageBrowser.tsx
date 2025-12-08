@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import {
   MoreHorizontal,
@@ -8,6 +6,7 @@ import {
   LayoutGrid,
   List as ListIcon,
   Loader2,
+  File as FileIconLucide,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -15,24 +14,40 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useQueryClient } from "@tanstack/react-query";
 import { useStorage } from "./StorageProvider";
 import { cloudApiFactory } from "@/Service/Factories";
 import toast from "react-hot-toast";
 import EditFileModal from "./EditFileModal";
-import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+import {
+  DndContext,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+  DragEndEvent,
+  DragStartEvent,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 
 import type {
   CloudObjectModel,
   CloudDirectoryModel,
 } from "@/Service/Generates/api";
-import { createCloudObjectsQueryKey, useCloudList } from "@/hooks/useCloudList";
+import { useCloudList } from "@/hooks/useCloudList";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 
 type CloudObject = CloudObjectModel;
 type Directory = CloudDirectoryModel;
+
+export type ViewMode = "list" | "grid";
+
+// --- Helper Components ---
 
 function GridThumbnail({ file }: { file: CloudObject }) {
   const [loaded, setLoaded] = React.useState(false);
@@ -61,6 +76,7 @@ function GridThumbnail({ file }: { file: CloudObject }) {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />
         </div>
       )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={url}
         alt={file.Name}
@@ -82,120 +98,184 @@ function humanFileSize(bytes?: number) {
   return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i];
 }
 
-export type ViewMode = "list" | "grid";
+// --- Draggable Item Wrapper ---
+function DraggableItem({
+  id,
+  type,
+  children,
+  className,
+  selected,
+  onSelect,
+  onClick,
+}: {
+  id: string;
+  type: "file" | "folder";
+  children: React.ReactNode;
+  className?: string;
+  selected?: boolean;
+  onSelect?: (multi: boolean) => void;
+  onClick?: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id,
+      data: { type, id },
+    });
+
+  const { isOver, setNodeRef: setDroppableRef } = useDroppable({
+    id,
+    data: { type, id },
+    disabled: type === "file", // only folders can be drop targets
+  });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        zIndex: isDragging ? 50 : undefined,
+      }
+    : undefined;
+
+  return (
+    <div
+      ref={(node) => {
+        setNodeRef(node);
+        setDroppableRef(node);
+      }}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={cn(
+        "relative transition-colors outline-none",
+        isDragging && "opacity-50",
+        isOver &&
+          type === "folder" &&
+          "bg-primary/10 ring-2 ring-primary ring-inset rounded-md",
+        selected && "bg-muted/20 ring-1 ring-border",
+        className
+      )}
+      onClick={(e) => {
+        if (onSelect) {
+          // e.stopPropagation(); // Don't stop propagation here, let it bubble to handleItemClick if needed
+          // But we need to distinguish selection click vs navigation click.
+          // Usually selection is done via checkbox or modifier keys.
+          // Here we just pass the event up.
+        }
+        onClick?.();
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+interface StorageBrowserProps {
+  directories?: Directory[];
+  contents?: CloudObject[];
+  onPreview?: (file: CloudObject) => void;
+  loading?: boolean;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+  onDelete?: (item: CloudObject | Directory) => void;
+  deleting?: Record<string, boolean>;
+  selectedItems: Set<string>;
+  onSelect?: (items: Set<string>) => void;
+  onMove?: (sourceKey: string, destinationKey: string) => void;
+}
 
 export default function StorageBrowser({
   directories,
   contents,
   onPreview,
-  loading = false,
-  viewMode = "list",
+  loading,
+  viewMode,
   onViewModeChange,
   onDelete,
   deleting = {},
-}: {
-  directories?: Directory[];
-  contents?: CloudObject[];
-  onPreview?: (file: CloudObject) => void;
-  loading?: boolean;
-  viewMode?: ViewMode;
-  onViewModeChange?: (mode: ViewMode) => void;
-  onDelete?: (file: CloudObject) => void;
-  deleting?: Record<string, boolean>;
-}) {
-  const qc = useQueryClient();
+  selectedItems,
+  onSelect,
+  onMove,
+}: StorageBrowserProps) {
   const { currentPath, setCurrentPath } = useStorage();
-  const { invalidate: invalidateUsage } = useUserStorageUsage();
-  const { invalidates: invalidatesObjects } = useCloudList(currentPath);
+  const [activeId, setActiveId] = React.useState<string | null>(null);
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const isEmpty = !directories?.length && !contents?.length && !loading;
 
   if (isEmpty) return null;
 
-  async function performUpdate(
-    file: CloudObject,
-    payload: { name?: string; metadata?: Record<string, string> }
-  ) {
-    const key = file?.Path?.Key;
-    if (!key) return toast.error("Unable to update: missing key");
+  // --- Handlers ---
 
-    // mark updating (UI state handled in modal)
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
 
-    const listQueryKey = createCloudObjectsQueryKey(currentPath, true, false);
-    const objectsQueryKey = createCloudObjectsQueryKey(currentPath);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
 
-    const prevList = qc.getQueryData(
-      createCloudObjectsQueryKey(currentPath, true, false)
-    );
-    const prevObjects = qc.getQueryData(
-      createCloudObjectsQueryKey(currentPath)
-    );
+    if (!over) return;
 
-    try {
-      // Prepare name value including extension (server expects full filename)
-      const nameToSend =
-        payload.name && file.Extension
-          ? `${payload.name}.${String(file.Extension).replace(/^\./, "")}`
-          : payload.name ?? undefined;
+    const sourceId = active.id as string;
+    const targetId = over.id as string;
 
-      // Merge incoming metadata with existing to preserve default model fields
-      const mergedMetadata = {
-        ...(file?.Metadata ?? {}),
-        ...(payload.metadata ?? {}),
-      };
-
-      // optimistic update: update cached objects
-      qc.setQueryData(listQueryKey, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          items: [
-            ...old.data.result.items.map((c: any) =>
-              c?.Path?.Key === key
-                ? { ...c, Name: nameToSend ?? c.Name, Metadata: mergedMetadata }
-                : c
-            ),
-          ],
-        };
-      });
-
-      qc.setQueryData(objectsQueryKey, (old: any) =>
-        Array.isArray(old)
-          ? old.map((o: any) =>
-              o?.Path?.Key === key
-                ? { ...o, Name: nameToSend ?? o.Name, Metadata: mergedMetadata }
-                : o
-            )
-          : old
-      );
-
-      // call server
-      await cloudApiFactory.update({
-        cloudUpdateRequestModel: {
-          Key: key,
-          Name: nameToSend,
-          Metadata: mergedMetadata,
-        },
-      });
-
-      toast.success("Updated");
-      await invalidateUsage();
-      await invalidatesObjects.invalidateObjects();
-    } catch (err) {
-      // rollback
-      try {
-        qc.setQueryData(listQueryKey, prevList);
-        qc.setQueryData(objectsQueryKey, prevObjects);
-      } catch (rollbackErr) {
-        console.error("Rollback failed", rollbackErr);
+    if (sourceId !== targetId) {
+      const targetDir = directories?.find((d) => d.Prefix === targetId);
+      if (targetDir && onMove) {
+        onMove(sourceId, targetId);
       }
-      console.error(err);
-      toast.error("Update failed");
-    } finally {
-      // done
     }
-  }
+  };
+
+  const handleSelect = (id: string, multi: boolean) => {
+    if (!onSelect) return;
+    const newSelected = new Set(multi ? selectedItems : []);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    onSelect(newSelected);
+  };
+
+  const handleItemClick = (
+    item: CloudObject | Directory,
+    type: "file" | "folder",
+    e: React.MouseEvent
+  ) => {
+    const id =
+      type === "file"
+        ? (item as CloudObject).Path?.Key
+        : (item as Directory).Prefix;
+    if (!id) return;
+
+    if (e.metaKey || e.ctrlKey) {
+      handleSelect(id, true);
+      return;
+    }
+
+    if (type === "folder") {
+      const dir = item as Directory;
+      const prefix = dir?.Prefix ?? "";
+      const segments = prefix.split("/").filter(Boolean);
+      const name = segments.length
+        ? segments[segments.length - 1]
+        : prefix || "";
+      if (!loading)
+        setCurrentPath(currentPath ? `${currentPath}/${name}` : name);
+    } else {
+      if (!loading && onPreview) onPreview(item as CloudObject);
+    }
+  };
+
+  // --- Renderers ---
 
   const renderList = () => (
     <div className="divide-y rounded-md border bg-background/50">
@@ -206,28 +286,43 @@ export default function StorageBrowser({
         const name = segments.length
           ? segments[segments.length - 1]
           : prefix || "";
+        const key = d.Prefix || `dir-${idx}`;
 
         return (
-          <motion.div
-            layout
-            key={`dir-${prefix || idx}`}
-            onClick={() =>
-              !loading &&
-              setCurrentPath(currentPath ? `${currentPath}/${name}` : name)
-            }
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            whileHover={{ scale: 1.005 }}
-            transition={{ duration: 0.16 }}
-            className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer group"
+          <DraggableItem
+            key={key}
+            id={key}
+            type="folder"
+            selected={selectedItems.has(key)}
+            onSelect={(multi) => handleSelect(key, multi)}
+            onClick={() => {}}
+            className="group"
           >
-            <div className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500">
-              <Folder size={18} fill="currentColor" className="opacity-80" />
+            <div
+              className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer"
+              onClick={(e) => handleItemClick(d, "folder", e)}
+            >
+              <div className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500">
+                <Folder size={18} fill="currentColor" className="opacity-80" />
+              </div>
+              <div className="flex-1 min-w-0 font-medium text-sm">{name}</div>
+              <div className="text-xs text-muted-foreground">Klasör</div>
+
+              {/* Folder Actions */}
+              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!loading && onDelete) onDelete(d);
+                  }}
+                  className="rounded p-1 hover:bg-muted/10"
+                  disabled={loading || Boolean(deleting[key])}
+                >
+                  <Trash2 className="size-4 text-destructive" />
+                </button>
+              </div>
             </div>
-            <div className="flex-1 min-w-0 font-medium text-sm">{name}</div>
-            <div className="text-xs text-muted-foreground">Folder</div>
-          </motion.div>
+          </DraggableItem>
         );
       })}
 
@@ -235,114 +330,100 @@ export default function StorageBrowser({
       {(loading ? Array.from({ length: 4 }) : contents ?? []).map(
         (item: unknown, idx) => {
           const c = loading ? undefined : (item as CloudObject);
+          const key = c?.Path?.Key ?? `file-${idx}`;
+
+          if (loading) {
+            return (
+              <div key={idx} className="flex items-center gap-4 px-4 py-3">
+                <div className="h-8 w-8 rounded bg-muted/30 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-1/3 rounded bg-muted/30 animate-pulse" />
+                  <div className="h-3 w-1/4 rounded bg-muted/30 animate-pulse" />
+                </div>
+              </div>
+            );
+          }
+
           return (
-            <motion.div
-              layout
-              key={c?.Path?.Key ?? `file-${idx}`}
-              onClick={() => !loading && c && onPreview?.(c)}
-              role={onPreview && !loading ? "button" : undefined}
-              tabIndex={onPreview && !loading ? 0 : undefined}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              whileHover={{ scale: 1.005 }}
-              transition={{ duration: 0.18 }}
-              className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer group"
+            <DraggableItem
+              key={key}
+              id={key}
+              type="file"
+              selected={selectedItems.has(key)}
+              onSelect={(multi) => handleSelect(key, multi)}
+              onClick={() => {}}
+              className="group"
             >
-              <div className="w-8 h-8 flex items-center justify-center rounded-md bg-muted/20">
-                {loading ? (
-                  <div className="h-5 w-5 rounded bg-muted/30 animate-pulse" />
-                ) : (
+              <div
+                className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer"
+                onClick={(e) => handleItemClick(c!, "file", e)}
+              >
+                <div className="w-8 h-8 flex items-center justify-center rounded-md bg-muted/20">
                   <FileIcon extension={c!.Extension} />
-                )}
-              </div>
+                </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground truncate">
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-48 rounded bg-muted/30 animate-pulse" />
-                      <div className="h-3 w-10 rounded bg-muted/30 animate-pulse" />
-                    </div>
-                  ) : (
-                    <>
-                      {c!.Metadata?.Originalfilename || c!.Name}
-                      <span className="text-xs text-muted-foreground">
-                        .{c!.Extension}
-                      </span>
-                    </>
-                  )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground truncate">
+                    {c!.Metadata?.Originalfilename || c!.Name}
+                    <span className="text-xs text-muted-foreground">
+                      .{c!.Extension}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {c!.MimeType ?? "—"}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {loading ? (
-                    <div className="h-3 w-24 rounded bg-muted/30 animate-pulse" />
-                  ) : (
-                    c!.MimeType ?? "—"
-                  )}
-                </div>
-              </div>
 
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="whitespace-nowrap hidden sm:block">
-                  {loading ? (
-                    <div className="h-3 w-14 rounded bg-muted/30 animate-pulse" />
-                  ) : (
-                    humanFileSize(c!.Size)
-                  )}
-                </div>
-                <div className="whitespace-nowrap hidden md:block">
-                  {c?.LastModified
-                    ? new Date(c!.LastModified).toLocaleString()
-                    : "—"}
-                </div>
-                <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    aria-label={`Delete ${loading ? "item" : c!.Name}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!loading && c) onDelete?.(c);
-                    }}
-                    className="rounded p-1 hover:bg-muted/10"
-                    disabled={
-                      loading ||
-                      Boolean(deleting[c!.Path?.Key ?? c!.Name ?? String(idx)])
-                    }
-                  >
-                    {loading ? (
-                      <div className="h-4 w-4 rounded bg-muted/30 animate-pulse" />
-                    ) : (
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="whitespace-nowrap hidden sm:block">
+                    {humanFileSize(c!.Size)}
+                  </div>
+                  <div className="whitespace-nowrap hidden md:block">
+                    {c?.LastModified
+                      ? new Date(c!.LastModified).toLocaleString()
+                      : "—"}
+                  </div>
+                  <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading && c && onDelete) onDelete(c);
+                      }}
+                      className="rounded p-1 hover:bg-muted/10"
+                      disabled={
+                        loading || Boolean(deleting[c!.Path?.Key ?? ""])
+                      }
+                    >
                       <Trash2 className="size-4 text-destructive" />
-                    )}
-                  </button>
+                    </button>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        aria-label={`More ${loading ? "item" : c!.Name}`}
-                        className="rounded p-1 hover:bg-muted/10"
-                      >
-                        <MoreHorizontal
-                          size={16}
-                          className="text-muted-foreground"
-                        />
-                      </button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end" forceMount>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!loading && c) setToEdit(c);
-                        }}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          onClick={(e) => e.stopPropagation()}
+                          className="rounded p-1 hover:bg-muted/10"
+                        >
+                          <MoreHorizontal
+                            size={16}
+                            className="text-muted-foreground"
+                          />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!loading && c) setToEdit(c);
+                          }}
+                        >
+                          Edit
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </div>
-            </motion.div>
+            </DraggableItem>
           );
         }
       )}
@@ -358,105 +439,126 @@ export default function StorageBrowser({
         const name = segments.length
           ? segments[segments.length - 1]
           : prefix || "";
+        const key = d.Prefix || `dir-${idx}`;
 
         return (
-          <motion.div
-            layout
-            key={`dir-${prefix || idx}`}
-            onClick={() =>
-              !loading &&
-              setCurrentPath(currentPath ? `${currentPath}/${name}` : name)
-            }
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.16 }}
-            className="flex flex-col items-center justify-center gap-3 p-4 rounded-xl border bg-card hover:bg-accent/50 cursor-pointer transition-colors aspect-square text-center"
+          <DraggableItem
+            key={key}
+            id={key}
+            type="folder"
+            selected={selectedItems.has(key)}
+            onSelect={(multi) => handleSelect(key, multi)}
+            onClick={() => {}}
+            className="group"
           >
-            <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
-              <Folder size={24} fill="currentColor" className="opacity-80" />
+            <div
+              className="relative flex flex-col items-center gap-3 p-4 rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors aspect-square justify-center"
+              onClick={(e) => handleItemClick(d, "folder", e)}
+            >
+              <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-2">
+                <Folder size={32} fill="currentColor" className="opacity-80" />
+              </div>
+              <div className="text-sm font-medium text-center truncate w-full px-2">
+                {name}
+              </div>
+
+              {/* Folder Actions */}
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!loading && onDelete) onDelete(d);
+                  }}
+                  className="rounded-full p-1.5 bg-background/80 hover:bg-destructive/10 hover:text-destructive shadow-sm border"
+                  disabled={loading || Boolean(deleting[key])}
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
             </div>
-            <div className="font-medium text-sm truncate w-full px-2">
-              {name}
-            </div>
-            <div className="text-xs text-muted-foreground">Folder</div>
-          </motion.div>
+          </DraggableItem>
         );
       })}
 
       {/* Files */}
-      {(loading ? Array.from({ length: 4 }) : contents ?? []).map(
+      {(loading ? Array.from({ length: 8 }) : contents ?? []).map(
         (item: unknown, idx) => {
           const c = loading ? undefined : (item as CloudObject);
+          const key = c?.Path?.Key ?? `file-${idx}`;
+
+          if (loading) {
+            return (
+              <div
+                key={idx}
+                className="aspect-square rounded-xl border bg-muted/10 p-4 flex flex-col gap-3"
+              >
+                <div className="flex-1 rounded-lg bg-muted/20 animate-pulse" />
+                <div className="h-4 w-2/3 rounded bg-muted/20 animate-pulse mx-auto" />
+              </div>
+            );
+          }
+
           return (
-            <motion.div
-              layout
-              key={c?.Path?.Key ?? `file-${idx}`}
-              onClick={() => !loading && c && onPreview?.(c)}
-              role={onPreview && !loading ? "button" : undefined}
-              tabIndex={onPreview && !loading ? 0 : undefined}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.18 }}
-              className="relative flex flex-col items-center justify-between p-3 rounded-xl border bg-card hover:bg-accent/50 cursor-pointer transition-colors aspect-square text-center group overflow-hidden"
+            <DraggableItem
+              key={key}
+              id={key}
+              type="file"
+              selected={selectedItems.has(key)}
+              onSelect={(multi) => handleSelect(key, multi)}
+              onClick={() => {}}
+              className="group"
             >
-              <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative rounded-md min-h-0">
-                {loading ? (
-                  <div className="h-full w-full rounded bg-muted/30 animate-pulse" />
-                ) : (
+              <div
+                className="relative flex flex-col gap-3 p-3 rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors aspect-square"
+                onClick={(e) => handleItemClick(c!, "file", e)}
+              >
+                <div className="flex-1 w-full overflow-hidden rounded-lg bg-muted/5">
                   <GridThumbnail file={c!} />
-                )}
-              </div>
-
-              <div className="w-full min-w-0 mt-3 shrink-0">
-                <div
-                  className="text-sm font-medium text-foreground truncate w-full px-1"
-                  title={c?.Name}
-                >
-                  {loading ? (
-                    <div className="h-3 w-20 mx-auto rounded bg-muted/30 animate-pulse" />
-                  ) : (
-                    c!.Metadata?.Originalfilename || c!.Name
-                  )}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {loading ? (
-                    <div className="h-2 w-12 mx-auto rounded bg-muted/30 animate-pulse" />
-                  ) : (
-                    humanFileSize(c!.Size)
-                  )}
-                </div>
-              </div>
 
-              {!loading && (
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className="text-sm font-medium truncate"
+                      title={c!.Name}
+                    >
+                      {c!.Name}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {humanFileSize(c!.Size)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    aria-label={`Delete ${c!.Name}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDelete?.(c!);
+                      if (!loading && c && onDelete) onDelete(c);
                     }}
-                    className="rounded p-1.5 bg-background/80 hover:bg-destructive/10 hover:text-destructive shadow-sm border"
+                    className="rounded-full p-1.5 bg-background/80 hover:bg-destructive/10 hover:text-destructive shadow-sm border"
+                    disabled={loading || Boolean(deleting[c!.Path?.Key ?? ""])}
                   >
-                    <Trash2 size={14} />
+                    <Trash2 className="size-4" />
                   </button>
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
                         onClick={(e) => e.stopPropagation()}
-                        className="rounded p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
+                        className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
                       >
-                        <MoreHorizontal size={14} />
+                        <MoreHorizontal
+                          size={16}
+                          className="text-muted-foreground"
+                        />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          setToEdit(c!);
+                          if (!loading && c) setToEdit(c);
                         }}
                       >
                         Edit
@@ -464,8 +566,8 @@ export default function StorageBrowser({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              )}
-            </motion.div>
+              </div>
+            </DraggableItem>
           );
         }
       )}
@@ -473,43 +575,34 @@ export default function StorageBrowser({
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          {directories?.length || 0} folders, {contents?.length || 0} files
-        </div>
-        <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
-          <Button
-            variant={viewMode === "list" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 px-2"
-            onClick={() => onViewModeChange?.("list")}
-          >
-            <ListIcon size={16} />
-          </Button>
-          <Button
-            variant={viewMode === "grid" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 px-2"
-            onClick={() => onViewModeChange?.("grid")}
-          >
-            <LayoutGrid size={16} />
-          </Button>
-        </div>
-      </div>
-
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       {viewMode === "list" ? renderList() : renderGrid()}
 
+      <DragOverlay>
+        {activeId ? (
+          <div className="opacity-50">
+            {/* Simple drag preview */}
+            <div className="p-2 bg-background border rounded shadow-lg">
+              Moving item...
+            </div>
+          </div>
+        ) : null}
+      </DragOverlay>
+
       <EditFileModal
-        open={Boolean(toEdit)}
-        onClose={() => setToEdit(null)}
-        file={toEdit ?? undefined}
-        onConfirm={async ({ name, metadata }) => {
-          if (!toEdit) return;
-          await performUpdate(toEdit, { name, metadata });
+        file={toEdit}
+        open={!!toEdit}
+        onOpenChange={(open) => !open && setToEdit(null)}
+        onSave={() => {
           setToEdit(null);
+          // Invalidate? The modal should handle it or we pass a callback
         }}
       />
-    </div>
+    </DndContext>
   );
 }

@@ -23,45 +23,28 @@ export default function StorageUsage({
   if (!usage) return null;
 
   const percent = Math.min(Math.max(usage.UsagePercentage ?? 0, 0), 100);
+  const used = humanFileSize(usage.UsedStorageInBytes);
+  const total = humanFileSize(usage.MaxStorageInBytes);
 
   return (
-    <div className={cn("flex items-center gap-3", className)}>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="text-sm font-medium truncate text-foreground">
-              Storage
-            </div>
-            <div className="text-xs text-muted-foreground truncate hidden sm:block">
-              {humanFileSize(usage.UsedStorageInBytes)} used of{" "}
-              {humanFileSize(usage.MaxStorageInBytes)}
-            </div>
-          </div>
-
-          <div
-            className={cn(
-              "px-2 py-0.5 rounded-full text-xs font-semibold",
-              usage.IsLimitExceeded
-                ? "bg-destructive/10 text-destructive"
-                : "bg-muted/10 text-foreground"
-            )}
-          >
-            {Math.round(percent)}%
-          </div>
+    <div className={cn("flex flex-col gap-3", className)}>
+      <div className="flex items-end justify-between">
+        <div className="flex flex-col">
+          <span className="text-2xl font-bold tracking-tight">{Math.round(percent)}%</span>
+          <span className="text-xs text-muted-foreground font-medium">Kullanılıyor</span>
         </div>
-
-        <div className="mt-2">
-          <Progress value={percent} />
-        </div>
-
-        {/* details only show on very small screens, below sm we show a compact line */}
-        <div className="mt-2 text-xs text-muted-foreground sm:hidden">
-          {humanFileSize(usage.UsedStorageInBytes)} used of{" "}
-          {humanFileSize(usage.MaxStorageInBytes)}
+        <div className="text-xs text-muted-foreground mb-1">
+          <span className="font-medium text-foreground">{used}</span> / {total}
         </div>
       </div>
 
-      {/* optional compact label on the right for larger screens */}
+      <Progress value={percent} className="h-2 w-full" />
+      
+      {usage.IsLimitExceeded && (
+        <p className="text-xs text-destructive font-medium mt-1">
+          Depolama alanı sınırını aştınız!
+        </p>
+      )}
     </div>
   );
 }

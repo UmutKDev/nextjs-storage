@@ -7,18 +7,20 @@ import { X, Trash2 } from "lucide-react";
 
 export default function ConfirmDeleteModal({
   open,
-  onClose,
-  name,
+  onOpenChange,
+  title,
   description,
   onConfirm,
 }: {
   open: boolean;
-  onClose: () => void;
-  name?: string;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
   description?: string;
   onConfirm: () => Promise<void> | void;
 }) {
   const [loading, setLoading] = React.useState(false);
+
+  const handleClose = () => onOpenChange(false);
 
   // lock scroll while modal open
   React.useEffect(() => {
@@ -39,11 +41,11 @@ export default function ConfirmDeleteModal({
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -62,7 +64,7 @@ export default function ConfirmDeleteModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
           className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-          onClick={onClose}
+          onClick={handleClose}
         />
 
         <motion.div
@@ -80,7 +82,7 @@ export default function ConfirmDeleteModal({
               <div className="text-sm font-semibold">Delete item</div>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="rounded-md p-1 hover:bg-muted/10"
             >
               <X />
@@ -89,7 +91,7 @@ export default function ConfirmDeleteModal({
 
           <div className="p-4 text-sm text-muted-foreground">
             <div className="font-medium text-foreground">
-              {name ?? "Are you sure?"}
+              {title ?? "Are you sure?"}
             </div>
             {description ? <div className="mt-1">{description}</div> : null}
             <div className="mt-3 text-xs text-muted-foreground">
@@ -99,7 +101,7 @@ export default function ConfirmDeleteModal({
 
           <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               disabled={loading}
               className="rounded-md px-3 py-1 text-sm hover:bg-muted/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -110,7 +112,7 @@ export default function ConfirmDeleteModal({
                 setLoading(true);
                 try {
                   await onConfirm();
-                  onClose();
+                  handleClose();
                 } catch (e) {
                   console.error(e);
                 } finally {

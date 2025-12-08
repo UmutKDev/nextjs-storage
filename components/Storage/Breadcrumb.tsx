@@ -3,20 +3,20 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useStorage } from "./StorageProvider";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Home } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Crumb = { Name?: string; Path?: string; Type?: string };
 
 export default function Breadcrumb({ items }: { items?: Crumb[] }) {
   const { setCurrentPath, currentPath } = useStorage();
-  // Helper that builds a breadcrumb list using the currentPath when the API doesn't provide full crumbs
+
   const buildFromPath = (path?: string) => {
     const normalized =
       path === "/" || !path ? "" : path.replace(/^\/+|\/+$/g, "");
 
     const crumbs: Crumb[] = [];
-    // root
-    crumbs.push({ Name: "root", Path: "", Type: "ROOT" });
+    crumbs.push({ Name: "Ana Dizin", Path: "", Type: "ROOT" });
 
     if (!normalized) return crumbs;
 
@@ -30,54 +30,52 @@ export default function Breadcrumb({ items }: { items?: Crumb[] }) {
     return crumbs;
   };
 
-  // Determine breadcrumb source: use API items when it provides more than one item (full trail), otherwise build from currentPath
   const useItems =
     items && items.length > 0 ? items : buildFromPath(currentPath);
 
   return (
     <nav
       aria-label="breadcrumb"
-      className="flex items-center gap-2 text-sm text-muted-foreground"
+      className="flex items-center px-1 py-1"
     >
-      {useItems.map((it, idx) => (
-        <motion.div
-          key={idx}
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.12, delay: idx * 0.02 }}
-          className="flex items-center gap-2"
-        >
-          <div className="flex items-center gap-2">
-            {it.Type === "ROOT" && (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                className="text-muted-foreground"
-                aria-hidden
-              >
-                <path
-                  d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V9.5z"
-                  fill="currentColor"
-                />
-              </svg>
-            )}
+      <ol className="flex items-center flex-wrap gap-1.5 text-sm">
+        {useItems.map((it, idx) => {
+          const isLast = idx === useItems.length - 1;
+          const isRoot = it.Type === "ROOT" || idx === 0;
 
-            <button
-              onClick={() => setCurrentPath(it.Path ?? "")}
-              className="hover:underline text-sm text-muted-foreground"
-              aria-current={idx === useItems.length - 1 ? "page" : undefined}
+          return (
+            <motion.li
+              key={it.Path || idx}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2, delay: idx * 0.05 }}
+              className="flex items-center gap-1.5"
             >
-              {it.Name || "root"}
-            </button>
-          </div>
+              <button
+                onClick={() => setCurrentPath(it.Path ?? "")}
+                disabled={isLast}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200",
+                  isLast 
+                    ? "bg-primary/10 text-primary font-semibold cursor-default" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                )}
+                aria-current={isLast ? "page" : undefined}
+              >
+                {isRoot ? (
+                  <Home className="w-4 h-4" />
+                ) : (
+                  <span>{it.Name}</span>
+                )}
+              </button>
 
-          {idx !== useItems.length - 1 && (
-            <ChevronRight size={14} className="text-muted-foreground" />
-          )}
-        </motion.div>
-      ))}
+              {!isLast && (
+                <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
+              )}
+            </motion.li>
+          );
+        })}
+      </ol>
     </nav>
   );
 }

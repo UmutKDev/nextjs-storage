@@ -26,7 +26,13 @@ import CreateFolderModal from "./CreateFolderModal";
 import FileUploadModal from "./FileUploadModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import toast from "react-hot-toast";
-import { FolderPlus, UploadCloudIcon } from "lucide-react";
+import {
+  FolderPlus,
+  UploadCloudIcon,
+  Trash2,
+  LayoutGrid,
+  List,
+} from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import StorageUsage from "./StorageUsage";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
@@ -36,6 +42,10 @@ export default function Explorer({
   queries: { breadcrumbQuery, objectsQuery, directoriesQuery },
   currentPath,
   invalidates,
+  showCreateFolder,
+  setShowCreateFolder,
+  showUpload,
+  setShowUpload,
 }: {
   queries: {
     breadcrumbQuery: UseQueryResult<CloudBreadCrumbListModelResult, Error>;
@@ -48,8 +58,13 @@ export default function Explorer({
     invalidateObjects: () => Promise<void>;
     invalidateDirectories: () => Promise<void>;
   };
+  showCreateFolder: boolean;
+  setShowCreateFolder: (show: boolean) => void;
+  showUpload: boolean;
+  setShowUpload: (show: boolean) => void;
 }) {
   // main data hook
+  const { invalidate: invalidateUsage } = useUserStorageUsage();
 
   // UI state
   const [search, setSearch] = React.useState("");
@@ -61,16 +76,150 @@ export default function Explorer({
   const prevPath = React.useRef(currentPath);
 
   // create folder UI state
-  const [showCreate, setShowCreate] = React.useState(false);
-  const [showUpload, setShowUpload] = React.useState(false);
   const [newFolderName, setNewFolderName] = React.useState("");
   const [creating, setCreating] = React.useState(false);
 
   // delete UI state
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
-  const [toDelete, setToDelete] = React.useState<CloudObjectModel | null>(null);
+  const [toDelete, setToDelete] = React.useState<
+    CloudObjectModel | CloudDirectoryModel | null
+  >(null);
+  const [selectedItems, setSelectedItems] = React.useState<Set<string>>(
+    new Set()
+  );
 
   const qc = useQueryClient();
+
+  const contents = objectsQuery.data?.items ?? [];
+  const directories = directoriesQuery.data?.items ?? [];
+
+  // Filter logic
+  const filteredContents = React.useMemo(() => {
+    if (!search) return contents;
+    return contents.filter((c) =>
+      c.Name?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [contents, search]);
+
+  const filteredDirectories = React.useMemo(() => {
+    if (!search) return directories;
+    return directories.filter((d) => {
+      // CloudDirectoryModel only has Prefix, not Name
+      const prefix = d.Prefix ?? "";
+      const segments = prefix.split("/").filter(Boolean);
+      const name = segments.length ? segments[segments.length - 1] : prefix;
+      return name.toLowerCase().includes(search.toLowerCase());
+    });
+  }, [directories, search]);
+
+  // Clear selection when path changes
+  React.useEffect(() => {
+    setSelectedItems(new Set());
+  }, [currentPath]);
+
+  const handleMove = async (sourceKey: string, destinationKey: string) => {
+    try {
+      await cloudApiFactory.move({
+        cloudMoveRequestModel: {
+          SourceKey: sourceKey,
+          DestinationKey: destinationKey,
+        },
+      });
+      toast.success("Moved successfully");
+      await Promise.all([
+        invalidates.invalidateObjects(),
+        invalidates.invalidateDirectories(),
+      ]);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to move item");
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedItems.size === 0) return;
+
+    if (
+      !confirm(`Are you sure you want to delete ${selectedItems.size} items?`)
+    )
+      return;
+
+    try {
+      const selectedFiles = contents.filter(
+        (c) => c.Path?.Key && selectedItems.has(c.Path.Key)
+      );
+      const selectedDirs = directories.filter(
+        (d) => d.Prefix && selectedItems.has(d.Prefix)
+      );
+
+      if (selectedFiles.length > 0) {
+        await cloudApiFactory._delete({
+          cloudDeleteRequestModel: {
+            Key: selectedFiles.map((f) => f.Path!.Key!),
+            IsDirectory: false,
+          },
+        });
+      }
+
+      if (selectedDirs.length > 0) {
+        await cloudApiFactory._delete({
+          cloudDeleteRequestModel: {
+            Key: selectedDirs.map((d) => d.Prefix!),
+            IsDirectory: true,
+          },
+        });
+      }
+
+      toast.success("Deleted selected items");
+      setSelectedItems(new Set());
+      await Promise.all([
+        invalidates.invalidateObjects(),
+        invalidates.invalidateDirectories(),
+        invalidateUsage(),
+      ]);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to delete items");
+    }
+  };
+
+  async function performDelete(item: CloudObjectModel | CloudDirectoryModel) {
+    const isDirectory = "Prefix" in item;
+    const key = isDirectory
+      ? (item as CloudDirectoryModel).Prefix
+      : (item as CloudObjectModel).Path?.Key;
+
+    if (!key) return;
+
+    setDeleting((prev) => ({ ...prev, [key]: true }));
+    try {
+      await cloudApiFactory._delete({
+        cloudDeleteRequestModel: { Key: [key], IsDirectory: isDirectory },
+      });
+      toast.success("Deleted successfully");
+      await Promise.all([
+        invalidates.invalidateObjects(),
+        invalidates.invalidateDirectories(),
+        invalidateUsage(),
+      ]);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to delete");
+    } finally {
+      setDeleting((prev) => ({ ...prev, [key]: false }));
+      setToDelete(null);
+    }
+  }
+
+  // Helper to get name for delete modal
+  const getItemName = (item: CloudObjectModel | CloudDirectoryModel) => {
+    if ("Prefix" in item) {
+      const prefix = item.Prefix ?? "";
+      const segments = prefix.split("/").filter(Boolean);
+      return segments.length ? segments[segments.length - 1] : prefix;
+    }
+    return item.Name;
+  };
 
   // When path changes set navigating state so panels immediately show loading
   React.useEffect(() => {
@@ -117,251 +266,130 @@ export default function Explorer({
       // invalidate relevant queries so UI refreshes
       await Promise.all([invalidates.invalidateDirectories()]);
 
-      toast.success(`Folder created: ${key}`);
+      toast.success("Folder created");
+      setShowCreateFolder(false);
       setNewFolderName("");
-      setShowCreate(false);
     } catch (e) {
       console.error(e);
-      toast.error(`Failed to create folder: ${String(e)}`);
+      toast.error("Failed to create folder");
     } finally {
       setCreating(false);
     }
   }
 
-  // Don't hide the whole page while loading — keep cards visible and render
-  // per-card placeholders (skeletons). This keeps layout stable when navigating
-  // into a folder or refreshing the page.
-  const usageQuery = useUserStorageUsage();
-  const { invalidate: invalidateUsage } = usageQuery;
-  const usage = usageQuery.userStorageUsageQuery.data;
-  const directories: CloudDirectoryModel[] = directoriesQuery.data?.items ?? [];
-  const contents: CloudObjectModel[] = objectsQuery.data?.items ?? [];
-
-  // simple case-insensitive matches
-  const searchLower = search.toLowerCase();
-  const filteredDirectories = directories.filter((d: CloudDirectoryModel) => {
-    const seg = (d?.Prefix ?? "").split("/").filter(Boolean).slice(-1)[0] ?? "";
-    return seg.toLowerCase().includes(searchLower);
-  });
-
-  const filteredContents = contents.filter((c: CloudObjectModel) => {
-    const name = (c?.Name ?? "") + "." + (c?.Extension ?? "");
-    return name.toLowerCase().includes(searchLower);
-  });
-
-  async function performDelete(file: CloudObjectModel) {
-    const key = file?.Path?.Key;
-    if (!key) return toast.error("Unable to delete: missing key");
-
-    // Determine next file to preview if we are deleting the current one
-    let nextFile: CloudObjectModel | null = null;
-    if (previewFile?.Path?.Key === key) {
-      const currentList = search ? filteredContents : contents;
-      const idx = currentList.findIndex((f) => f.Path?.Key === key);
-      if (idx !== -1) {
-        if (idx < currentList.length - 1) {
-          nextFile = currentList[idx + 1];
-        } else if (idx > 0) {
-          nextFile = currentList[idx - 1];
-        }
-      }
-    }
-
-    setDeleting((s) => ({ ...s, [key]: true }));
-
-    const listQueryKey = createCloudObjectsQueryKey(currentPath, true, false);
-    const objectsQueryKey = createCloudObjectsQueryKey(currentPath);
-
-    const prevList = qc.getQueryData(listQueryKey);
-    const prevObjects = qc.getQueryData(objectsQueryKey);
-
-    try {
-      // optimistic update: remove the file from the cached lists immediately
-      qc.setQueryData(listQueryKey, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          items: [
-            ...old.data.result.items.filter((c: any) => c?.Path?.Key !== key),
-          ],
-        };
-      });
-
-      qc.setQueryData(objectsQueryKey, (old: any) =>
-        Array.isArray(old) ? old.filter((o: any) => o?.Path?.Key !== key) : old
-      );
-
-      // call server to remove file
-      await cloudApiFactory._delete({
-        cloudDeleteRequestModel: { Key: [key], IsDirectory: false },
-      });
-
-      // success — keep optimistic state and refresh other queries that may be affected
-      toast.success("Deleted");
-      await invalidateUsage();
-      await invalidates.invalidateObjects();
-
-      // if we deleted the file currently being previewed, switch to next or close
-      if (previewFile?.Path?.Key === key) {
-        if (nextFile) {
-          setPreviewFile(nextFile);
-        } else {
-          setPreviewFile(null);
-        }
-      }
-    } catch (err) {
-      // rollback optimistic update on error
-      try {
-        qc.setQueryData(listQueryKey, prevList);
-        qc.setQueryData(objectsQueryKey, prevObjects);
-      } catch (rollbackErr) {
-        console.error("Rollback failed", rollbackErr);
-      }
-      console.error(err);
-      toast.error("Delete failed");
-    } finally {
-      setDeleting((s) => ({ ...s, [key]: false }));
-    }
-  }
-
-  const breadcrumbs: CloudBreadCrumbModel[] = breadcrumbQuery.data?.items ?? [];
-
-  // compute concise loading flags used throughout the UI
-  // - Query can be 'loading' for initial load or 'fetching' for background refresh
-  // - isNavigating indicates a local transition between paths (shows panel skeletons)
-  const directoriesLoading =
-    directoriesQuery.isFetching || directoriesQuery.isLoading || isNavigating;
-
-  const contentsLoading =
-    objectsQuery.isFetching || objectsQuery.isLoading || isNavigating;
-
   return (
-    // make explorer take full height of its parent card and use flex so header
-    // is fixed-height and panels stretch to fill remaining space
-    <div className="space-y-6 h-full flex flex-col">
-      {/* increased spacing between header and panels */}
-      <Card>
-        <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-2 md:py-2 px-4 md:px-6">
-          <div className="flex-1 min-w-0">
-            <div className="text-xs text-muted-foreground">Storage</div>
-            <div className="mt-2">
-              <Breadcrumb
-                items={breadcrumbs.map((b: CloudBreadCrumbModel) => ({
-                  Name: b.Name,
-                  Path: b.Path,
-                  Type: b.Type,
-                }))}
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm shrink-0 gap-4">
+        <div className="flex-1 min-w-0">
+          <Breadcrumb
+            items={breadcrumbQuery.data?.result ?? []}
+            currentPath={currentPath}
+          />
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {selectedItems.size > 0 && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDeleteSelected}
+              className="shrink-0"
+            >
+              <Trash2 size={16} className="mr-2" />
+              <span className="hidden sm:inline">
+                Delete ({selectedItems.size})
+              </span>
+            </Button>
+          )}
+
+          <SearchBar value={search} onChange={setSearch} />
+
+          <div className="hidden sm:flex items-center gap-1 border-l pl-2 ml-2">
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode("list")}
+            >
+              <List size={16} />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid size={16} />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-hidden relative">
+        <div className="absolute inset-0 overflow-y-auto p-4">
+          <StorageBrowser
+            directories={filteredDirectories}
+            contents={filteredContents}
+            onPreview={(file) => setPreviewFile(file)}
+            loading={isNavigating || objectsQuery.isFetching}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onDelete={(item) => setToDelete(item)}
+            deleting={deleting}
+            selectedItems={selectedItems}
+            onSelect={(items) => setSelectedItems(items)}
+            onMove={handleMove}
+          />
+
+          {objectsQuery.isSuccess &&
+          directoriesQuery.isSuccess &&
+          !objectsQuery.isFetching &&
+          !directoriesQuery.isFetching &&
+          !isNavigating &&
+          !search &&
+          contents.length === 0 &&
+          directories.length === 0 ? (
+            <div className="h-full grid place-items-center">
+              <EmptyState
+                title="Klasör Boş"
+                description="Bu klasörde henüz dosya veya klasör yok."
               />
-              {/* compact mobile usage */}
             </div>
-          </div>
+          ) : null}
+        </div>
+      </div>
 
-          <div className="mt-4 md:mt-0 md:ml-6 w-full md:w-1/2 flex items-center gap-3">
-            {usage ? (
-              <StorageUsage
-                usage={usage}
-                className="hidden md:flex md:items-center md:ml-4"
-              />
-            ) : null}
+      <CreateFolderModal
+        open={showCreateFolder}
+        onOpenChange={setShowCreateFolder}
+        onCreate={createFolder}
+        loading={creating}
+        folderName={newFolderName}
+        setFolderName={setNewFolderName}
+      />
 
-            <div className="flex-1">
-              <SearchBar value={search} onChange={setSearch} />
-            </div>
-            {/* usage block shown on md+ to the right of search */}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="flex-1 flex flex-col min-h-0">
-        <CardHeader className="border-b py-4">
-          <div className="flex items-center justify-between gap-3 w-full">
-            <CardTitle>Explorer</CardTitle>
-            <div className="shrink-0 flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowCreate(true)}
-              >
-                <FolderPlus size={14} />
-                <span className="ml-2 hidden sm:inline">New Folder</span>
-              </Button>
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => setShowUpload(true)}
-              >
-                <UploadCloudIcon size={14} />
-                <span className="ml-2 hidden sm:inline">Upload</span>
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 overflow-hidden p-0">
-          <div className="h-full overflow-auto p-4">
-            <CreateFolderModal
-              open={showCreate}
-              onClose={() => setShowCreate(false)}
-              value={newFolderName}
-              onChange={setNewFolderName}
-              loading={creating}
-              onSubmit={createFolder}
-            />
-            <FileUploadModal
-              open={showUpload}
-              onClose={() => setShowUpload(false)}
-            />
-
-            <StorageBrowser
-              directories={search ? filteredDirectories : directories}
-              contents={search ? filteredContents : contents}
-              onPreview={setPreviewFile}
-              loading={directoriesLoading || contentsLoading}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              onDelete={setToDelete}
-              deleting={deleting}
-            />
-
-            {objectsQuery.isSuccess &&
-            directoriesQuery.isSuccess &&
-            !objectsQuery.isFetching &&
-            !directoriesQuery.isFetching &&
-            !isNavigating &&
-            !search &&
-            contents.length === 0 &&
-            directories.length === 0 ? (
-              <div className="h-full grid place-items-center">
-                <EmptyState
-                  title="Empty Folder"
-                  description="This folder is empty."
-                />
-              </div>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* file preview modal - rendered when a file is selected */}
-      {previewFile ? (
-        <FilePreviewModal
-          file={previewFile}
-          onClose={() => setPreviewFile(null)}
-          onChange={setPreviewFile}
-          files={search ? filteredContents : contents}
-          onDelete={setToDelete}
-        />
-      ) : null}
+      <FileUploadModal
+        open={showUpload}
+        onOpenChange={setShowUpload}
+        currentPath={currentPath}
+        onUploadComplete={() => {
+          invalidates.invalidateObjects();
+          invalidateUsage();
+        }}
+      />
 
       <ConfirmDeleteModal
-        open={Boolean(toDelete)}
-        onClose={() => setToDelete(null)}
-        name={toDelete?.Name ?? toDelete?.Path?.Key}
-        description={toDelete?.Path?.Key}
-        onConfirm={async () => {
-          if (!toDelete) return;
-          await performDelete(toDelete);
-          // setToDelete(null) is handled by the modal's onClose which is called after onConfirm
-        }}
+        open={!!toDelete}
+        onOpenChange={(open) => !open && setToDelete(null)}
+        onConfirm={() => toDelete && performDelete(toDelete)}
+        title={`Delete ${toDelete ? getItemName(toDelete) : ""}?`}
+        description="This action cannot be undone."
+      />
+
+      <FilePreviewModal
+        file={previewFile}
+        isOpen={!!previewFile}
+        onClose={() => setPreviewFile(null)}
       />
     </div>
   );
