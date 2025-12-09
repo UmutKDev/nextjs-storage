@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Cloud, LogOut, Settings, User, Menu, X } from "lucide-react";
+import { Cloud, LogOut, Settings, User, Menu, X, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
@@ -93,7 +93,19 @@ export function Navbar() {
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-2 pr-1">
-          {isLoggedIn ? (
+          {status === "loading" ? (
+            <div className="flex items-center gap-2">
+              <Button
+                disabled
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+              >
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/70" />
+              </Button>
+              <div className="hidden sm:block h-9 w-9 rounded-full bg-muted/30 animate-pulse border" />
+            </div>
+          ) : isLoggedIn ? (
             <div className="flex items-center gap-2">
               <Link href="/storage" className="hidden sm:block">
                 <Button size="sm" className="rounded-full px-4">

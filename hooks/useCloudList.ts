@@ -22,6 +22,7 @@ interface UseCloudListOptions {
   skip?: number;
   take?: number;
   search?: string | undefined;
+  refetchInterval?: number | false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,6 +107,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     skip = 0,
     take = 100,
     search = undefined,
+    refetchInterval = false,
   } = options ?? {};
 
   const queryClient = useQueryClient();
@@ -171,10 +173,10 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
         { signal }
       ),
     select: (res) => res.data?.result,
-    staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
     enabled: status === "authenticated" && enabled,
+    refetchInterval,
   });
 
   const directoriesQuery = useQuery({
@@ -189,6 +191,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     refetchOnMount,
     refetchOnWindowFocus: false,
     enabled: status === "authenticated" && enabled,
+    refetchInterval,
   });
 
   // Invalidate helper - mevcut path için cache'i temizler

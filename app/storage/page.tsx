@@ -8,7 +8,7 @@ import { useStorage } from "@/components/Storage/StorageProvider";
 
 export default function StoragePage() {
   const { currentPath } = useStorage();
-  
+
   // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -19,6 +19,7 @@ export default function StoragePage() {
     useCloudList(currentPath, {
       skip,
       take: pageSize,
+      refetchInterval: 5000,
     });
 
   // Reset page when path changes

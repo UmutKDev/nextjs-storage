@@ -27,7 +27,9 @@ export default function StorageProvider({
   const pathname = usePathname();
 
   const currentPath = searchParams.get("path") || initialPath;
-  const { invalidates } = useCloudList(currentPath);
+  // we only need invalidation helpers here — don't run the list queries from the provider
+  // (keeps a single data-fetching source of truth in the page/explorer and avoids duplicate requests)
+  const { invalidates } = useCloudList(currentPath, { enabled: false });
 
   const setCurrentPath = useCallback(
     (path: string) => {

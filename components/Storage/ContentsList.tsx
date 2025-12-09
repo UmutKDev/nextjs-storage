@@ -51,7 +51,10 @@ export default function ContentsList({
   const qc = useQueryClient();
   const { currentPath } = useStorage();
   const { invalidate: invalidateUsage } = useUserStorageUsage();
-  const { invalidates: invalidatesObjects } = useCloudList(currentPath);
+  // only need invalidation helpers here — don't run the list queries to avoid duplicate requests
+  const { invalidates: invalidatesObjects } = useCloudList(currentPath, {
+    enabled: false,
+  });
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
   const [toDelete, setToDelete] = React.useState<CloudObject | null>(null);
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);

@@ -456,7 +456,7 @@ export default function Explorer({
               directories={filteredDirectories}
               contents={filteredContents}
               onPreview={(file) => setPreviewFile(file)}
-              loading={isNavigating || objectsQuery.isFetching}
+              loading={isNavigating || objectsQuery.isLoading}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               onDelete={(item) => setToDelete(item)}
@@ -468,8 +468,8 @@ export default function Explorer({
 
             {objectsQuery.isSuccess &&
             directoriesQuery.isSuccess &&
-            !objectsQuery.isFetching &&
-            !directoriesQuery.isFetching &&
+            !objectsQuery.isLoading &&
+            !directoriesQuery.isLoading &&
             !isNavigating &&
             !search &&
             contents.length === 0 &&
