@@ -4,15 +4,14 @@ import React from "react";
 import { Folder } from "lucide-react";
 import { motion } from "framer-motion";
 import { useStorage } from "./StorageProvider";
-
-type Directory = { Prefix: string };
+import { CloudDirectoryModel } from "@/Service/Generates";
 
 export default function DirectoriesList({
   directories,
   loading = false,
   skeletonCount = 4,
 }: {
-  directories?: Directory[];
+  directories?: CloudDirectoryModel[];
   loading?: boolean;
   skeletonCount?: number;
 }) {
@@ -27,8 +26,9 @@ export default function DirectoriesList({
       {(loading
         ? Array.from({ length: skeletonCount })
         : directories ?? []
-      ).map((d: any, idx) => {
-        const prefix = d?.Prefix ?? "";
+      ).map((d: unknown, idx) => {
+        const dir = d as CloudDirectoryModel | undefined;
+        const prefix = dir?.Prefix ?? "";
         // display name is last non-empty segment
         const segments = prefix.split("/").filter(Boolean);
         const name = segments.length

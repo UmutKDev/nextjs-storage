@@ -1,11 +1,3 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import Link from "next/link";
 import { Login } from "@/components/Authentication/Login";
 import AuthFormProvider from "@/components/Authentication/AuthFormProvider";
@@ -23,7 +15,8 @@ export default function LoginForm() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              &ldquo;Bu platform sayesinde tüm dosyalarım güvende ve her an elimin altında. İş akışımı inanılmaz hızlandırdı.&rdquo;
+              &ldquo;Bu platform sayesinde tüm dosyalarım güvende ve her an
+              elimin altında. İş akışımı inanılmaz hızlandırdı.&rdquo;
             </p>
             <footer className="text-sm">Sofia Davis</footer>
           </blockquote>
@@ -39,14 +32,17 @@ export default function LoginForm() {
               Devam etmek için e-posta adresinizi ve şifrenizi girin
             </p>
           </div>
-          
+
           <AuthFormProvider>
             <Login />
           </AuthFormProvider>
 
           <p className="px-8 text-center text-sm text-muted-foreground">
             Hesabınız yok mu?{" "}
-            <Link href="/register" className="underline underline-offset-4 hover:text-primary">
+            <Link
+              href="/register"
+              className="underline underline-offset-4 hover:text-primary"
+            >
               Kayıt Ol
             </Link>
           </p>

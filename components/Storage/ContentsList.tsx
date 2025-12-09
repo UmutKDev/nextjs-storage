@@ -15,12 +15,17 @@ import { cloudApiFactory } from "@/Service/Factories";
 import toast from "react-hot-toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import EditFileModal from "./EditFileModal";
+import ShareFileModal from "./ShareFileModal";
 import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
 
-import type { CloudObjectModel } from "@/Service/Generates/api";
+import type {
+  CloudObjectListBaseModel,
+  CloudObjectModel,
+} from "@/Service/Generates/api";
 import { createCloudObjectsQueryKey, useCloudList } from "@/hooks/useCloudList";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
+import { AxiosResponse } from "axios";
 
 // use the generated CloudObjectModel for accurate typing
 type CloudObject = CloudObjectModel;
@@ -50,6 +55,7 @@ export default function ContentsList({
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
   const [toDelete, setToDelete] = React.useState<CloudObject | null>(null);
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
+  const [toShare, setToShare] = React.useState<CloudObject | null>(null);
 
   if ((!contents || contents.length === 0) && !loading) return null;
 
@@ -75,18 +81,23 @@ export default function ContentsList({
     try {
       // optimistic update: remove the file from the cached lists immediately
 
-      qc.setQueryData(listQueryKey, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          items: [
-            ...old.data.result.items.filter((c: any) => c?.Path?.Key !== key),
-          ],
-        };
-      });
+      qc.setQueryData(
+        listQueryKey,
+        (old: AxiosResponse<CloudObjectListBaseModel>) => {
+          if (!old) return old;
+          return {
+            ...old,
+            items: [
+              ...old.data.result.items.filter((c) => c?.Path?.Key !== key),
+            ],
+          };
+        }
+      );
 
-      qc.setQueryData(objectsQueryKey, (old: any) =>
-        Array.isArray(old) ? old.filter((o: any) => o?.Path?.Key !== key) : old
+      qc.setQueryData(objectsQueryKey, (old: CloudObject[]) =>
+        Array.isArray(old)
+          ? old.filter((o: CloudObject) => o?.Path?.Key !== key)
+          : old
       );
 
       // call server to remove file
@@ -146,28 +157,41 @@ export default function ContentsList({
       };
 
       // optimistic update: update cached objects
-      qc.setQueryData(listQueryKey, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          items: [
-            ...old.data.result.items.map((c: any) =>
-              c?.Path?.Key === key
-                ? { ...c, Name: nameToSend ?? c.Name, Metadata: mergedMetadata }
-                : c
-            ),
-          ],
-        };
-      });
+      qc.setQueryData(
+        listQueryKey,
+        (old: AxiosResponse<CloudObjectListBaseModel>) => {
+          if (!old) return old;
+          return {
+            ...old,
+            items: [
+              ...old.data.result.items.map((c) =>
+                c?.Path?.Key === key
+                  ? {
+                      ...c,
+                      Name: nameToSend ?? c.Name,
+                      Metadata: mergedMetadata,
+                    }
+                  : c
+              ),
+            ],
+          };
+        }
+      );
 
-      qc.setQueryData(objectsQueryKey, (old: any) =>
-        Array.isArray(old)
-          ? old.map((o: any) =>
-              o?.Path?.Key === key
-                ? { ...o, Name: nameToSend ?? o.Name, Metadata: mergedMetadata }
-                : o
-            )
-          : old
+      qc.setQueryData(
+        objectsQueryKey,
+        (old: AxiosResponse<CloudObjectListBaseModel>) =>
+          Array.isArray(old)
+            ? old.map((o) =>
+                o?.Path?.Key === key
+                  ? {
+                      ...o,
+                      Name: nameToSend ?? o.Name,
+                      Metadata: mergedMetadata,
+                    }
+                  : o
+              )
+            : old
       );
 
       // call server
@@ -300,6 +324,14 @@ export default function ContentsList({
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (!loading && c) setToShare(c);
+                        }}
+                      >
+                        Share
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (!loading && c) setToEdit(c);
                         }}
                       >
@@ -335,6 +367,11 @@ export default function ContentsList({
           await performUpdate(toEdit, { name, metadata });
           setToEdit(null);
         }}
+      />
+      <ShareFileModal
+        open={Boolean(toShare)}
+        onClose={() => setToShare(null)}
+        file={toShare}
       />
     </div>
   );

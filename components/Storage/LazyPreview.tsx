@@ -5,7 +5,6 @@ import {
   Loader2,
   FileText,
   AlertCircle,
-  ExternalLink,
   Download,
   VideoOff,
 } from "lucide-react";

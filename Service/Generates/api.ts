@@ -1637,10 +1637,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Returns a presigned URL for a specific object key to allow direct client access.
          * @summary Get a presigned URL for upload/download
          * @param {string} key 
+         * @param {number} [expiresInSeconds] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPresignedUrl: async (key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getPresignedUrl: async (key: string, expiresInSeconds?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'key' is not null or undefined
             assertParamExists('getPresignedUrl', 'key', key)
             const localVarPath = `/Api/Cloud/PresignedUrl`;
@@ -1661,6 +1662,10 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
             if (key !== undefined) {
                 localVarQueryParameter['Key'] = key;
+            }
+
+            if (expiresInSeconds !== undefined) {
+                localVarQueryParameter['ExpiresInSeconds'] = expiresInSeconds;
             }
 
 
@@ -2325,11 +2330,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Returns a presigned URL for a specific object key to allow direct client access.
          * @summary Get a presigned URL for upload/download
          * @param {string} key 
+         * @param {number} [expiresInSeconds] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getPresignedUrl(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getPresignedUrl(key, options);
+        async getPresignedUrl(key: string, expiresInSeconds?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StringResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPresignedUrl(key, expiresInSeconds, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.getPresignedUrl']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -2566,8 +2572,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.getPresignedUrl(requestParameters.key, options).then((request) => request(axios, basePath));
+        getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<StringResponseModel> {
+            return localVarFp.getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
@@ -2727,6 +2733,8 @@ export interface CloudApiFindRequest {
  */
 export interface CloudApiGetPresignedUrlRequest {
     readonly key: string
+
+    readonly expiresInSeconds?: number
 }
 
 /**
@@ -2904,7 +2912,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).getPresignedUrl(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

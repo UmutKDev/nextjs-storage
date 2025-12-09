@@ -21,8 +21,6 @@ import FileUploadModal from "./FileUploadModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import toast from "react-hot-toast";
 import {
-  FolderPlus,
-  UploadCloudIcon,
   Trash2,
   LayoutGrid,
   List,
@@ -197,15 +195,15 @@ export default function Explorer({
     const sourceData = active.data.current;
     const isSourceFolder = sourceData?.type === "folder";
 
-    // Extract name
-    let name = "";
-    if (isSourceFolder) {
-      const segments = sourceId.split("/").filter(Boolean);
-      name = segments[segments.length - 1];
-    } else {
-      const segments = sourceId.split("/");
-      name = segments[segments.length - 1];
-    }
+    // // Extract name
+    // let name = "";
+    // if (isSourceFolder) {
+    //   const segments = sourceId.split("/").filter(Boolean);
+    //   name = segments[segments.length - 1];
+    // } else {
+    //   const segments = sourceId.split("/");
+    //   name = segments[segments.length - 1];
+    // }
 
     // Determine target folder path
     // If target is root, path is empty string.

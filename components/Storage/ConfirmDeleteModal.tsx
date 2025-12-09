@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2 } from "lucide-react";
@@ -20,7 +20,7 @@ export default function ConfirmDeleteModal({
 }) {
   const [loading, setLoading] = React.useState(false);
 
-  const handleClose = () => onOpenChange(false);
+  const handleClose = useCallback(() => onOpenChange(false), [onOpenChange]);
 
   // lock scroll while modal open
   React.useEffect(() => {
@@ -45,7 +45,7 @@ export default function ConfirmDeleteModal({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [handleClose, open]);
 
   if (!open) return null;
 

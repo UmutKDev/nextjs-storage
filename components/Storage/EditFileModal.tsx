@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Edit3, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Input } from "@/components/ui/input";
+import { CloudObjectModel } from "@/Service/Generates";
 
 export default function EditFileModal({
   open,
@@ -15,7 +16,7 @@ export default function EditFileModal({
 }: {
   open: boolean;
   onClose: () => void;
-  file?: any | null;
+  file?: CloudObjectModel | null;
   onConfirm: (payload: {
     name: string;
     metadata: Record<string, string>;
@@ -67,7 +68,7 @@ export default function EditFileModal({
       initialName = initialName.slice(0, -1 - ext.length);
     }
     setName(String(initialName));
-    const meta = file?.Metadata ?? {};
+    const meta = (file?.Metadata ?? {}) as Record<string, string>;
     // Hide default model metadata fields from the editable list
     const DEFAULT_KEYS = ["Originalfilename", "Width", "Height"];
     const keys = Object.keys(meta || {}).filter(
@@ -196,7 +197,7 @@ export default function EditFileModal({
                   No metadata set
                 </div>
               ) : (
-                pairs.map((p, idx) => (
+                pairs.map((p) => (
                   <div key={p.id} className="flex gap-2">
                     <div className="w-1/2">
                       <Input

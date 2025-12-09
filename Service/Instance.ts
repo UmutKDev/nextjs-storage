@@ -1,11 +1,5 @@
 import { API_URL } from "@/Constants";
-import axios, {
-  AxiosError,
-  AxiosResponse,
-  type AxiosRequestHeaders,
-} from "axios";
-import { getSession } from "next-auth/react";
-import type { Session } from "next-auth";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 const Instance = axios.create({
   baseURL: API_URL,
@@ -31,13 +25,6 @@ const onError = (error: AxiosError<any>) => {
   // response available but we purposely handle its structured error later
 
   if (error.response && error.response.data) {
-    //   const { Message } = error.response.data;
-    //   if (Message) {
-    //     return Promise.reject(Message);
-    //   } else {
-    //     return Promise.reject("Bir hata oluştu.");
-    //   }
-    // } else {
     console.log(error.response.data);
     return Promise.reject("Bir hata oluştu.");
   }

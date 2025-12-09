@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CloudListResponseModel } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
 import { useSession } from "next-auth/react";
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,13 +40,13 @@ const normalizePath = (path?: string): string => {
   return path.replace(/^\/+/, "");
 };
 
-/** Parent path'i hesaplar, root için null döner */
-const getParentPath = (path: string): string | null => {
-  if (!path) return null;
-  const segments = path.split("/").filter(Boolean);
-  segments.pop();
-  return segments.join("/");
-};
+// /** Parent path'i hesaplar, root için null döner */
+// const getParentPath = (path: string): string | null => {
+//   if (!path) return null;
+//   const segments = path.split("/").filter(Boolean);
+//   segments.pop();
+//   return segments.join("/");
+// };
 
 /** Query key oluşturur */
 export const createCloudListQueryKey = (

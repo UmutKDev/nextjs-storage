@@ -1,7 +1,7 @@
+/* eslint-disable jsx-a11y/alt-text */
 "use client";
 
-import React from "react";
-import { File, Folder, Image, Archive, FileText } from "lucide-react";
+import { File, Image, Archive, FileText } from "lucide-react";
 
 export default function FileIcon({ extension }: { extension?: string }) {
   const ext = (extension || "").toLowerCase();

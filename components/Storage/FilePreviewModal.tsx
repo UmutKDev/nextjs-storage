@@ -10,9 +10,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  Share2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
+import ShareFileModal from "./ShareFileModal";
 
 import type { CloudObjectModel } from "@/Service/Generates/api";
 
@@ -30,6 +32,7 @@ export default function FilePreviewModal({
   onDelete?: (file: CloudObjectModel) => void;
 }) {
   const [isFullScreen, setIsFullScreen] = React.useState(false);
+  const [showShareModal, setShowShareModal] = React.useState(false);
 
   const isMedia = React.useCallback((f: CloudObjectModel) => {
     const ext = f.Extension?.toLowerCase();
@@ -104,6 +107,7 @@ export default function FilePreviewModal({
   const modal = (
     <AnimatePresence>
       <motion.div
+        key="file-preview-modal"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -167,8 +171,16 @@ export default function FilePreviewModal({
               ) : null}
 
               <button
+                onClick={() => setShowShareModal(true)}
+                className="rounded-md p-1 hover:bg-muted/10"
+                title="Share"
+              >
+                <Share2 size={20} />
+              </button>
+
+              <button
                 onClick={() => onDelete?.(file)}
-                className="rounded-md p-1 hover:bg-muted/10 text-destructive hover:bg-destructive/10"
+                className="rounded-md p-1 hover:bg-muted/10 text-destructive"
                 title="Delete"
               >
                 <Trash2 size={20} />
@@ -240,6 +252,12 @@ export default function FilePreviewModal({
           </div>
         </motion.div>
       </motion.div>
+      <ShareFileModal
+        key="share-file-modal"
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        file={file}
+      />
     </AnimatePresence>
   );
 
