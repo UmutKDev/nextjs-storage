@@ -234,7 +234,7 @@ export default function Explorer({
     if (currentParent === targetFolder) return;
 
     // For move operation, DestinationKey should be the target directory
-    const destinationKey = targetFolder;
+    const destinationKey = targetFolder === "" ? "/" : targetFolder;
 
     handleMove(sourceId, destinationKey);
   };
