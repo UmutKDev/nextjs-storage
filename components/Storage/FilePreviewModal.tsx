@@ -214,7 +214,7 @@ export default function FilePreviewModal({
                   e.stopPropagation();
                   handlePrev();
                 }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/20 text-white hover:bg-black/50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/20 text-white hover:bg-black/50 transition-colors"
                 title="Previous"
               >
                 <ChevronLeft size={32} />
@@ -227,7 +227,7 @@ export default function FilePreviewModal({
                   e.stopPropagation();
                   handleNext();
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/20 text-white hover:bg-black/50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/20 text-white hover:bg-black/50 transition-colors"
                 title="Next"
               >
                 <ChevronRight size={32} />

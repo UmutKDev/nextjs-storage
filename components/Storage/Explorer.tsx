@@ -540,6 +540,8 @@ export default function Explorer({
         <FilePreviewModal
           file={previewFile}
           onClose={() => setPreviewFile(null)}
+          files={filteredContents}
+          onChange={setPreviewFile}
         />
 
         <DragOverlay>

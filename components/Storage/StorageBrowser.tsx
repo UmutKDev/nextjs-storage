@@ -27,9 +27,16 @@ export type ViewMode = "list" | "grid";
 
 // --- Helper Components ---
 
-function GridThumbnail({ file }: { file: CloudObject }) {
+function GridThumbnail({
+  file,
+  onSpan,
+}: {
+  file: CloudObject;
+  onSpan?: (span: { row: number; col: number }) => void;
+}) {
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
+  const lastSpanRef = React.useRef<{ row: number; col: number } | null>(null);
 
   const url = file?.Path?.Url ?? file?.Path?.Key;
   const mime = (file?.MimeType ?? "").toLowerCase();
@@ -41,14 +48,43 @@ function GridThumbnail({ file }: { file: CloudObject }) {
 
   if (!isImage || !url || error) {
     return (
-      <div className="w-12 h-12 flex items-center justify-center rounded-md bg-muted/20">
+      // fallback for non-image files keeps a compact placeholder that's full width
+      <div className="w-full aspect-4/3 flex items-center justify-center rounded-md bg-muted/20">
         <FileIcon extension={file.Extension} />
       </div>
     );
   }
 
+  const handleImageLoad = (img: HTMLImageElement | null) => {
+    if (!img) return;
+    const w = img.naturalWidth || img.width || 1;
+    const h = img.naturalHeight || img.height || 1;
+    const aspect = w / h;
+
+    // Decide spans by aspect ratio
+    let col = 1;
+    let row = 1;
+
+    if (aspect >= 2.4) col = 3;
+    else if (aspect >= 1.6) col = 2;
+
+    if (aspect <= 0.35) row = 3;
+    else if (aspect <= 0.6) row = 2;
+
+    const next = { row, col };
+    // Only call onSpan if span changed to avoid repeated setState cycles
+    if (
+      !lastSpanRef.current ||
+      lastSpanRef.current.col !== next.col ||
+      lastSpanRef.current.row !== next.row
+    ) {
+      lastSpanRef.current = next;
+      onSpan?.(next);
+    }
+  };
+
   return (
-    <div className="w-full h-full relative rounded-md overflow-hidden bg-muted/5">
+    <div className="w-full relative rounded-md overflow-hidden bg-muted/5">
       {!loaded && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />
@@ -58,7 +94,12 @@ function GridThumbnail({ file }: { file: CloudObject }) {
       <img
         src={url}
         alt={file.Name}
-        className={`w-full h-full object-cover transition-all duration-300 ${
+        ref={(el) => {
+          if (el) handleImageLoad(el);
+        }}
+        // let the image flow naturally (width 100%, auto height) so tall/wide images
+        // expand without being cropped to a square — avoids gaps in masonry layout
+        className={`w-full h-auto object-cover transition-all duration-300 ${
           loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
         onLoad={() => setLoaded(true)}
@@ -173,6 +214,22 @@ export default function StorageBrowser({
 }: StorageBrowserProps) {
   const { currentPath, setCurrentPath } = useStorage();
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
+
+  // per-item spans (row/col) for the grid (used in grid view)
+  const [spans, setSpans] = React.useState<Record<string, { row: number; col: number }>>({});
+
+  const setSpanForKey = React.useCallback(
+    (key: string, span: { row: number; col: number }) =>
+      setSpans((prev) => {
+        const existing = prev[key];
+        // don't update state if it's identical -> prevents infinite update loops
+        if (existing && existing.col === span.col && existing.row === span.row)
+          return prev;
+
+        return { ...prev, [key]: span };
+      }),
+    []
+  );
 
   const isEmpty = !directories?.length && !contents?.length && !loading;
 
@@ -396,7 +453,10 @@ export default function StorageBrowser({
   );
 
   const renderGrid = () => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+    // use a simple masonry-like layout using CSS columns so items can
+    // have variable heights (tall / wide images won't be cropped to squares)
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 items-start">
+  
       {/* Directories */}
       {(directories ?? []).map((d, idx) => {
         const prefix = d?.Prefix ?? "";
@@ -418,40 +478,49 @@ export default function StorageBrowser({
             data={d}
           >
             <div
-              className="relative flex flex-col items-center gap-3 p-4 rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors aspect-square justify-center"
+              className="relative inline-block w-full rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden p-0"
+              style={{
+                gridColumnEnd: `span ${spans[key]?.col ?? 1}`,
+                gridRowEnd: `span ${spans[key]?.row ?? 1}`,
+              }}
               onClick={(e) => handleItemClick(d, "folder", e)}
             >
-              <div
-                className="absolute top-2 left-2 z-10"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedItems.has(key)}
-                  onChange={() => handleSelect(key, true)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-              </div>
-              <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-2">
+              {/* ensure folders stay a predictable square tile so they don't stretch */}
+              <div className="aspect-square p-3 flex flex-col items-center justify-center gap-2">
+                <div
+                  className="absolute top-2 left-2 z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.has(key)}
+                    onChange={() => handleSelect(key, true)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                </div>
+                <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-2">
                 <Folder size={32} fill="currentColor" className="opacity-80" />
               </div>
-              <div className="text-sm font-medium text-center truncate w-full px-2">
-                {name}
+                <div className="text-sm font-medium text-center truncate w-full px-2">
+                  {name}
+                </div>
+
+                {/* folder actions placed at top-right inside the tile */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!loading && onDelete) onDelete(d);
+                    }}
+                    className="rounded-full p-1.5 bg-background/80 hover:bg-destructive/10 hover:text-destructive shadow-sm border"
+                    disabled={loading || Boolean(deleting[key])}
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
               </div>
 
-              {/* Folder Actions */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!loading && onDelete) onDelete(d);
-                  }}
-                  className="rounded-full p-1.5 bg-background/80 hover:bg-destructive/10 hover:text-destructive shadow-sm border"
-                  disabled={loading || Boolean(deleting[key])}
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
+              
             </div>
           </DraggableItem>
         );
@@ -487,7 +556,11 @@ export default function StorageBrowser({
               data={c}
             >
               <div
-                className="relative flex flex-col gap-3 p-3 rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors aspect-square"
+                className="relative inline-block w-full mb-3 rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden"
+                style={{
+                  gridColumnEnd: `span ${spans[key]?.col ?? 1}`,
+                  gridRowEnd: `span ${spans[key]?.row ?? 1}`,
+                }}
                 onClick={(e) => handleItemClick(c!, "file", e)}
               >
                 <div
@@ -501,19 +574,16 @@ export default function StorageBrowser({
                     className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                   />
                 </div>
-                <div className="flex-1 w-full overflow-hidden rounded-lg bg-muted/5">
-                  <GridThumbnail file={c!} />
-                </div>
 
-                <div className="flex items-center justify-between gap-2 w-full">
-                  <div className="flex-1 min-w-0">
-                    <div
-                      className="text-sm font-medium truncate"
-                      title={c!.Name}
-                    >
+                <div className="w-full overflow-hidden rounded-lg bg-muted/5 relative">
+                  <GridThumbnail file={c!} onSpan={(s) => setSpanForKey(key, s)} />
+
+                  {/* overlay metadata so the image area is used fully and there's no extra vertical gap */}
+                  <div className="absolute left-0 right-0 bottom-0 px-3 py-2 bg-linear-to-t from-black/60 to-transparent text-white text-xs flex items-center justify-between gap-2">
+                    <div className="truncate font-medium" title={c!.Name}>
                       {c!.Name}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="whitespace-nowrap opacity-90 hidden sm:block">
                       {humanFileSize(c!.Size)}
                     </div>
                   </div>
