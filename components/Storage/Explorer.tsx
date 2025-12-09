@@ -212,16 +212,31 @@ export default function Explorer({
     // If target is "A/B/", path is "A/B/".
     // Breadcrumb root has id "".
 
-    let targetFolder = targetId.replace(/^\/+/, '');
+    let targetFolder = targetId.replace(/^\/+/, "");
     if (targetFolder && !targetFolder.endsWith("/")) {
       targetFolder += "/";
     }
 
-    const destinationKey = `${targetFolder}${name}${isSourceFolder ? "/" : ""}`;
-
-    if (sourceId !== destinationKey) {
-      handleMove(sourceId, destinationKey);
+    // Check if we are dropping into the same folder
+    let currentParent = "";
+    if (isSourceFolder) {
+      // sourceId is "A/B/"
+      const noSlash = sourceId.slice(0, -1);
+      const lastSlash = noSlash.lastIndexOf("/");
+      currentParent =
+        lastSlash === -1 ? "" : noSlash.substring(0, lastSlash + 1);
+    } else {
+      const lastSlash = sourceId.lastIndexOf("/");
+      currentParent =
+        lastSlash === -1 ? "" : sourceId.substring(0, lastSlash + 1);
     }
+
+    if (currentParent === targetFolder) return;
+
+    // For move operation, DestinationKey should be the target directory
+    const destinationKey = targetFolder;
+
+    handleMove(sourceId, destinationKey);
   };
 
   const handleDeleteSelected = async () => {
