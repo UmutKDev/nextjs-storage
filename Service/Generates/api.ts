@@ -231,7 +231,7 @@ export interface CloudMetadataDefaultModel {
     'Height': string;
 }
 export interface CloudMoveRequestModel {
-    'SourceKey': string;
+    'SourceKeys': Array<string>;
     'DestinationKey': string;
 }
 export interface CloudMultipartPartModel {
@@ -1472,7 +1472,8 @@ export class AuthenticationApi extends BaseAPI {
 export const CloudApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * 
+         * Deletes one or more objects (or directories) belonging to the authenticated user.
+         * @summary Delete objects
          * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1511,7 +1512,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Creates a directory/prefix within the user scoped storage.
+         * @summary Create directory (prefix)
          * @param {CloudKeyRequestModel} cloudKeyRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1591,7 +1593,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Find a single object by key (user scoped) and return its metadata.
+         * @summary Get object metadata
          * @param {string} key 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1631,7 +1634,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Returns a presigned URL for a specific object key to allow direct client access.
+         * @summary Get a presigned URL for upload/download
          * @param {string} key 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1671,14 +1675,18 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
+         * @summary List files and directories
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        list: async (path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        list: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1695,6 +1703,18 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['take'] = take;
+            }
+
             if (path !== undefined) {
                 localVarQueryParameter['Path'] = path;
             }
@@ -1719,13 +1739,17 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Returns breadcrumb entries (path pieces) for the supplied path.
+         * @summary Get breadcrumb for a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listBreadcrumb: async (path?: string, delimiter?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listBreadcrumb: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Breadcrumb`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1742,6 +1766,18 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['take'] = take;
+            }
+
             if (path !== undefined) {
                 localVarQueryParameter['Path'] = path;
             }
@@ -1762,13 +1798,17 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Returns directory prefixes (folders) for a given path.
+         * @summary List directories inside a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listDirectories: async (path?: string, delimiter?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listDirectories: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Directories`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1785,6 +1825,18 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['take'] = take;
+            }
+
             if (path !== undefined) {
                 localVarQueryParameter['Path'] = path;
             }
@@ -1805,14 +1857,18 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Returns files at a given path for the authenticated user.
+         * @summary List objects (files) inside a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listObjects: async (path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listObjects: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Objects`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1828,6 +1884,18 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             // authentication bearer required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['take'] = take;
+            }
 
             if (path !== undefined) {
                 localVarQueryParameter['Path'] = path;
@@ -1853,7 +1921,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Move an object from SourceKey to DestinationKey within the user scope.
+         * @summary Move/rename an object
          * @param {CloudMoveRequestModel} cloudMoveRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1892,7 +1961,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Update an existing object by changing metadata or renaming the file (name only).
+         * @summary Update object metadata or rename
          * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1931,7 +2001,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Abort an ongoing multipart upload and clean up temporary state.
+         * @summary Abort a multipart upload
          * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1970,7 +2041,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Completes a multipart upload by providing the list of parts and finalizes the object.
+         * @summary Complete multipart upload
          * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2009,7 +2081,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Creates an UploadId and starts a multipart upload flow.
+         * @summary Create a multipart upload session
          * @param {CloudCreateMultipartUploadRequestModel} cloudCreateMultipartUploadRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2048,7 +2121,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
+         * @summary Get a multipart upload part URL
          * @param {CloudGetMultipartPartUrlRequestModel} cloudGetMultipartPartUrlRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2087,7 +2161,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
+         * @summary Upload a multipart part
          * @param {string} key 
          * @param {string} uploadId 
          * @param {number} partNumber 
@@ -2152,7 +2227,8 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * 
+         * Returns the authenticated user storage usage and limits.
+         * @summary Get user\'s storage usage
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -2194,24 +2270,26 @@ export const CloudApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CloudApiAxiosParamCreator(configuration)
     return {
         /**
-         * 
+         * Deletes one or more objects (or directories) belonging to the authenticated user.
+         * @summary Delete objects
          * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async _delete(cloudDeleteRequestModel: CloudDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async _delete(cloudDeleteRequestModel: CloudDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator._delete(cloudDeleteRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi._delete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Creates a directory/prefix within the user scoped storage.
+         * @summary Create directory (prefix)
          * @param {CloudKeyRequestModel} cloudKeyRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createDirectory(cloudKeyRequestModel: CloudKeyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async createDirectory(cloudKeyRequestModel: CloudKeyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createDirectory(cloudKeyRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.createDirectory']?.[localVarOperationServerIndex]?.url;
@@ -2231,7 +2309,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Find a single object by key (user scoped) and return its metadata.
+         * @summary Get object metadata
          * @param {string} key 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2243,7 +2322,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Returns a presigned URL for a specific object key to allow direct client access.
+         * @summary Get a presigned URL for upload/download
          * @param {string} key 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2255,73 +2335,91 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
+         * @summary List files and directories
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async list(path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.list(path, delimiter, isMetadataProcessing, options);
+        async list(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, path, delimiter, isMetadataProcessing, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.list']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Returns breadcrumb entries (path pieces) for the supplied path.
+         * @summary Get breadcrumb for a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listBreadcrumb(path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudBreadCrumbListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listBreadcrumb(path, delimiter, options);
+        async listBreadcrumb(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudBreadCrumbListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listBreadcrumb(search, skip, take, path, delimiter, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listBreadcrumb']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Returns directory prefixes (folders) for a given path.
+         * @summary List directories inside a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listDirectories(path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(path, delimiter, options);
+        async listDirectories(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(search, skip, take, path, delimiter, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listDirectories']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Returns files at a given path for the authenticated user.
+         * @summary List objects (files) inside a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listObjects(path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(path, delimiter, isMetadataProcessing, options);
+        async listObjects(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(search, skip, take, path, delimiter, isMetadataProcessing, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listObjects']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Move an object from SourceKey to DestinationKey within the user scope.
+         * @summary Move/rename an object
          * @param {CloudMoveRequestModel} cloudMoveRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async move(cloudMoveRequestModel: CloudMoveRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async move(cloudMoveRequestModel: CloudMoveRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.move(cloudMoveRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Update an existing object by changing metadata or renaming the file (name only).
+         * @summary Update object metadata or rename
          * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2333,7 +2431,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Abort an ongoing multipart upload and clean up temporary state.
+         * @summary Abort a multipart upload
          * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2345,7 +2444,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Completes a multipart upload by providing the list of parts and finalizes the object.
+         * @summary Complete multipart upload
          * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2357,7 +2457,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Creates an UploadId and starts a multipart upload flow.
+         * @summary Create a multipart upload session
          * @param {CloudCreateMultipartUploadRequestModel} cloudCreateMultipartUploadRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2369,7 +2470,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
+         * @summary Get a multipart upload part URL
          * @param {CloudGetMultipartPartUrlRequestModel} cloudGetMultipartPartUrlRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2381,7 +2483,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
+         * @summary Upload a multipart part
          * @param {string} key 
          * @param {string} uploadId 
          * @param {number} partNumber 
@@ -2396,7 +2499,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Returns the authenticated user storage usage and limits.
+         * @summary Get user\'s storage usage
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -2416,21 +2520,23 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = CloudApiFp(configuration)
     return {
         /**
-         * 
+         * Deletes one or more objects (or directories) belonging to the authenticated user.
+         * @summary Delete objects
          * @param {CloudApiDeleteRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp._delete(requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Creates a directory/prefix within the user scoped storage.
+         * @summary Create directory (prefix)
          * @param {CloudApiCreateDirectoryRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createDirectory(requestParameters: CloudApiCreateDirectoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        createDirectory(requestParameters: CloudApiCreateDirectoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.createDirectory(requestParameters.cloudKeyRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2444,7 +2550,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.download(requestParameters.key, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Find a single object by key (user scoped) and return its metadata.
+         * @summary Get object metadata
          * @param {CloudApiFindRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2453,7 +2560,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.find(requestParameters.key, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Returns a presigned URL for a specific object key to allow direct client access.
+         * @summary Get a presigned URL for upload/download
          * @param {CloudApiGetPresignedUrlRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2462,52 +2570,58 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.getPresignedUrl(requestParameters.key, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
+         * @summary List files and directories
          * @param {CloudApiListRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudListResponseBaseModel> {
-            return localVarFp.list(requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
+            return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Returns breadcrumb entries (path pieces) for the supplied path.
+         * @summary Get breadcrumb for a path
          * @param {CloudApiListBreadcrumbRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         listBreadcrumb(requestParameters: CloudApiListBreadcrumbRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudBreadCrumbListBaseModel> {
-            return localVarFp.listBreadcrumb(requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
+            return localVarFp.listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Returns directory prefixes (folders) for a given path.
+         * @summary List directories inside a path
          * @param {CloudApiListDirectoriesRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudDirectoryListBaseModel> {
-            return localVarFp.listDirectories(requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
+            return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Returns files at a given path for the authenticated user.
+         * @summary List objects (files) inside a path
          * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectListBaseModel> {
-            return localVarFp.listObjects(requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
+            return localVarFp.listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Move an object from SourceKey to DestinationKey within the user scope.
+         * @summary Move/rename an object
          * @param {CloudApiMoveRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.move(requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Update an existing object by changing metadata or renaming the file (name only).
+         * @summary Update object metadata or rename
          * @param {CloudApiUpdateRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2516,7 +2630,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Abort an ongoing multipart upload and clean up temporary state.
+         * @summary Abort a multipart upload
          * @param {CloudApiUploadAbortMultipartUploadRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2525,7 +2640,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.uploadAbortMultipartUpload(requestParameters.cloudAbortMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Completes a multipart upload by providing the list of parts and finalizes the object.
+         * @summary Complete multipart upload
          * @param {CloudApiUploadCompleteMultipartUploadRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2534,7 +2650,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.uploadCompleteMultipartUpload(requestParameters.cloudCompleteMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Creates an UploadId and starts a multipart upload flow.
+         * @summary Create a multipart upload session
          * @param {CloudApiUploadCreateMultipartUploadRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2543,7 +2660,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
+         * @summary Get a multipart upload part URL
          * @param {CloudApiUploadGetMultipartPartUrlRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2552,7 +2670,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
+         * @summary Upload a multipart part
          * @param {CloudApiUploadPartRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2561,7 +2680,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Returns the authenticated user storage usage and limits.
+         * @summary Get user\'s storage usage
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -2613,6 +2733,12 @@ export interface CloudApiGetPresignedUrlRequest {
  * Request parameters for list operation in CloudApi.
  */
 export interface CloudApiListRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
     readonly path?: string
 
     readonly delimiter?: boolean
@@ -2624,6 +2750,12 @@ export interface CloudApiListRequest {
  * Request parameters for listBreadcrumb operation in CloudApi.
  */
 export interface CloudApiListBreadcrumbRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
     readonly path?: string
 
     readonly delimiter?: boolean
@@ -2633,6 +2765,12 @@ export interface CloudApiListBreadcrumbRequest {
  * Request parameters for listDirectories operation in CloudApi.
  */
 export interface CloudApiListDirectoriesRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
     readonly path?: string
 
     readonly delimiter?: boolean
@@ -2642,6 +2780,12 @@ export interface CloudApiListDirectoriesRequest {
  * Request parameters for listObjects operation in CloudApi.
  */
 export interface CloudApiListObjectsRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
     readonly path?: string
 
     readonly delimiter?: boolean
@@ -2709,7 +2853,8 @@ export interface CloudApiUploadPartRequest {
  */
 export class CloudApi extends BaseAPI {
     /**
-     * 
+     * Deletes one or more objects (or directories) belonging to the authenticated user.
+     * @summary Delete objects
      * @param {CloudApiDeleteRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2719,7 +2864,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Creates a directory/prefix within the user scoped storage.
+     * @summary Create directory (prefix)
      * @param {CloudApiCreateDirectoryRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2740,7 +2886,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Find a single object by key (user scoped) and return its metadata.
+     * @summary Get object metadata
      * @param {CloudApiFindRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2750,7 +2897,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Returns a presigned URL for a specific object key to allow direct client access.
+     * @summary Get a presigned URL for upload/download
      * @param {CloudApiGetPresignedUrlRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2760,47 +2908,52 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
+     * @summary List files and directories
      * @param {CloudApiListRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).list(requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
+     * Returns breadcrumb entries (path pieces) for the supplied path.
+     * @summary Get breadcrumb for a path
      * @param {CloudApiListBreadcrumbRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public listBreadcrumb(requestParameters: CloudApiListBreadcrumbRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listBreadcrumb(requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
+     * Returns directory prefixes (folders) for a given path.
+     * @summary List directories inside a path
      * @param {CloudApiListDirectoriesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listDirectories(requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
+     * Returns files at a given path for the authenticated user.
+     * @summary List objects (files) inside a path
      * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listObjects(requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
+     * Move an object from SourceKey to DestinationKey within the user scope.
+     * @summary Move/rename an object
      * @param {CloudApiMoveRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2810,7 +2963,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Update an existing object by changing metadata or renaming the file (name only).
+     * @summary Update object metadata or rename
      * @param {CloudApiUpdateRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2820,7 +2974,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Abort an ongoing multipart upload and clean up temporary state.
+     * @summary Abort a multipart upload
      * @param {CloudApiUploadAbortMultipartUploadRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2830,7 +2985,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Completes a multipart upload by providing the list of parts and finalizes the object.
+     * @summary Complete multipart upload
      * @param {CloudApiUploadCompleteMultipartUploadRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2840,7 +2996,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Creates an UploadId and starts a multipart upload flow.
+     * @summary Create a multipart upload session
      * @param {CloudApiUploadCreateMultipartUploadRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2850,7 +3007,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
+     * @summary Get a multipart upload part URL
      * @param {CloudApiUploadGetMultipartPartUrlRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2860,7 +3018,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
+     * @summary Upload a multipart part
      * @param {CloudApiUploadPartRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2870,7 +3029,8 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Returns the authenticated user storage usage and limits.
+     * @summary Get user\'s storage usage
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */

@@ -20,6 +20,9 @@ interface UseCloudListOptions {
    * use the helpers (invalidates) without triggering network requests.
    */
   enabled?: boolean;
+  skip?: number;
+  take?: number;
+  search?: string | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -59,14 +62,36 @@ export const createCloudBreadcrumbQueryKey = (path: string, delimiter = true) =>
 export const createCloudObjectsQueryKey = (
   path: string,
   delimiter = true,
-  isMetadataProcessing = false
+  isMetadataProcessing = false,
+  skip = 0,
+  take = 100,
+  search = undefined
 ) =>
-  [...CLOUD_OBJECTS_QUERY_KEY, path, delimiter, isMetadataProcessing] as const;
+  [
+    ...CLOUD_OBJECTS_QUERY_KEY,
+    path,
+    delimiter,
+    isMetadataProcessing,
+    skip,
+    take,
+    search,
+  ] as const;
 
 export const createCloudDirectoriesQueryKey = (
   path: string,
-  delimiter = true
-) => [...CLOUD_DIRECTORIES_QUERY_KEY, path, delimiter] as const;
+  delimiter = true,
+  skip = 0,
+  take = 100,
+  search = undefined
+) =>
+  [
+    ...CLOUD_DIRECTORIES_QUERY_KEY,
+    path,
+    delimiter,
+    skip,
+    take,
+    search,
+  ] as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
@@ -79,6 +104,9 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     isMetadataProcessing = true,
     refetchOnMount = "always",
     enabled = true,
+    skip = 0,
+    take = 100,
+    search = undefined,
   } = options ?? {};
 
   const queryClient = useQueryClient();
@@ -90,8 +118,15 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
   );
 
   const directoriesQueryKey = useMemo(
-    () => createCloudDirectoriesQueryKey(normalizedPath, delimiter),
-    [normalizedPath, delimiter]
+    () =>
+      createCloudDirectoriesQueryKey(
+        normalizedPath,
+        delimiter,
+        skip,
+        take,
+        search
+      ),
+    [normalizedPath, delimiter, skip, take, search]
   );
 
   const objectsQueryKey = useMemo(
@@ -99,9 +134,12 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
       createCloudObjectsQueryKey(
         normalizedPath,
         delimiter,
-        isMetadataProcessing
+        isMetadataProcessing,
+        skip,
+        take,
+        search
       ),
-    [normalizedPath, delimiter, isMetadataProcessing]
+    [normalizedPath, delimiter, isMetadataProcessing, skip, take, search]
   );
 
   // Ana query
@@ -123,7 +161,14 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     queryKey: objectsQueryKey,
     queryFn: async ({ signal }) =>
       await cloudApiFactory.listObjects(
-        { path: normalizedPath, delimiter, isMetadataProcessing },
+        {
+          path: normalizedPath,
+          delimiter,
+          isMetadataProcessing,
+          skip,
+          take,
+          search,
+        },
         { signal }
       ),
     select: (res) => res.data?.result,
@@ -137,7 +182,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     queryKey: directoriesQueryKey,
     queryFn: async ({ signal }) =>
       await cloudApiFactory.listDirectories(
-        { path: normalizedPath, delimiter },
+        { path: normalizedPath, delimiter, skip, take, search },
         { signal }
       ),
     select: (res) => res.data?.result,

@@ -3,10 +3,10 @@ import {
   MoreHorizontal,
   Folder,
   Trash2,
-  LayoutGrid,
-  List as ListIcon,
+  
+  
   Loader2,
-  File as FileIconLucide,
+  
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -15,32 +15,24 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useStorage } from "./StorageProvider";
-import { cloudApiFactory } from "@/Service/Factories";
-import toast from "react-hot-toast";
+
+
 import EditFileModal from "./EditFileModal";
 import FileIcon from "./FileIcon";
-import { Button } from "@/components/ui/button";
+
 import { cn } from "@/lib/utils";
 
 import {
-  DndContext,
-  DragOverlay,
   useDraggable,
   useDroppable,
-  DragEndEvent,
-  DragStartEvent,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
 } from "@dnd-kit/core";
 
 import type {
   CloudObjectModel,
   CloudDirectoryModel,
 } from "@/Service/Generates/api";
-import { useCloudList } from "@/hooks/useCloudList";
-import useUserStorageUsage from "@/hooks/useUserStorageUsage";
+
+
 
 type CloudObject = CloudObjectModel;
 type Directory = CloudDirectoryModel;
@@ -107,6 +99,7 @@ function DraggableItem({
   selected,
   onSelect,
   onClick,
+  data,
 }: {
   id: string;
   type: "file" | "folder";
@@ -115,16 +108,17 @@ function DraggableItem({
   selected?: boolean;
   onSelect?: (multi: boolean) => void;
   onClick?: () => void;
+  data?: unknown;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id,
-      data: { type, id },
+      data: { type, id, ...(data as object) },
     });
 
   const { isOver, setNodeRef: setDroppableRef } = useDroppable({
     id,
-    data: { type, id },
+    data: { type, id, ...(data as object) },
     disabled: type === "file", // only folders can be drop targets
   });
 
@@ -153,12 +147,9 @@ function DraggableItem({
         selected && "bg-muted/20 ring-1 ring-border",
         className
       )}
-      onClick={(e) => {
+      onClick={() => {
         if (onSelect) {
-          // e.stopPropagation(); // Don't stop propagation here, let it bubble to handleItemClick if needed
-          // But we need to distinguish selection click vs navigation click.
-          // Usually selection is done via checkbox or modifier keys.
-          // Here we just pass the event up.
+          // e.stopPropagation(); 
         }
         onClick?.();
       }}
@@ -188,51 +179,21 @@ export default function StorageBrowser({
   onPreview,
   loading,
   viewMode,
-  onViewModeChange,
+  
   onDelete,
   deleting = {},
   selectedItems,
   onSelect,
-  onMove,
+  
 }: StorageBrowserProps) {
   const { currentPath, setCurrentPath } = useStorage();
-  const [activeId, setActiveId] = React.useState<string | null>(null);
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
 
   const isEmpty = !directories?.length && !contents?.length && !loading;
 
   if (isEmpty) return null;
 
   // --- Handlers ---
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (!over) return;
-
-    const sourceId = active.id as string;
-    const targetId = over.id as string;
-
-    if (sourceId !== targetId) {
-      const targetDir = directories?.find((d) => d.Prefix === targetId);
-      if (targetDir && onMove) {
-        onMove(sourceId, targetId);
-      }
-    }
-  };
 
   const handleSelect = (id: string, multi: boolean) => {
     if (!onSelect) return;
@@ -297,11 +258,20 @@ export default function StorageBrowser({
             onSelect={(multi) => handleSelect(key, multi)}
             onClick={() => {}}
             className="group"
+            data={d}
           >
             <div
               className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer"
               onClick={(e) => handleItemClick(d, "folder", e)}
             >
+              <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                 <input 
+                    type="checkbox" 
+                    checked={selectedItems.has(key)}
+                    onChange={() => handleSelect(key, true)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                 />
+              </div>
               <div className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500">
                 <Folder size={18} fill="currentColor" className="opacity-80" />
               </div>
@@ -353,11 +323,20 @@ export default function StorageBrowser({
               onSelect={(multi) => handleSelect(key, multi)}
               onClick={() => {}}
               className="group"
+              data={c}
             >
               <div
                 className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer"
                 onClick={(e) => handleItemClick(c!, "file", e)}
               >
+                <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                 <input 
+                    type="checkbox" 
+                    checked={selectedItems.has(key)}
+                    onChange={() => handleSelect(key, true)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                 />
+                </div>
                 <div className="w-8 h-8 flex items-center justify-center rounded-md bg-muted/20">
                   <FileIcon extension={c!.Extension} />
                 </div>
@@ -450,11 +429,20 @@ export default function StorageBrowser({
             onSelect={(multi) => handleSelect(key, multi)}
             onClick={() => {}}
             className="group"
+            data={d}
           >
             <div
               className="relative flex flex-col items-center gap-3 p-4 rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors aspect-square justify-center"
               onClick={(e) => handleItemClick(d, "folder", e)}
             >
+              <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+                 <input 
+                    type="checkbox" 
+                    checked={selectedItems.has(key)}
+                    onChange={() => handleSelect(key, true)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                 />
+              </div>
               <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-2">
                 <Folder size={32} fill="currentColor" className="opacity-80" />
               </div>
@@ -507,11 +495,20 @@ export default function StorageBrowser({
               onSelect={(multi) => handleSelect(key, multi)}
               onClick={() => {}}
               className="group"
+              data={c}
             >
               <div
                 className="relative flex flex-col gap-3 p-3 rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors aspect-square"
                 onClick={(e) => handleItemClick(c!, "file", e)}
               >
+                <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+                 <input 
+                    type="checkbox" 
+                    checked={selectedItems.has(key)}
+                    onChange={() => handleSelect(key, true)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                 />
+                </div>
                 <div className="flex-1 w-full overflow-hidden rounded-lg bg-muted/5">
                   <GridThumbnail file={c!} />
                 </div>
@@ -575,34 +572,17 @@ export default function StorageBrowser({
   );
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
+    <>
       {viewMode === "list" ? renderList() : renderGrid()}
-
-      <DragOverlay>
-        {activeId ? (
-          <div className="opacity-50">
-            {/* Simple drag preview */}
-            <div className="p-2 bg-background border rounded shadow-lg">
-              Moving item...
-            </div>
-          </div>
-        ) : null}
-      </DragOverlay>
 
       <EditFileModal
         file={toEdit}
         open={!!toEdit}
-        onOpenChange={(open) => !open && setToEdit(null)}
-        onSave={() => {
+        onClose={() => setToEdit(null)}
+        onConfirm={async () => {
           setToEdit(null);
-          // Invalidate? The modal should handle it or we pass a callback
         }}
       />
-    </DndContext>
+    </>
   );
 }

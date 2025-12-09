@@ -8,8 +8,23 @@ import { useStorage } from "@/components/Storage/StorageProvider";
 
 export default function StoragePage() {
   const { currentPath } = useStorage();
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
+  const skip = (page - 1) * pageSize;
+
   const { breadcrumbQuery, objectsQuery, directoriesQuery, invalidates } =
-    useCloudList(currentPath);
+    useCloudList(currentPath, {
+      skip,
+      take: pageSize,
+    });
+
+  // Reset page when path changes
+  React.useEffect(() => {
+    setPage(1);
+  }, [currentPath]);
 
   // Lifted state for modals
   const [showCreateFolder, setShowCreateFolder] = useState(false);
@@ -41,6 +56,10 @@ export default function StoragePage() {
               setShowCreateFolder={setShowCreateFolder}
               showUpload={showUpload}
               setShowUpload={setShowUpload}
+              // Pagination
+              page={page}
+              setPage={setPage}
+              pageSize={pageSize}
             />
           </div>
         </div>

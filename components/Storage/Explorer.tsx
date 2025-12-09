@@ -8,19 +8,13 @@ import SearchBar from "./SearchBar";
 import type {
   CloudDirectoryModel,
   CloudObjectModel,
-  CloudBreadCrumbModel,
-  CloudUserStorageUsageResponseModel,
   CloudBreadCrumbListModelResult,
   CloudObjectListModelResult,
   CloudDirectoryListModelResult,
 } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
-import { useQueryClient, UseQueryResult } from "@tanstack/react-query";
-import {
-  CLOUD_DIRECTORIES_QUERY_KEY,
-  CLOUD_LIST_QUERY_KEY,
-  createCloudObjectsQueryKey,
-} from "@/hooks/useCloudList";
+import { UseQueryResult } from "@tanstack/react-query";
+import {} from "@/hooks/useCloudList";
 import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
 import FileUploadModal from "./FileUploadModal";
@@ -32,11 +26,24 @@ import {
   Trash2,
   LayoutGrid,
   List,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import StorageUsage from "./StorageUsage";
+import {} from "@/components/ui/card";
+
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import FilePreviewModal from "./FilePreviewModal";
+
+import {
+  DndContext,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  closestCenter,
+  DragEndEvent,
+  DragStartEvent,
+} from "@dnd-kit/core";
 
 export default function Explorer({
   queries: { breadcrumbQuery, objectsQuery, directoriesQuery },
@@ -46,6 +53,9 @@ export default function Explorer({
   setShowCreateFolder,
   showUpload,
   setShowUpload,
+  page,
+  setPage,
+  pageSize,
 }: {
   queries: {
     breadcrumbQuery: UseQueryResult<CloudBreadCrumbListModelResult, Error>;
@@ -62,6 +72,9 @@ export default function Explorer({
   setShowCreateFolder: (show: boolean) => void;
   showUpload: boolean;
   setShowUpload: (show: boolean) => void;
+  page: number;
+  setPage: (page: number) => void;
+  pageSize: number;
 }) {
   // main data hook
   const { invalidate: invalidateUsage } = useUserStorageUsage();
@@ -88,10 +101,31 @@ export default function Explorer({
     new Set()
   );
 
-  const qc = useQueryClient();
+  // DnD state
+  const [activeId, setActiveId] = React.useState<string | null>(null);
 
-  const contents = objectsQuery.data?.items ?? [];
-  const directories = directoriesQuery.data?.items ?? [];
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const contents = React.useMemo(
+    () => objectsQuery.data?.items ?? [],
+    [objectsQuery.data?.items]
+  );
+  const directories = React.useMemo(
+    () => directoriesQuery.data?.items ?? [],
+    [directoriesQuery.data?.items]
+  );
+
+  // Pagination logic
+  const totalFiles = objectsQuery.data?.options?.count ?? 0;
+  const totalDirs = directoriesQuery.data?.options?.count ?? 0;
+  const totalItems = Math.max(totalFiles, totalDirs);
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
 
   // Filter logic
   const filteredContents = React.useMemo(() => {
@@ -104,7 +138,6 @@ export default function Explorer({
   const filteredDirectories = React.useMemo(() => {
     if (!search) return directories;
     return directories.filter((d) => {
-      // CloudDirectoryModel only has Prefix, not Name
       const prefix = d.Prefix ?? "";
       const segments = prefix.split("/").filter(Boolean);
       const name = segments.length ? segments[segments.length - 1] : prefix;
@@ -121,7 +154,7 @@ export default function Explorer({
     try {
       await cloudApiFactory.move({
         cloudMoveRequestModel: {
-          SourceKey: sourceKey,
+          SourceKeys: [sourceKey],
           DestinationKey: destinationKey,
         },
       });
@@ -133,6 +166,61 @@ export default function Explorer({
     } catch (e) {
       console.error(e);
       toast.error("Failed to move item");
+    }
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    const sourceId = active.id as string;
+    const targetId = over.id as string;
+
+    if (sourceId === targetId) return;
+
+    // Determine destination path
+    // If dropped on a folder in the list, targetId is the folder prefix (e.g. "A/B/")
+    // If dropped on a breadcrumb, targetId is the path (e.g. "A" or "")
+
+    // We need to construct the full destination key: destinationFolder + filename
+
+    // Get filename from source
+    // sourceId is the full key (e.g. "A/file.txt") or folder prefix ("A/B/")
+    // If it's a folder, we are moving a folder.
+
+    const sourceData = active.data.current;
+    const isSourceFolder = sourceData?.type === "folder";
+
+    // Extract name
+    let name = "";
+    if (isSourceFolder) {
+      const segments = sourceId.split("/").filter(Boolean);
+      name = segments[segments.length - 1];
+    } else {
+      const segments = sourceId.split("/");
+      name = segments[segments.length - 1];
+    }
+
+    // Determine target folder path
+    // If target is root, path is empty string.
+    // If target is "A/B/", path is "A/B/".
+    // Breadcrumb root has id "".
+
+    let targetFolder = targetId.replace(/^\/+/, '');
+    if (targetFolder && !targetFolder.endsWith("/")) {
+      targetFolder += "/";
+    }
+
+    const destinationKey = `${targetFolder}${name}${isSourceFolder ? "/" : ""}`;
+
+    if (sourceId !== destinationKey) {
+      handleMove(sourceId, destinationKey);
     }
   };
 
@@ -277,120 +365,180 @@ export default function Explorer({
     }
   }
 
+  const handleSelectAll = () => {
+    const allKeys = new Set<string>();
+    filteredDirectories.forEach((d) => {
+      if (d.Prefix) allKeys.add(d.Prefix);
+    });
+    filteredContents.forEach((c) => {
+      if (c.Path?.Key) allKeys.add(c.Path.Key);
+    });
+    setSelectedItems(allKeys);
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm shrink-0 gap-4">
-        <div className="flex-1 min-w-0">
-          <Breadcrumb
-            items={breadcrumbQuery.data?.result ?? []}
-            currentPath={currentPath}
-          />
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm shrink-0 gap-4">
+          <div className="flex-1 min-w-0">
+            <Breadcrumb items={breadcrumbQuery.data?.items ?? []} />
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {selectedItems.size > 0 && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSelectAll}
+                  className="shrink-0"
+                >
+                  Select All
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleDeleteSelected}
+                  className="shrink-0"
+                >
+                  <Trash2 size={16} className="mr-2" />
+                  <span className="hidden sm:inline">
+                    Delete ({selectedItems.size})
+                  </span>
+                </Button>
+              </>
+            )}
+
+            <SearchBar value={search} onChange={setSearch} />
+
+            <div className="hidden sm:flex items-center gap-1 border-l pl-2 ml-2">
+              <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode("list")}
+              >
+                <List size={16} />
+              </Button>
+              <Button
+                variant={viewMode === "grid" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode("grid")}
+              >
+                <LayoutGrid size={16} />
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          {selectedItems.size > 0 && (
+        <div className="flex-1 overflow-hidden relative">
+          <div className="absolute inset-0 overflow-y-auto p-4">
+            <StorageBrowser
+              directories={filteredDirectories}
+              contents={filteredContents}
+              onPreview={(file) => setPreviewFile(file)}
+              loading={isNavigating || objectsQuery.isFetching}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              onDelete={(item) => setToDelete(item)}
+              deleting={deleting}
+              selectedItems={selectedItems}
+              onSelect={(items) => setSelectedItems(items)}
+              onMove={handleMove}
+            />
+
+            {objectsQuery.isSuccess &&
+            directoriesQuery.isSuccess &&
+            !objectsQuery.isFetching &&
+            !directoriesQuery.isFetching &&
+            !isNavigating &&
+            !search &&
+            contents.length === 0 &&
+            directories.length === 0 ? (
+              <div className="h-full grid place-items-center">
+                <EmptyState
+                  title="Klasör Boş"
+                  description="Bu klasörde henüz dosya veya klasör yok."
+                />
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="p-4 border-t bg-card/50 backdrop-blur-sm flex items-center justify-between shrink-0">
+          <div className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </div>
+          <div className="flex items-center gap-2">
             <Button
+              variant="outline"
               size="sm"
-              variant="destructive"
-              onClick={handleDeleteSelected}
-              className="shrink-0"
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
             >
-              <Trash2 size={16} className="mr-2" />
-              <span className="hidden sm:inline">
-                Delete ({selectedItems.size})
-              </span>
-            </Button>
-          )}
-
-          <SearchBar value={search} onChange={setSearch} />
-
-          <div className="hidden sm:flex items-center gap-1 border-l pl-2 ml-2">
-            <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode("list")}
-            >
-              <List size={16} />
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
             </Button>
             <Button
-              variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode("grid")}
+              variant="outline"
+              size="sm"
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
             >
-              <LayoutGrid size={16} />
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-hidden relative">
-        <div className="absolute inset-0 overflow-y-auto p-4">
-          <StorageBrowser
-            directories={filteredDirectories}
-            contents={filteredContents}
-            onPreview={(file) => setPreviewFile(file)}
-            loading={isNavigating || objectsQuery.isFetching}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            onDelete={(item) => setToDelete(item)}
-            deleting={deleting}
-            selectedItems={selectedItems}
-            onSelect={(items) => setSelectedItems(items)}
-            onMove={handleMove}
-          />
+        <CreateFolderModal
+          open={showCreateFolder}
+          onClose={() => setShowCreateFolder(false)}
+          onSubmit={createFolder}
+          loading={creating}
+          value={newFolderName}
+          onChange={setNewFolderName}
+        />
 
-          {objectsQuery.isSuccess &&
-          directoriesQuery.isSuccess &&
-          !objectsQuery.isFetching &&
-          !directoriesQuery.isFetching &&
-          !isNavigating &&
-          !search &&
-          contents.length === 0 &&
-          directories.length === 0 ? (
-            <div className="h-full grid place-items-center">
-              <EmptyState
-                title="Klasör Boş"
-                description="Bu klasörde henüz dosya veya klasör yok."
-              />
+        <FileUploadModal
+          open={showUpload}
+          onClose={() => setShowUpload(false)}
+        />
+
+        <ConfirmDeleteModal
+          open={!!toDelete}
+          onOpenChange={(open) => {
+            if (!open) setToDelete(null);
+          }}
+          onConfirm={async () => {
+            if (toDelete) await performDelete(toDelete);
+          }}
+          title={`Delete ${toDelete ? getItemName(toDelete) : ""}?`}
+          description="This action cannot be undone."
+        />
+
+        <FilePreviewModal
+          file={previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
+
+        <DragOverlay>
+          {activeId ? (
+            <div className="opacity-80 pointer-events-none">
+              <div className="px-3 py-2 bg-background border rounded-md shadow-lg flex items-center gap-2">
+                <span className="font-medium">Moving item...</span>
+              </div>
             </div>
           ) : null}
-        </div>
+        </DragOverlay>
       </div>
-
-      <CreateFolderModal
-        open={showCreateFolder}
-        onOpenChange={setShowCreateFolder}
-        onCreate={createFolder}
-        loading={creating}
-        folderName={newFolderName}
-        setFolderName={setNewFolderName}
-      />
-
-      <FileUploadModal
-        open={showUpload}
-        onOpenChange={setShowUpload}
-        currentPath={currentPath}
-        onUploadComplete={() => {
-          invalidates.invalidateObjects();
-          invalidateUsage();
-        }}
-      />
-
-      <ConfirmDeleteModal
-        open={!!toDelete}
-        onOpenChange={(open) => !open && setToDelete(null)}
-        onConfirm={() => toDelete && performDelete(toDelete)}
-        title={`Delete ${toDelete ? getItemName(toDelete) : ""}?`}
-        description="This action cannot be undone."
-      />
-
-      <FilePreviewModal
-        file={previewFile}
-        isOpen={!!previewFile}
-        onClose={() => setPreviewFile(null)}
-      />
-    </div>
+    </DndContext>
   );
 }
