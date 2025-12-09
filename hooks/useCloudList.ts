@@ -65,7 +65,7 @@ export const createCloudObjectsQueryKey = (
   isMetadataProcessing = false,
   skip = 0,
   take = 100,
-  search = undefined
+  search: string | undefined = undefined
 ) =>
   [
     ...CLOUD_OBJECTS_QUERY_KEY,
@@ -82,7 +82,7 @@ export const createCloudDirectoriesQueryKey = (
   delimiter = true,
   skip = 0,
   take = 100,
-  search = undefined
+  search: string | undefined = undefined
 ) =>
   [
     ...CLOUD_DIRECTORIES_QUERY_KEY,

@@ -315,8 +315,10 @@ export default function ContentsList({
       )}
       <ConfirmDeleteModal
         open={Boolean(toDelete)}
-        onClose={() => setToDelete(null)}
-        name={toDelete?.Name ?? toDelete?.Path?.Key}
+        onOpenChange={(open: boolean) => {
+          if (!open) setToDelete(null);
+        }}
+        title={toDelete?.Name ?? toDelete?.Path?.Key}
         description={toDelete?.Path?.Key}
         onConfirm={async () => {
           if (!toDelete) return;
