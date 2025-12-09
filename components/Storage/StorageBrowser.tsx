@@ -216,7 +216,9 @@ export default function StorageBrowser({
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
 
   // per-item spans (row/col) for the grid (used in grid view)
-  const [spans, setSpans] = React.useState<Record<string, { row: number; col: number }>>({});
+  const [spans, setSpans] = React.useState<
+    Record<string, { row: number; col: number }>
+  >({});
 
   const setSpanForKey = React.useCallback(
     (key: string, span: { row: number; col: number }) =>
@@ -456,7 +458,6 @@ export default function StorageBrowser({
     // use a simple masonry-like layout using CSS columns so items can
     // have variable heights (tall / wide images won't be cropped to squares)
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 items-start">
-  
       {/* Directories */}
       {(directories ?? []).map((d, idx) => {
         const prefix = d?.Prefix ?? "";
@@ -499,8 +500,12 @@ export default function StorageBrowser({
                   />
                 </div>
                 <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-2">
-                <Folder size={32} fill="currentColor" className="opacity-80" />
-              </div>
+                  <Folder
+                    size={32}
+                    fill="currentColor"
+                    className="opacity-80"
+                  />
+                </div>
                 <div className="text-sm font-medium text-center truncate w-full px-2">
                   {name}
                 </div>
@@ -519,8 +524,6 @@ export default function StorageBrowser({
                   </button>
                 </div>
               </div>
-
-              
             </div>
           </DraggableItem>
         );
@@ -576,7 +579,10 @@ export default function StorageBrowser({
                 </div>
 
                 <div className="w-full overflow-hidden rounded-lg bg-muted/5 relative">
-                  <GridThumbnail file={c!} onSpan={(s) => setSpanForKey(key, s)} />
+                  <GridThumbnail
+                    file={c!}
+                    onSpan={(s) => setSpanForKey(key, s)}
+                  />
 
                   {/* overlay metadata so the image area is used fully and there's no extra vertical gap */}
                   <div className="absolute left-0 right-0 bottom-0 px-3 py-2 bg-linear-to-t from-black/60 to-transparent text-white text-xs flex items-center justify-between gap-2">
