@@ -203,7 +203,9 @@ export default function LazyPreview({
       return (
         <div className="rounded-lg overflow-hidden bg-black shadow-md h-full flex items-center justify-center">
           <video
+            autoPlay
             controls
+            loop
             className={`w-full ${
               isFullScreen ? "max-h-[90vh]" : "max-h-[70vh]"
             }`}

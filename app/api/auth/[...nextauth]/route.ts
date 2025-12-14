@@ -12,37 +12,34 @@ export const authOptions: NextAuthOptions = {
     Credentials({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "m@example.com" },
-        password: { label: "Password", type: "password" },
+        accessToken: { label: "Access Token", type: "text" },
+        refreshToken: { label: "Refresh Token", type: "text" },
       },
       async authorize(credentials) {
-        const { email, password } = (credentials ?? {}) as {
-          email: string;
-          password: string;
+        const { accessToken, refreshToken } = (credentials ?? {}) as {
+          accessToken?: string;
+          refreshToken?: string;
         };
 
+        if (!accessToken) return null;
+
         try {
-          const res = await authenticationApiFactory.login({
-            authenticationSignInRequestModel: {
-              email,
-              password,
-            },
-          });
-
-          const tokens = res.data;
-
-          const decoded = await parseJwt<any>(tokens.result.accessToken);
+          const decoded = await parseJwt<{
+            id: string;
+            fullName?: string;
+            email?: string;
+            image?: string;
+          }>(accessToken);
 
           return {
             id: decoded.id,
-            name: decoded.fullName ?? email,
-            email,
+            name: decoded.fullName ?? decoded.email ?? "Kullanıcı",
+            email: decoded.email,
             image: decoded.image,
-            accessToken: tokens.result.accessToken,
-            refreshToken: tokens.result.refreshToken,
+            accessToken,
+            refreshToken,
           };
         } catch (error) {
-          console.log(error);
           console.error("Authorize err", error);
           return null;
         }

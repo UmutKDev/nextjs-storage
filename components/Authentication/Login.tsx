@@ -10,7 +10,15 @@ import Link from "next/link";
 import { useAuthForm } from "./AuthFormProvider";
 
 export const Login = () => {
-  const { values, handleChange, submit, loading, error } = useAuthForm();
+  const {
+    values,
+    handleChange,
+    submit,
+    loading,
+    error,
+    twoFactorRequired,
+    cancelTwoFactor,
+  } = useAuthForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +67,41 @@ export const Login = () => {
               required
             />
           </div>
+          {twoFactorRequired && (
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="twoFactorCode">Doğrulama Kodu</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={cancelTwoFactor}
+                  disabled={loading}
+                >
+                  Bilgileri Düzenle
+                </Button>
+              </div>
+              <Input
+                id="twoFactorCode"
+                name="twoFactorCode"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="123456"
+                disabled={loading}
+                value={
+                  typeof values.twoFactorCode === "string"
+                    ? values.twoFactorCode
+                    : ""
+                }
+                onChange={handleChange}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Authenticator uygulamanızdaki 6 haneli kodu girin.
+              </p>
+            </div>
+          )}
 
           {error && (
             <div className="text-sm font-medium text-destructive">{error}</div>
@@ -66,7 +109,7 @@ export const Login = () => {
 
           <Button disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Giriş Yap
+            {twoFactorRequired ? "Doğrula ve Giriş Yap" : "Giriş Yap"}
           </Button>
         </div>
       </form>

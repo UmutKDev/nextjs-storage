@@ -141,13 +141,25 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profil</span>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/account"
+                      className="flex items-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profil</span>
+                    </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Ayarlar</span>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/account#security"
+                      className="flex items-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Ayarlar</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
