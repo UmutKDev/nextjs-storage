@@ -1,5 +1,14 @@
 import React from "react";
-import { MoreHorizontal, Folder, Trash2, Loader2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  Folder,
+  Trash2,
+  Loader2,
+  Play,
+  ChevronUp,
+  ChevronDown,
+  FolderInput,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -46,7 +55,73 @@ function GridThumbnail({
     mime.startsWith("image") ||
     ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"].includes(ext);
 
-  if (!isImage || !url || error) {
+  const isVideo =
+    mime.startsWith("video") ||
+    ["mp4", "webm", "ogg", "mov", "mkv"].includes(ext);
+
+  const [thumb, setThumb] = React.useState<string | null>(null);
+  const [thumbLoading, setThumbLoading] = React.useState(false);
+  // Generate thumbnail for videos by grabbing a frame via canvas. If that fails
+  // (CORS or other errors), fall back to rendering a muted <video> element.
+  React.useEffect(() => {
+    if (!isVideo || !url) return;
+    let cancelled = false;
+    setThumbLoading(true);
+
+    async function generate() {
+      try {
+        const v = document.createElement("video");
+        v.crossOrigin = "anonymous";
+        v.preload = "metadata";
+        v.src = url;
+
+        await new Promise<void>((resolve, reject) => {
+          const onLoaded = () => resolve();
+          const onLoadErr = () => reject(new Error("video load error"));
+          v.addEventListener("loadedmetadata", onLoaded, { once: true });
+          v.addEventListener("error", onLoadErr, { once: true });
+        });
+
+        // pick a safe seek time (1s or fraction)
+        const seekTo = Math.min(1, Math.max(0, (v.duration || 0) / 3));
+
+        await new Promise<void>((resolve, reject) => {
+          const onSeeked = () => resolve();
+          v.currentTime = seekTo;
+          v.addEventListener("seeked", onSeeked, { once: true });
+          // timeout after 2s
+          setTimeout(() => reject(new Error("seek timeout")), 2000);
+        });
+
+        const canvas = document.createElement("canvas");
+        canvas.width = v.videoWidth || 320;
+        canvas.height = v.videoHeight || 180;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("no-canvas-ctx");
+
+        ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/png");
+        if (!cancelled) {
+          setThumb(dataUrl);
+        }
+      } catch (err) {
+        void err;
+        // ignore - fallback will render a <video> element
+        // (CORS issues or other errors can make toDataURL fail)
+      } finally {
+        if (!cancelled) setThumbLoading(false);
+      }
+    }
+
+    generate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isVideo, url]);
+
+  // non-image/video fallback
+  if ((!isImage && !isVideo) || !url || error) {
     return (
       // fallback for non-image files keeps a compact placeholder that's full width
       <div className="w-full aspect-4/3 flex items-center justify-center rounded-md bg-muted/20">
@@ -83,29 +158,106 @@ function GridThumbnail({
     }
   };
 
+  const handleVideoDims = (w: number, h: number) => {
+    // reuse the same sizing heuristic as images for grid spans
+    const aspect = (w || 1) / (h || 1);
+    let col = 1;
+    let row = 1;
+
+    if (aspect >= 2.4) col = 3;
+    else if (aspect >= 1.6) col = 2;
+
+    if (aspect <= 0.35) row = 3;
+    else if (aspect <= 0.6) row = 2;
+
+    const next = { row, col };
+    if (
+      !lastSpanRef.current ||
+      lastSpanRef.current.col !== next.col ||
+      lastSpanRef.current.row !== next.row
+    ) {
+      lastSpanRef.current = next;
+      onSpan?.(next);
+    }
+  };
+
   return (
     <div className="w-full relative rounded-md overflow-hidden bg-muted/5">
-      {!loaded && (
+      {/* Loading state for video thumb */}
+      {(!loaded || (isVideo && thumbLoading)) && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />
         </div>
       )}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={url}
-        alt={file.Name}
-        ref={(el) => {
-          if (el) handleImageLoad(el);
-        }}
-        // let the image flow naturally (width 100%, auto height) so tall/wide images
-        // expand without being cropped to a square — avoids gaps in masonry layout
-        className={`w-full h-auto object-cover transition-all duration-300 ${
-          loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
-        }`}
-        onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
-        loading="lazy"
-      />
+
+      {/* Image files */}
+      {isImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt={file.Name}
+          ref={(el) => {
+            if (el) handleImageLoad(el);
+          }}
+          // let the image flow naturally (width 100%, auto height) so tall/wide images
+          // expand without being cropped to a square — avoids gaps in masonry layout
+          className={`w-full h-auto object-cover transition-all duration-300 ${
+            loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
+          }`}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          loading="lazy"
+        />
+      )}
+
+      {/* Video files: prefer generated thumbnail, otherwise fall back to a video element */}
+      {isVideo && (
+        <div className="w-full h-auto">
+          {thumb ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={thumb}
+              alt={file.Name}
+              onLoad={(e) => {
+                setLoaded(true);
+                // derive spans from the generated thumbnail
+                const img = e.currentTarget as HTMLImageElement;
+                handleVideoDims(
+                  img.naturalWidth || img.width,
+                  img.naturalHeight || img.height
+                );
+              }}
+              className={`w-full h-auto object-cover transition-all duration-300 ${
+                loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              }`}
+              loading="lazy"
+            />
+          ) : (
+            // fallback: show a muted video element (may show first frame)
+            <video
+              src={url}
+              muted
+              playsInline
+              preload="metadata"
+              onLoadedMetadata={(e) => {
+                const t = e.currentTarget as HTMLVideoElement;
+                handleVideoDims(t.videoWidth || 1, t.videoHeight || 1);
+                setLoaded(true);
+              }}
+              className={`w-full h-auto object-cover transition-all duration-300 ${
+                loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
+              }`}
+            />
+          )}
+
+          {/* play overlay */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="h-10 w-10 rounded-full bg-black/40 flex items-center justify-center">
+              <Play className="h-5 w-5 text-white" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -189,6 +341,8 @@ interface StorageBrowserProps {
   selectedItems: Set<string>;
   onSelect?: (items: Set<string>) => void;
   onMove?: (sourceKey: string, destinationKey: string) => void;
+  onMoveClick?: (items: string[]) => void;
+  setPage?: (p: number) => void;
 }
 
 export default function StorageBrowser({
@@ -197,11 +351,12 @@ export default function StorageBrowser({
   onPreview,
   loading,
   viewMode,
-
   onDelete,
   deleting = {},
   selectedItems,
   onSelect,
+  onMoveClick,
+  setPage,
 }: StorageBrowserProps) {
   const { currentPath, setCurrentPath } = useStorage();
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
@@ -424,9 +579,20 @@ export default function StorageBrowser({
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (!loading && c && c.Path?.Key && onMoveClick)
+                              onMoveClick([c.Path.Key]);
+                          }}
+                        >
+                          <FolderInput className="mr-2 h-4 w-4" />
+                          Move
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
                             if (!loading && c && onDelete) onDelete(c);
                           }}
                         >
+                          <Trash2 className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -610,6 +776,16 @@ export default function StorageBrowser({
                         }}
                       >
                         Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!loading && c && c.Path?.Key && onMoveClick)
+                            onMoveClick([c.Path.Key]);
+                        }}
+                      >
+                        <FolderInput className="mr-2 h-4 w-4" />
+                        Move
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

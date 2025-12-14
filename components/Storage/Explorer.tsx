@@ -17,6 +17,7 @@ import { UseQueryResult } from "@tanstack/react-query";
 import {} from "@/hooks/useCloudList";
 import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
+import MoveFileModal from "./MoveFileModal";
 import FileUploadModal from "./FileUploadModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import toast from "react-hot-toast";
@@ -27,6 +28,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Folder,
+  FolderInput,
 } from "lucide-react";
 import {} from "@/components/ui/card";
 
@@ -50,6 +52,10 @@ export default function Explorer({
   queries: { breadcrumbQuery, objectsQuery, directoriesQuery },
   currentPath,
   invalidates,
+  orderByField,
+  orderByDirection,
+  setOrderByField,
+  setOrderByDirection,
   showCreateFolder,
   setShowCreateFolder,
   showUpload,
@@ -76,6 +82,10 @@ export default function Explorer({
   page: number;
   setPage: (page: number) => void;
   pageSize: number;
+  orderByField?: string | undefined;
+  orderByDirection?: "asc" | "desc" | undefined;
+  setOrderByField?: (f?: string) => void;
+  setOrderByDirection?: (d?: "asc" | "desc") => void;
 }) {
   // main data hook
   const { invalidate: invalidateUsage } = useUserStorageUsage();
@@ -83,6 +93,8 @@ export default function Explorer({
   // UI state
   const [search, setSearch] = React.useState("");
   const [viewMode, setViewMode] = React.useState<ViewMode>("list");
+  const [showMoveModal, setShowMoveModal] = React.useState(false);
+  const [moveSourceKeys, setMoveSourceKeys] = React.useState<string[]>([]);
   const [isNavigating, setIsNavigating] = React.useState(false);
   const [previewFile, setPreviewFile] = React.useState<CloudObjectModel | null>(
     null
@@ -161,15 +173,16 @@ export default function Explorer({
     setSelectedItems(new Set());
   }, [currentPath]);
 
-  const handleMove = async (sourceKey: string, destinationKey: string) => {
+  const handleMove = async (sourceKeys: string[], destinationKey: string) => {
     try {
       await cloudApiFactory.move({
         cloudMoveRequestModel: {
-          SourceKeys: [sourceKey],
-          DestinationKey: destinationKey,
+          SourceKeys: sourceKeys,
+          DestinationKey: destinationKey === "" ? "/" : destinationKey,
         },
       });
       toast.success("Moved successfully");
+      setSelectedItems(new Set());
       await Promise.all([
         invalidates.invalidateObjects(),
         invalidates.invalidateDirectories(),
@@ -247,7 +260,7 @@ export default function Explorer({
     // For move operation, DestinationKey should be the target directory
     const destinationKey = targetFolder === "" ? "/" : targetFolder;
 
-    handleMove(sourceId, destinationKey);
+    handleMove([sourceId], destinationKey);
   };
 
   const handleDeleteSelected = async () => {
@@ -428,6 +441,20 @@ export default function Explorer({
                 </Button>
                 <Button
                   size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setMoveSourceKeys(Array.from(selectedItems));
+                    setShowMoveModal(true);
+                  }}
+                  className="shrink-0"
+                >
+                  <FolderInput size={16} className="mr-2" />
+                  <span className="hidden sm:inline">
+                    Move ({selectedItems.size})
+                  </span>
+                </Button>
+                <Button
+                  size="sm"
                   variant="destructive"
                   onClick={handleDeleteSelected}
                   className="shrink-0"
@@ -476,7 +503,12 @@ export default function Explorer({
               deleting={deleting}
               selectedItems={selectedItems}
               onSelect={(items) => setSelectedItems(items)}
-              onMove={handleMove}
+              onMove={(src, dest) => handleMove([src], dest)}
+              onMoveClick={(items) => {
+                setMoveSourceKeys(items);
+                setShowMoveModal(true);
+              }}
+              setPage={setPage}
             />
 
             {objectsQuery.isSuccess &&
@@ -523,6 +555,14 @@ export default function Explorer({
             </Button>
           </div>
         </div>
+
+        <MoveFileModal
+          open={showMoveModal}
+          onClose={() => setShowMoveModal(false)}
+          sourceKeys={moveSourceKeys}
+          onMove={handleMove}
+          initialPath={currentPath}
+        />
 
         <CreateFolderModal
           open={showCreateFolder}

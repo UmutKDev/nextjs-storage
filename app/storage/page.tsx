@@ -13,6 +13,11 @@ export default function StoragePage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [prevPath, setPrevPath] = useState(currentPath);
+  // Sorting state
+  const [orderByField, setOrderByField] = useState<string | undefined>("Name");
+  const [orderByDirection, setOrderByDirection] = useState<
+    "asc" | "desc" | undefined
+  >("asc");
 
   if (currentPath !== prevPath) {
     setPrevPath(currentPath);
@@ -26,6 +31,8 @@ export default function StoragePage() {
       skip,
       take: pageSize,
       refetchInterval: 5000,
+      orderByField,
+      orderByDirection,
     });
 
   // Lifted state for modals
@@ -53,6 +60,10 @@ export default function StoragePage() {
               }}
               currentPath={currentPath}
               invalidates={invalidates}
+              orderByField={orderByField}
+              orderByDirection={orderByDirection}
+              setOrderByField={setOrderByField}
+              setOrderByDirection={setOrderByDirection}
               // Pass state down
               showCreateFolder={showCreateFolder}
               setShowCreateFolder={setShowCreateFolder}
