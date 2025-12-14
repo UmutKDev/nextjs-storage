@@ -12,6 +12,12 @@ export default function StoragePage() {
   // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+  const [prevPath, setPrevPath] = useState(currentPath);
+
+  if (currentPath !== prevPath) {
+    setPrevPath(currentPath);
+    setPage(1);
+  }
 
   const skip = (page - 1) * pageSize;
 
@@ -21,11 +27,6 @@ export default function StoragePage() {
       take: pageSize,
       refetchInterval: 5000,
     });
-
-  // Reset page when path changes
-  React.useEffect(() => {
-    setPage(1);
-  }, [currentPath]);
 
   // Lifted state for modals
   const [showCreateFolder, setShowCreateFolder] = useState(false);

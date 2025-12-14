@@ -22,12 +22,35 @@ export function setClientToken(token?: string | null) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const onError = (error: AxiosError<any>) => {
+  if (typeof window !== "undefined") {
+    const status = error.response?.status;
+
+    // Handle Authentication Errors
+    if (status === 401) {
+      if (!window.location.pathname.startsWith("/authentication")) {
+        window.location.href = "/authentication";
+      }
+      return Promise.reject(error);
+    }
+
+    // Handle Network Errors (No response received)
+    // // We explicitly check if response is missing to avoid redirecting on 500/404/etc
+    // if (!error.response && (error.code === "ERR_NETWORK" || error.request)) {
+    //   if (!window.location.pathname.startsWith("/server-error")) {
+    //     window.location.href = "/server-error";
+    //   }
+    //   return Promise.reject(error);
+    // }
+  }
+
   // response available but we purposely handle its structured error later
 
   if (error.response && error.response.data) {
     console.log(error.response.data);
     return Promise.reject("Bir hata oluştu.");
   }
+
+  return Promise.reject(error);
 };
 
 Instance.interceptors.response.use(onSuccess, onError);

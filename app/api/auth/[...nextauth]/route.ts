@@ -3,7 +3,6 @@ import {
   accountApiFactory,
   authenticationApiFactory,
 } from "@/Service/Factories";
-import { JWTTokenDecodeResponseModel } from "@/Service/Generates";
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
@@ -32,9 +31,7 @@ export const authOptions: NextAuthOptions = {
 
           const tokens = res.data;
 
-          const decoded = await parseJwt<JWTTokenDecodeResponseModel>(
-            tokens.result.accessToken
-          );
+          const decoded = await parseJwt<any>(tokens.result.accessToken);
 
           return {
             id: decoded.id,

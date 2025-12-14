@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useCallback } from "react";
-import { useCloudList } from "@/hooks/useCloudList";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 type StorageContextType = {
@@ -27,9 +26,6 @@ export default function StorageProvider({
   const pathname = usePathname();
 
   const currentPath = searchParams.get("path") || initialPath;
-  // we only need invalidation helpers here — don't run the list queries from the provider
-  // (keeps a single data-fetching source of truth in the page/explorer and avoids duplicate requests)
-  const { invalidates } = useCloudList(currentPath, { enabled: false });
 
   const setCurrentPath = useCallback(
     (path: string) => {
@@ -45,17 +41,8 @@ export default function StorageProvider({
       }
 
       router.push(`${pathname}?${params.toString()}`);
-
-      // Ensure we refetch for this path so navigating back always hits the API
-      try {
-        invalidates.invalidateBreadcrumb();
-        invalidates.invalidateObjects();
-        invalidates.invalidateDirectories();
-      } catch {
-        // ignore in environments where query client isn't available
-      }
     },
-    [invalidates, searchParams, pathname, router]
+    [searchParams, pathname, router]
   );
 
   const reset = useCallback(() => {

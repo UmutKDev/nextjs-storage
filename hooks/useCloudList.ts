@@ -101,7 +101,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
   const { status } = useSession();
   const {
     delimiter = true,
-    isMetadataProcessing = true,
+    isMetadataProcessing = false,
     refetchOnMount = "always",
     enabled = true,
     skip = 0,

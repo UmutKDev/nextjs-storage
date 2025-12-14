@@ -26,11 +26,13 @@ import {
   List,
   ChevronLeft,
   ChevronRight,
+  Folder,
 } from "lucide-react";
 import {} from "@/components/ui/card";
 
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import FilePreviewModal from "./FilePreviewModal";
+import FileIcon from "./FileIcon";
 
 import {
   DndContext,
@@ -38,6 +40,7 @@ import {
   useSensor,
   useSensors,
   PointerSensor,
+  KeyboardSensor,
   closestCenter,
   DragEndEvent,
   DragStartEvent,
@@ -102,14 +105,6 @@ export default function Explorer({
   // DnD state
   const [activeId, setActiveId] = React.useState<string | null>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
-
   const contents = React.useMemo(
     () => objectsQuery.data?.items ?? [],
     [objectsQuery.data?.items]
@@ -117,6 +112,24 @@ export default function Explorer({
   const directories = React.useMemo(
     () => directoriesQuery.data?.items ?? [],
     [directoriesQuery.data?.items]
+  );
+
+  const activeItem = React.useMemo(() => {
+    if (!activeId) return null;
+    const dir = directories.find((d) => d.Prefix === activeId);
+    if (dir) return { type: "folder" as const, data: dir };
+    const file = contents.find((c) => c.Path?.Key === activeId);
+    if (file) return { type: "file" as const, data: file };
+    return null;
+  }, [activeId, directories, contents]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor)
   );
 
   // Pagination logic
@@ -544,11 +557,31 @@ export default function Explorer({
           onChange={setPreviewFile}
         />
 
-        <DragOverlay>
-          {activeId ? (
-            <div className="opacity-80 pointer-events-none">
-              <div className="px-3 py-2 bg-background border rounded-md shadow-lg flex items-center gap-2">
-                <span className="font-medium">Moving item...</span>
+        <DragOverlay dropAnimation={null}>
+          {activeItem ? (
+            <div className="opacity-90 pointer-events-none w-64">
+              <div className="px-4 py-3 bg-card border rounded-md shadow-xl flex items-center gap-3">
+                {activeItem.type === "folder" ? (
+                  <div className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500">
+                    <Folder
+                      size={18}
+                      fill="currentColor"
+                      className="opacity-80"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 flex items-center justify-center rounded-md bg-muted/20">
+                    <FileIcon extension={activeItem.data.Extension} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">
+                    {activeItem.type === "folder"
+                      ? activeItem.data.Name
+                      : activeItem.data.Metadata?.Originalfilename ||
+                        activeItem.data.Name}
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}

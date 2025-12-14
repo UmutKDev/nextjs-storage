@@ -137,11 +137,10 @@ function DraggableItem({
   onClick?: () => void;
   data?: unknown;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id,
-      data: { type, id, ...(data as object) },
-    });
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id,
+    data: { type, id, ...(data as object) },
+  });
 
   const { isOver, setNodeRef: setDroppableRef } = useDroppable({
     id,
@@ -149,25 +148,17 @@ function DraggableItem({
     disabled: type === "file", // only folders can be drop targets
   });
 
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        zIndex: isDragging ? 50 : undefined,
-      }
-    : undefined;
-
   return (
     <div
       ref={(node) => {
         setNodeRef(node);
         setDroppableRef(node);
       }}
-      style={style}
       {...listeners}
       {...attributes}
       className={cn(
         "relative transition-colors outline-none",
-        isDragging && "opacity-50",
+        isDragging && "opacity-30",
         isOver &&
           type === "folder" &&
           "bg-primary/10 ring-2 ring-primary ring-inset rounded-md",
@@ -286,11 +277,7 @@ export default function StorageBrowser({
     <div className="divide-y rounded-md border bg-background/50">
       {/* Directories */}
       {(directories ?? []).map((d, idx) => {
-        const prefix = d?.Prefix ?? "";
-        const segments = prefix.split("/").filter(Boolean);
-        const name = segments.length
-          ? segments[segments.length - 1]
-          : prefix || "";
+        const name = d.Name;
         const key = d.Prefix || `dir-${idx}`;
 
         return (
@@ -460,11 +447,7 @@ export default function StorageBrowser({
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 items-start">
       {/* Directories */}
       {(directories ?? []).map((d, idx) => {
-        const prefix = d?.Prefix ?? "";
-        const segments = prefix.split("/").filter(Boolean);
-        const name = segments.length
-          ? segments[segments.length - 1]
-          : prefix || "";
+        const name = d.Name;
         const key = d.Prefix || `dir-${idx}`;
 
         return (

@@ -68,9 +68,6 @@ export interface ArrayResponseModel {
     'options': PaginationResponseModel;
     'items': Array<Array<string>>;
 }
-export interface AuthenticationDecodeTokenBodyRequestModel {
-    'token': string;
-}
 export interface AuthenticationRefreshTokenRequestModel {
     'refreshToken': string;
 }
@@ -198,6 +195,7 @@ export interface CloudDirectoryListModelResult {
     'items': Array<CloudDirectoryModel>;
 }
 export interface CloudDirectoryModel {
+    'Name': string;
     'Prefix': string;
 }
 export interface CloudGetMultipartPartUrlRequestModel {
@@ -321,41 +319,6 @@ export interface InternalServerErrorResponseModelAllOfStatus {
     'code'?: number;
     'message'?: string;
 }
-export interface JWTTokenDecodeResponseBaseModel {
-    'result': JWTTokenDecodeResponseModel;
-    'status': BaseStatusModel;
-}
-export interface JWTTokenDecodeResponseModel {
-    'id': string;
-    'email': string;
-    'fullName': string;
-    'image': string;
-    'role': JWTTokenDecodeResponseModelRoleEnum;
-    'status': JWTTokenDecodeResponseModelStatusEnum;
-    'iat': number;
-    'exp': number;
-    'nbf': number;
-    'iss': string;
-    'aud': string;
-    'sub': string;
-}
-
-export const JWTTokenDecodeResponseModelRoleEnum = {
-    Admin: 'ADMIN',
-    User: 'USER'
-} as const;
-
-export type JWTTokenDecodeResponseModelRoleEnum = typeof JWTTokenDecodeResponseModelRoleEnum[keyof typeof JWTTokenDecodeResponseModelRoleEnum];
-export const JWTTokenDecodeResponseModelStatusEnum = {
-    Active: 'ACTIVE',
-    Inactive: 'INACTIVE',
-    Pending: 'PENDING',
-    Suspended: 'SUSPENDED',
-    Approval: 'APPROVAL'
-} as const;
-
-export type JWTTokenDecodeResponseModelStatusEnum = typeof JWTTokenDecodeResponseModelStatusEnum[keyof typeof JWTTokenDecodeResponseModelStatusEnum];
-
 export interface PaginationResponseModel {
     'search': string;
     'skip': number;
@@ -990,41 +953,6 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
     return {
         /**
          * 
-         * @param {AuthenticationDecodeTokenBodyRequestModel} authenticationDecodeTokenBodyRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        decodeToken: async (authenticationDecodeTokenBodyRequestModel: AuthenticationDecodeTokenBodyRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authenticationDecodeTokenBodyRequestModel' is not null or undefined
-            assertParamExists('decodeToken', 'authenticationDecodeTokenBodyRequestModel', authenticationDecodeTokenBodyRequestModel)
-            const localVarPath = `/Api/Authentication/DecodeToken`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(authenticationDecodeTokenBodyRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @param {AuthenticationSignInRequestModel} authenticationSignInRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1212,18 +1140,6 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @param {AuthenticationDecodeTokenBodyRequestModel} authenticationDecodeTokenBodyRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async decodeToken(authenticationDecodeTokenBodyRequestModel: AuthenticationDecodeTokenBodyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<JWTTokenDecodeResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.decodeToken(authenticationDecodeTokenBodyRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.decodeToken']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
          * @param {AuthenticationSignInRequestModel} authenticationSignInRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1296,15 +1212,6 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
     return {
         /**
          * 
-         * @param {AuthenticationApiDecodeTokenRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        decodeToken(requestParameters: AuthenticationApiDecodeTokenRequest, options?: RawAxiosRequestConfig): AxiosPromise<JWTTokenDecodeResponseBaseModel> {
-            return localVarFp.decodeToken(requestParameters.authenticationDecodeTokenBodyRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
          * @param {AuthenticationApiLoginRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1355,13 +1262,6 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
 };
 
 /**
- * Request parameters for decodeToken operation in AuthenticationApi.
- */
-export interface AuthenticationApiDecodeTokenRequest {
-    readonly authenticationDecodeTokenBodyRequestModel: AuthenticationDecodeTokenBodyRequestModel
-}
-
-/**
  * Request parameters for login operation in AuthenticationApi.
  */
 export interface AuthenticationApiLoginRequest {
@@ -1400,16 +1300,6 @@ export interface AuthenticationApiResetPasswordRequest {
  * AuthenticationApi - object-oriented interface
  */
 export class AuthenticationApi extends BaseAPI {
-    /**
-     * 
-     * @param {AuthenticationApiDecodeTokenRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public decodeToken(requestParameters: AuthenticationApiDecodeTokenRequest, options?: RawAxiosRequestConfig) {
-        return AuthenticationApiFp(this.configuration).decodeToken(requestParameters.authenticationDecodeTokenBodyRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
     /**
      * 
      * @param {AuthenticationApiLoginRequest} requestParameters Request parameters.
