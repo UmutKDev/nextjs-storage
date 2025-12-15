@@ -93,7 +93,9 @@ export const authOptions: NextAuthOptions = {
         token.refreshToken = tokens.refreshToken ?? token.refreshToken;
 
         try {
-          const decoded = await parseJwt<{ exp?: number }>(tokens.accessToken);
+          const decoded = await parseJwt<{ exp?: number }>(
+            tokens.accessToken ?? ""
+          );
           token.accessTokenExpires = decoded.exp
             ? decoded.exp * 1000
             : undefined;

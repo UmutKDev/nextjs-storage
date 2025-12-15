@@ -52,10 +52,6 @@ export default function Explorer({
   queries: { breadcrumbQuery, objectsQuery, directoriesQuery },
   currentPath,
   invalidates,
-  orderByField,
-  orderByDirection,
-  setOrderByField,
-  setOrderByDirection,
   showCreateFolder,
   setShowCreateFolder,
   showUpload,
@@ -82,10 +78,6 @@ export default function Explorer({
   page: number;
   setPage: (page: number) => void;
   pageSize: number;
-  orderByField?: string | undefined;
-  orderByDirection?: "asc" | "desc" | undefined;
-  setOrderByField?: (f?: string) => void;
-  setOrderByDirection?: (d?: "asc" | "desc") => void;
 }) {
   // main data hook
   const { invalidate: invalidateUsage } = useUserStorageUsage();
