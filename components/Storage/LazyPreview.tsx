@@ -206,6 +206,7 @@ export default function LazyPreview({
             autoPlay
             controls
             loop
+            muted
             className={`w-full ${
               isFullScreen ? "max-h-[90vh]" : "max-h-[70vh]"
             }`}

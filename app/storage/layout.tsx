@@ -2,6 +2,7 @@
 
 import React, { Suspense } from "react";
 import StorageProvider from "@/components/Storage/StorageProvider";
+import EncryptedFoldersProvider from "@/components/Storage/EncryptedFoldersProvider";
 
 export default function StorageLayout({
   children,
@@ -10,7 +11,9 @@ export default function StorageLayout({
 }) {
   return (
     <Suspense>
-      <StorageProvider>{children}</StorageProvider>
+      <StorageProvider>
+        <EncryptedFoldersProvider>{children}</EncryptedFoldersProvider>
+      </StorageProvider>
     </Suspense>
   );
 }

@@ -105,7 +105,7 @@ export default function ContentsList({
 
       // call server to remove file
       await cloudApiFactory._delete({
-        cloudDeleteRequestModel: { Key: [key], IsDirectory: false },
+        cloudDeleteRequestModel: { Items: [{ Key: key, IsDirectory: false }] },
       });
 
       // success — keep optimistic state and refresh other queries that may be affected

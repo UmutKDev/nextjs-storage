@@ -23,6 +23,9 @@ interface UseCloudListOptions {
   take?: number;
   search?: string | undefined;
   refetchInterval?: number | false;
+  objectsEnabled?: boolean;
+  directoriesEnabled?: boolean;
+  breadcrumbEnabled?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -108,6 +111,9 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     take = 100,
     search = undefined,
     refetchInterval = false,
+    objectsEnabled = true,
+    directoriesEnabled = true,
+    breadcrumbEnabled = true,
   } = options ?? {};
 
   const queryClient = useQueryClient();
@@ -155,7 +161,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
-    enabled: status === "authenticated" && enabled,
+    enabled: status === "authenticated" && enabled && breadcrumbEnabled,
   });
 
   const objectsQuery = useQuery({
@@ -175,8 +181,8 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     select: (res) => res.data?.result,
     refetchOnMount,
     refetchOnWindowFocus: false,
-    enabled: status === "authenticated" && enabled,
-    refetchInterval,
+    enabled: status === "authenticated" && enabled && objectsEnabled,
+    refetchInterval: objectsEnabled ? refetchInterval : false,
   });
 
   const directoriesQuery = useQuery({
@@ -190,8 +196,8 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
-    enabled: status === "authenticated" && enabled,
-    refetchInterval,
+    enabled: status === "authenticated" && enabled && directoriesEnabled,
+    refetchInterval: directoriesEnabled ? refetchInterval : false,
   });
 
   // Invalidate helper - mevcut path için cache'i temizler

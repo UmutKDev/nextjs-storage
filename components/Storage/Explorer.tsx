@@ -11,12 +11,14 @@ import type {
   CloudBreadCrumbListModelResult,
   CloudObjectListModelResult,
   CloudDirectoryListModelResult,
+  CloudEncryptedFolderDeleteRequestModel,
 } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
 import { UseQueryResult } from "@tanstack/react-query";
 import {} from "@/hooks/useCloudList";
 import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
+import CreateEncryptedFolderModal from "./CreateEncryptedFolderModal";
 import MoveFileModal from "./MoveFileModal";
 import FileUploadModal from "./FileUploadModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
@@ -29,12 +31,15 @@ import {
   ChevronRight,
   Folder,
   FolderInput,
+  Lock,
 } from "lucide-react";
 import {} from "@/components/ui/card";
 
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import FilePreviewModal from "./FilePreviewModal";
 import FileIcon from "./FileIcon";
+import { useEncryptedFolders } from "./EncryptedFoldersProvider";
+import { isAxiosError } from "axios";
 
 import {
   DndContext,
@@ -48,12 +53,22 @@ import {
   DragStartEvent,
 } from "@dnd-kit/core";
 
+const normalizeFolderPath = (path?: string | null) => {
+  if (!path) return "";
+  return path.replace(/^\/+|\/+$/g, "");
+};
+
+type EncryptedDeleteRequest = CloudEncryptedFolderDeleteRequestModel & {
+  Passphrase: string;
+};
 export default function Explorer({
   queries: { breadcrumbQuery, objectsQuery, directoriesQuery },
   currentPath,
   invalidates,
   showCreateFolder,
   setShowCreateFolder,
+  showCreateEncryptedFolder,
+  setShowCreateEncryptedFolder,
   showUpload,
   setShowUpload,
   page,
@@ -73,6 +88,8 @@ export default function Explorer({
   };
   showCreateFolder: boolean;
   setShowCreateFolder: (show: boolean) => void;
+  showCreateEncryptedFolder: boolean;
+  setShowCreateEncryptedFolder: (show: boolean) => void;
   showUpload: boolean;
   setShowUpload: (show: boolean) => void;
   page: number;
@@ -81,6 +98,13 @@ export default function Explorer({
 }) {
   // main data hook
   const { invalidate: invalidateUsage } = useUserStorageUsage();
+  const {
+    isFolderEncrypted,
+    isFolderUnlocked,
+    promptUnlock,
+    refetchManifest,
+    getFolderPassphrase,
+  } = useEncryptedFolders();
 
   // UI state
   const [search, setSearch] = React.useState("");
@@ -92,10 +116,17 @@ export default function Explorer({
     null
   );
   const prevPath = React.useRef(currentPath);
+  const folderLabel =
+    currentPath.split("/").filter(Boolean).pop() || "bu klasör";
+  const isCurrentEncrypted = isFolderEncrypted(currentPath);
+  const isCurrentLocked = isCurrentEncrypted && !isFolderUnlocked(currentPath);
 
   // create folder UI state
   const [newFolderName, setNewFolderName] = React.useState("");
   const [creating, setCreating] = React.useState(false);
+  const [encryptedFolderName, setEncryptedFolderName] = React.useState("");
+  const [encryptedPassphrase, setEncryptedPassphrase] = React.useState("");
+  const [creatingEncrypted, setCreatingEncrypted] = React.useState(false);
 
   // delete UI state
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
@@ -255,10 +286,15 @@ export default function Explorer({
     handleMove([sourceId], destinationKey);
   };
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = async ({
+    skipConfirm = false,
+  }: {
+    skipConfirm?: boolean;
+  } = {}) => {
     if (selectedItems.size === 0) return;
 
     if (
+      !skipConfirm &&
       !confirm(`Are you sure you want to delete ${selectedItems.size} items?`)
     )
       return;
@@ -271,22 +307,76 @@ export default function Explorer({
         (d) => d.Prefix && selectedItems.has(d.Prefix)
       );
 
-      if (selectedFiles.length > 0) {
+      const encryptedDirs: CloudDirectoryModel[] = [];
+      const regularDirs: CloudDirectoryModel[] = [];
+      selectedDirs.forEach((dir) => {
+        const normalizedPath = normalizeFolderPath(dir.Prefix);
+        if (normalizedPath && isFolderEncrypted(normalizedPath)) {
+          encryptedDirs.push(dir);
+        } else if (dir.IsEncrypted) {
+          // fallback for api-provided flag
+          encryptedDirs.push(dir);
+        } else {
+          regularDirs.push(dir);
+        }
+      });
+
+      if (encryptedDirs.length > 0) {
+        const missing = encryptedDirs.find((dir) => {
+          const normalizedPath = normalizeFolderPath(dir.Prefix);
+          if (!normalizedPath) return true;
+          return !getFolderPassphrase(normalizedPath);
+        });
+
+        if (missing) {
+          const normalizedPath = normalizeFolderPath(missing.Prefix);
+          if (normalizedPath) {
+            promptUnlock({
+              path: normalizedPath,
+              label: getItemName(missing),
+              onSuccess: () => {
+                handleDeleteSelected({ skipConfirm: true });
+              },
+            });
+          }
+          return;
+        }
+      }
+
+      if (selectedFiles.length > 0 || regularDirs.length > 0) {
         await cloudApiFactory._delete({
           cloudDeleteRequestModel: {
-            Keys: selectedFiles.map((f) => f.Path!.Key!),
-            IsDirectory: false,
+            Items: [
+              ...selectedFiles.map((f) => ({
+                Key: f.Path!.Key!,
+                IsDirectory: false,
+              })),
+              ...regularDirs.map((d) => ({
+                Key: d.Prefix!,
+                IsDirectory: true,
+              })),
+            ],
           },
         });
       }
 
-      if (selectedDirs.length > 0) {
-        await cloudApiFactory._delete({
-          cloudDeleteRequestModel: {
-            Keys: selectedDirs.map((d) => d.Prefix!),
-            IsDirectory: true,
-          },
-        });
+      if (encryptedDirs.length > 0) {
+        await Promise.all(
+          encryptedDirs.map(async (dir) => {
+            const normalizedPath = normalizeFolderPath(dir.Prefix);
+            if (!normalizedPath) return;
+            const passphrase = getFolderPassphrase(normalizedPath);
+            if (!passphrase) return;
+            await cloudApiFactory.deleteEncryptedFolder({
+              cloudEncryptedFolderDeleteRequestModel: {
+                Path: normalizedPath,
+                ShouldDeleteContents: true,
+                Passphrase: passphrase,
+              } as EncryptedDeleteRequest,
+            });
+          })
+        );
+        await refetchManifest();
       }
 
       toast.success("Deleted selected items");
@@ -312,9 +402,50 @@ export default function Explorer({
 
     setDeleting((prev) => ({ ...prev, [key]: true }));
     try {
-      await cloudApiFactory._delete({
-        cloudDeleteRequestModel: { Keys: [key], IsDirectory: isDirectory },
-      });
+      if (isDirectory) {
+        const dir = item as CloudDirectoryModel;
+        const normalizedPath = normalizeFolderPath(dir.Prefix);
+        const encryptedPath =
+          normalizedPath && isFolderEncrypted(normalizedPath);
+        const shouldTreatAsEncrypted = Boolean(
+          encryptedPath || (dir.IsEncrypted && normalizedPath)
+        );
+
+        if (shouldTreatAsEncrypted && normalizedPath) {
+          const passphrase = getFolderPassphrase(normalizedPath);
+          if (!passphrase) {
+            setDeleting((prev) => ({ ...prev, [key]: false }));
+            promptUnlock({
+              path: normalizedPath,
+              label: getItemName(item),
+              onSuccess: () => {
+                void performDelete(item);
+              },
+            });
+            return;
+          }
+          await cloudApiFactory.deleteEncryptedFolder({
+            cloudEncryptedFolderDeleteRequestModel: {
+              Path: normalizedPath,
+              ShouldDeleteContents: true,
+              Passphrase: passphrase,
+            } as EncryptedDeleteRequest,
+          });
+          await refetchManifest();
+        } else {
+          await cloudApiFactory._delete({
+            cloudDeleteRequestModel: {
+              Items: [{ Key: key, IsDirectory: true }],
+            },
+          });
+        }
+      } else {
+        await cloudApiFactory._delete({
+          cloudDeleteRequestModel: {
+            Items: [{ Key: key, IsDirectory: isDirectory }],
+          },
+        });
+      }
       toast.success("Deleted successfully");
       await Promise.all([
         invalidates.invalidateObjects(),
@@ -331,14 +462,14 @@ export default function Explorer({
   }
 
   // Helper to get name for delete modal
-  const getItemName = (item: CloudObjectModel | CloudDirectoryModel) => {
+  function getItemName(item: CloudObjectModel | CloudDirectoryModel) {
     if ("Prefix" in item) {
       const prefix = item.Prefix ?? "";
       const segments = prefix.split("/").filter(Boolean);
       return segments.length ? segments[segments.length - 1] : prefix;
     }
     return item.Name;
-  };
+  }
 
   // When path changes set navigating state so panels immediately show loading
   React.useEffect(() => {
@@ -396,6 +527,54 @@ export default function Explorer({
     }
   }
 
+  async function createEncryptedFolder() {
+    const name = encryptedFolderName.trim();
+    if (!name) {
+      toast.error("Klasör adı gerekli");
+      return;
+    }
+    if (name.includes("/")) {
+      toast.error("Klasör adı '/' içeremez");
+      return;
+    }
+
+    const passphrase = encryptedPassphrase.trim();
+    if (passphrase.length < 8) {
+      toast.error("Parola en az 8 karakter olmalı");
+      return;
+    }
+
+    setCreatingEncrypted(true);
+    try {
+      const prefix = currentPath ? `${currentPath}/` : "";
+      const path = `${prefix}${name}`.replace(/\/+/g, "/").replace(/\/$/, "");
+
+      await cloudApiFactory.createEncryptedFolder({
+        cloudEncryptedFolderCreateRequestModel: {
+          Path: path,
+          Passphrase: passphrase,
+        },
+      });
+
+      toast.success("Şifreli klasör oluşturuldu");
+      setShowCreateEncryptedFolder(false);
+      setEncryptedFolderName("");
+      setEncryptedPassphrase("");
+      await Promise.all([
+        invalidates.invalidateDirectories(),
+        refetchManifest(),
+      ]);
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 409) {
+        toast.error("Bu isimde şifreli klasör zaten var");
+      } else {
+        toast.error("Şifreli klasör oluşturulamadı");
+      }
+    } finally {
+      setCreatingEncrypted(false);
+    }
+  }
+
   const handleSelectAll = () => {
     const allKeys = new Set<string>();
     filteredDirectories.forEach((d) => {
@@ -448,7 +627,7 @@ export default function Explorer({
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={handleDeleteSelected}
+                  onClick={() => void handleDeleteSelected()}
                   className="shrink-0"
                 >
                   <Trash2 size={16} className="mr-2" />
@@ -484,40 +663,69 @@ export default function Explorer({
 
         <div className="flex-1 overflow-hidden relative">
           <div className="absolute inset-0 overflow-y-auto p-4">
-            <StorageBrowser
-              directories={filteredDirectories}
-              contents={filteredContents}
-              onPreview={(file) => setPreviewFile(file)}
-              loading={isNavigating || objectsQuery.isLoading}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              onDelete={(item) => setToDelete(item)}
-              deleting={deleting}
-              selectedItems={selectedItems}
-              onSelect={(items) => setSelectedItems(items)}
-              onMove={(src, dest) => handleMove([src], dest)}
-              onMoveClick={(items) => {
-                setMoveSourceKeys(items);
-                setShowMoveModal(true);
-              }}
-              setPage={setPage}
-            />
-
-            {objectsQuery.isSuccess &&
-            directoriesQuery.isSuccess &&
-            !objectsQuery.isLoading &&
-            !directoriesQuery.isLoading &&
-            !isNavigating &&
-            !search &&
-            contents.length === 0 &&
-            directories.length === 0 ? (
-              <div className="h-full grid place-items-center">
-                <EmptyState
-                  title="Klasör Boş"
-                  description="Bu klasörde henüz dosya veya klasör yok."
-                />
+            {isCurrentLocked ? (
+              <div className="h-full flex flex-col items-center justify-center text-center gap-5 px-4 py-10">
+                <div className="w-14 h-14 rounded-full bg-muted/40 flex items-center justify-center text-muted-foreground">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <div className="space-y-2 max-w-md">
+                  <div className="text-lg font-semibold text-foreground">
+                    Şifrelenmiş klasör kilitli
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {folderLabel} şifrelenmiş durumda. İçeriği görüntülemek için
+                    parolayı girerek bu klasörü kilitsiz hale getirin.
+                  </p>
+                </div>
+                <Button
+                  onClick={() =>
+                    promptUnlock({
+                      path: currentPath,
+                      label: folderLabel,
+                    })
+                  }
+                  size="sm"
+                >
+                  Klasörü Kilitsiz Yap
+                </Button>
               </div>
-            ) : null}
+            ) : (
+              <>
+                <StorageBrowser
+                  directories={filteredDirectories}
+                  contents={filteredContents}
+                  onPreview={(file) => setPreviewFile(file)}
+                  loading={isNavigating || objectsQuery.isLoading}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  onDelete={(item) => setToDelete(item)}
+                  deleting={deleting}
+                  selectedItems={selectedItems}
+                  onSelect={(items) => setSelectedItems(items)}
+                  onMove={(src, dest) => handleMove([src], dest)}
+                  onMoveClick={(items) => {
+                    setMoveSourceKeys(items);
+                    setShowMoveModal(true);
+                  }}
+                />
+
+                {objectsQuery.isSuccess &&
+                directoriesQuery.isSuccess &&
+                !objectsQuery.isLoading &&
+                !directoriesQuery.isLoading &&
+                !isNavigating &&
+                !search &&
+                contents.length === 0 &&
+                directories.length === 0 ? (
+                  <div className="h-full grid place-items-center">
+                    <EmptyState
+                      title="Klasör Boş"
+                      description="Bu klasörde henüz dosya veya klasör yok."
+                    />
+                  </div>
+                ) : null}
+              </>
+            )}
           </div>
         </div>
 
@@ -563,6 +771,16 @@ export default function Explorer({
           loading={creating}
           value={newFolderName}
           onChange={setNewFolderName}
+        />
+        <CreateEncryptedFolderModal
+          open={showCreateEncryptedFolder}
+          onClose={() => setShowCreateEncryptedFolder(false)}
+          folderName={encryptedFolderName}
+          onFolderNameChange={setEncryptedFolderName}
+          passphrase={encryptedPassphrase}
+          onPassphraseChange={setEncryptedPassphrase}
+          onSubmit={createEncryptedFolder}
+          loading={creatingEncrypted}
         />
 
         <FileUploadModal

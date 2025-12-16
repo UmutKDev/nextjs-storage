@@ -5,13 +5,15 @@ import Explorer from "@/components/Storage/Explorer";
 import Sidebar from "@/components/Storage/Sidebar";
 import { useCloudList } from "@/hooks/useCloudList";
 import { useStorage } from "@/components/Storage/StorageProvider";
+import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
 
 export default function StoragePage() {
   const { currentPath } = useStorage();
+  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders();
 
   // Pagination state
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize] = useState(50);
   const [prevPath, setPrevPath] = useState(currentPath);
 
   if (currentPath !== prevPath) {
@@ -21,15 +23,23 @@ export default function StoragePage() {
 
   const skip = (page - 1) * pageSize;
 
+  const isCurrentEncrypted = isFolderEncrypted(currentPath);
+  const isCurrentUnlocked = isFolderUnlocked(currentPath);
+  const isCurrentLocked = isCurrentEncrypted && !isCurrentUnlocked;
+
   const { breadcrumbQuery, objectsQuery, directoriesQuery, invalidates } =
     useCloudList(currentPath, {
       skip,
       take: pageSize,
-      refetchInterval: 5000,
+      refetchInterval: isCurrentLocked ? false : 5000,
+      objectsEnabled: !isCurrentLocked,
+      directoriesEnabled: !isCurrentLocked,
     });
 
   // Lifted state for modals
   const [showCreateFolder, setShowCreateFolder] = useState(false);
+  const [showCreateEncryptedFolder, setShowCreateEncryptedFolder] =
+    useState(false);
   const [showUpload, setShowUpload] = useState(false);
 
   return (
@@ -38,6 +48,7 @@ export default function StoragePage() {
       <Sidebar
         className="hidden md:flex flex-none w-64 pt-24"
         onCreateFolder={() => setShowCreateFolder(true)}
+        onCreateEncryptedFolder={() => setShowCreateEncryptedFolder(true)}
         onUpload={() => setShowUpload(true)}
       />
 
@@ -56,6 +67,8 @@ export default function StoragePage() {
               // Pass state down
               showCreateFolder={showCreateFolder}
               setShowCreateFolder={setShowCreateFolder}
+              showCreateEncryptedFolder={showCreateEncryptedFolder}
+              setShowCreateEncryptedFolder={setShowCreateEncryptedFolder}
               showUpload={showUpload}
               setShowUpload={setShowUpload}
               // Pagination

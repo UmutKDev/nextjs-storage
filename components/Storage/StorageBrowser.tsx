@@ -5,9 +5,9 @@ import {
   Trash2,
   Loader2,
   Play,
-  ChevronUp,
-  ChevronDown,
   FolderInput,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useStorage } from "./StorageProvider";
+import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 
 import EditFileModal from "./EditFileModal";
 import FileIcon from "./FileIcon";
@@ -33,6 +34,11 @@ type CloudObject = CloudObjectModel;
 type Directory = CloudDirectoryModel;
 
 export type ViewMode = "list" | "grid";
+
+const normalizeDirectoryPath = (prefix?: string | null) => {
+  if (!prefix) return "";
+  return prefix.replace(/^\/+|\/+$/g, "");
+};
 
 // --- Helper Components ---
 
@@ -342,7 +348,6 @@ interface StorageBrowserProps {
   onSelect?: (items: Set<string>) => void;
   onMove?: (sourceKey: string, destinationKey: string) => void;
   onMoveClick?: (items: string[]) => void;
-  setPage?: (p: number) => void;
 }
 
 export default function StorageBrowser({
@@ -356,9 +361,10 @@ export default function StorageBrowser({
   selectedItems,
   onSelect,
   onMoveClick,
-  setPage,
 }: StorageBrowserProps) {
-  const { currentPath, setCurrentPath } = useStorage();
+  const { setCurrentPath } = useStorage();
+  const { promptUnlock, isFolderUnlocked, isFolderEncrypted } =
+    useEncryptedFolders();
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
 
   // per-item spans (row/col) for the grid (used in grid view)
@@ -377,6 +383,23 @@ export default function StorageBrowser({
         return { ...prev, [key]: span };
       }),
     []
+  );
+
+  const getDirectoryMeta = React.useCallback(
+    (dir: Directory) => {
+      const normalizedPath = normalizeDirectoryPath(dir.Prefix);
+      const displayName =
+        dir.Name ||
+        normalizedPath.split("/").filter(Boolean).pop() ||
+        dir.Prefix ||
+        "Klasör";
+      const encrypted = Boolean(
+        dir.IsEncrypted || isFolderEncrypted(normalizedPath)
+      );
+      const unlocked = encrypted ? isFolderUnlocked(normalizedPath) : true;
+      return { normalizedPath, displayName, encrypted, unlocked };
+    },
+    [isFolderEncrypted, isFolderUnlocked]
   );
 
   const isEmpty = !directories?.length && !contents?.length && !loading;
@@ -414,13 +437,19 @@ export default function StorageBrowser({
 
     if (type === "folder") {
       const dir = item as Directory;
-      const prefix = dir?.Prefix ?? "";
-      const segments = prefix.split("/").filter(Boolean);
-      const name = segments.length
-        ? segments[segments.length - 1]
-        : prefix || "";
-      if (!loading)
-        setCurrentPath(currentPath ? `${currentPath}/${name}` : name);
+      const meta = getDirectoryMeta(dir);
+      if (!meta.normalizedPath) return;
+
+      if (meta.encrypted && !meta.unlocked) {
+        promptUnlock({
+          path: meta.normalizedPath,
+          label: meta.displayName,
+          onSuccess: () => setCurrentPath(meta.normalizedPath),
+        });
+        return;
+      }
+
+      if (!loading) setCurrentPath(meta.normalizedPath);
     } else {
       if (!loading && onPreview) onPreview(item as CloudObject);
     }
@@ -432,8 +461,9 @@ export default function StorageBrowser({
     <div className="divide-y rounded-md border bg-background/50">
       {/* Directories */}
       {(directories ?? []).map((d, idx) => {
-        const name = d.Name;
         const key = d.Prefix || `dir-${idx}`;
+        const meta = getDirectoryMeta(d);
+        const name = meta.displayName;
 
         return (
           <DraggableItem
@@ -465,7 +495,25 @@ export default function StorageBrowser({
                 <Folder size={18} fill="currentColor" className="opacity-80" />
               </div>
               <div className="flex-1 min-w-0 font-medium text-sm">{name}</div>
-              <div className="text-xs text-muted-foreground">Klasör</div>
+              <div className="text-xs text-muted-foreground">
+                {meta.encrypted ? (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 font-medium",
+                      meta.unlocked ? "text-emerald-600" : "text-amber-600"
+                    )}
+                  >
+                    {meta.unlocked ? (
+                      <Unlock className="h-3.5 w-3.5" />
+                    ) : (
+                      <Lock className="h-3.5 w-3.5" />
+                    )}
+                    {meta.unlocked ? "Kilitsiz" : "Şifreli"}
+                  </span>
+                ) : (
+                  "Klasör"
+                )}
+              </div>
 
               {/* Folder Actions */}
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -613,8 +661,9 @@ export default function StorageBrowser({
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 items-start">
       {/* Directories */}
       {(directories ?? []).map((d, idx) => {
-        const name = d.Name;
         const key = d.Prefix || `dir-${idx}`;
+        const meta = getDirectoryMeta(d);
+        const name = meta.displayName;
 
         return (
           <DraggableItem
@@ -657,6 +706,27 @@ export default function StorageBrowser({
                 </div>
                 <div className="text-sm font-medium text-center truncate w-full px-2">
                   {name}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {meta.encrypted ? (
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium",
+                        meta.unlocked
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-amber-50 text-amber-700"
+                      )}
+                    >
+                      {meta.unlocked ? (
+                        <Unlock className="h-3.5 w-3.5" />
+                      ) : (
+                        <Lock className="h-3.5 w-3.5" />
+                      )}
+                      {meta.unlocked ? "Kilitsiz" : "Şifreli"}
+                    </span>
+                  ) : (
+                    "Klasör"
+                  )}
                 </div>
 
                 {/* folder actions placed at top-right inside the tile */}

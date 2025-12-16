@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { HardDrive, Clock, Trash2, Cloud, Star, Plus, UploadCloud, FolderPlus } from "lucide-react";
+import { HardDrive, Clock, Trash2, Cloud, Star, Plus, UploadCloud, FolderPlus, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import StorageUsage from "./StorageUsage";
@@ -17,10 +17,16 @@ import {
 interface SidebarProps {
   className?: string;
   onCreateFolder?: () => void;
+  onCreateEncryptedFolder?: () => void;
   onUpload?: () => void;
 }
 
-export default function Sidebar({ className, onCreateFolder, onUpload }: SidebarProps) {
+export default function Sidebar({
+  className,
+  onCreateFolder,
+  onCreateEncryptedFolder,
+  onUpload,
+}: SidebarProps) {
   const { userStorageUsageQuery } = useUserStorageUsage();
   const { currentPath, setCurrentPath } = useStorage();
 
@@ -76,6 +82,10 @@ export default function Sidebar({ className, onCreateFolder, onUpload }: Sidebar
           <DropdownMenuItem onClick={onCreateFolder} className="gap-2 p-3 rounded-lg cursor-pointer">
             <FolderPlus className="w-4 h-4 text-yellow-500" />
             <span>Klasör Oluştur</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onCreateEncryptedFolder} className="gap-2 p-3 rounded-lg cursor-pointer">
+            <Lock className="w-4 h-4 text-purple-500" />
+            <span>Şifreli Klasör</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

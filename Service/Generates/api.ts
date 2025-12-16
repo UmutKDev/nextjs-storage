@@ -41,7 +41,7 @@ export interface AccountProfileResponseModel {
     'isTwoFactorEnabled': boolean;
     'role': AccountProfileResponseModelRoleEnum;
     'status': AccountProfileResponseModelStatusEnum;
-    'subscription'?: UserSubscriptionResponseModel;
+    'subscription': UserSubscriptionResponseModel;
     'date': UserDateModel;
 }
 
@@ -226,9 +226,12 @@ export interface CloudCreateMultipartUploadResponseModel {
     'UploadId': string;
     'Key': string;
 }
-export interface CloudDeleteRequestModel {
-    'Key': Array<string>;
+export interface CloudDeleteModel {
+    'Key': string;
     'IsDirectory'?: boolean;
+}
+export interface CloudDeleteRequestModel {
+    'Items': Array<CloudDeleteModel>;
 }
 export interface CloudDirectoryListBaseModel {
     'result': CloudDirectoryListModelResult;
@@ -241,6 +244,50 @@ export interface CloudDirectoryListModelResult {
 export interface CloudDirectoryModel {
     'Name': string;
     'Prefix': string;
+    'IsEncrypted': boolean;
+}
+export interface CloudEncryptedFolderCreateRequestModel {
+    'Path': string;
+    'Passphrase': string;
+}
+export interface CloudEncryptedFolderDeleteRequestModel {
+    'Path': string;
+    'ShouldDeleteContents'?: boolean;
+    /**
+     * Required when ShouldDeleteContents is true
+     */
+    'Passphrase'?: string;
+}
+export interface CloudEncryptedFolderListResponseBaseModel {
+    'result': CloudEncryptedFolderListResponseModel;
+    'status': BaseStatusModel;
+}
+export interface CloudEncryptedFolderListResponseModel {
+    'Folders': Array<CloudEncryptedFolderSummaryModel>;
+}
+export interface CloudEncryptedFolderSummaryBaseModel {
+    'result': CloudEncryptedFolderSummaryModel;
+    'status': BaseStatusModel;
+}
+export interface CloudEncryptedFolderSummaryModel {
+    'Path': string;
+    'CreatedAt': string;
+    'UpdatedAt': string;
+}
+export interface CloudEncryptedFolderUnlockRequestModel {
+    'Path': string;
+    'Passphrase': string;
+}
+export interface CloudEncryptedFolderUnlockResponseBaseModel {
+    'result': CloudEncryptedFolderUnlockResponseModel;
+    'status': BaseStatusModel;
+}
+export interface CloudEncryptedFolderUnlockResponseModel {
+    'Path': string;
+    /**
+     * Base64 encoded symmetric key for the folder
+     */
+    'FolderKey': string;
 }
 export interface CloudGetMultipartPartUrlRequestModel {
     'Key': string;
@@ -606,7 +653,7 @@ export interface UserFindResponseModel {
     'isTwoFactorEnabled': boolean;
     'role': UserFindResponseModelRoleEnum;
     'status': UserFindResponseModelStatusEnum;
-    'subscription'?: UserSubscriptionResponseModel;
+    'subscription': UserSubscriptionResponseModel;
     'date': UserDateModel;
 }
 
@@ -643,7 +690,7 @@ export interface UserListResponseModel {
     'isTwoFactorEnabled': boolean;
     'role': UserListResponseModelRoleEnum;
     'status': UserListResponseModelStatusEnum;
-    'subscription'?: UserSubscriptionResponseModel;
+    'subscription': UserSubscriptionResponseModel;
     'date': UserDateModel;
 }
 
@@ -670,7 +717,7 @@ export interface UserPostBodyRequestModel {
     'image': string;
     'role': UserPostBodyRequestModelRoleEnum;
     'status': UserPostBodyRequestModelStatusEnum;
-    'subscription'?: UserSubscriptionResponseModel;
+    'subscription': UserSubscriptionResponseModel;
 }
 
 export const UserPostBodyRequestModelRoleEnum = {
@@ -695,7 +742,7 @@ export interface UserPutBodyRequestModel {
     'image': string;
     'role': UserPutBodyRequestModelRoleEnum;
     'status': UserPutBodyRequestModelStatusEnum;
-    'subscription'?: UserSubscriptionResponseModel;
+    'subscription': UserSubscriptionResponseModel;
 }
 
 export const UserPutBodyRequestModelRoleEnum = {
@@ -714,10 +761,6 @@ export const UserPutBodyRequestModelStatusEnum = {
 
 export type UserPutBodyRequestModelStatusEnum = typeof UserPutBodyRequestModelStatusEnum[keyof typeof UserPutBodyRequestModelStatusEnum];
 
-export interface UserSubscriptionDateModel {
-    'created': string;
-    'updated': string;
-}
 export interface UserSubscriptionResponseListBaseModel {
     'result': UserSubscriptionResponseListModelResult;
     'status': BaseStatusModel;
@@ -728,8 +771,6 @@ export interface UserSubscriptionResponseListModelResult {
 }
 export interface UserSubscriptionResponseModel {
     'id': string;
-    'userId': string;
-    'subscriptionId': string;
     'startAt': string;
     'endAt'?: string;
     'isActive': boolean;
@@ -739,9 +780,8 @@ export interface UserSubscriptionResponseModel {
      */
     'price': number;
     'currency'?: string;
-    'providerSubscriptionId'?: string;
     'subscription'?: SubscriptionResponseModel;
-    'date': UserSubscriptionDateModel;
+    'date': BaseDateModel;
 }
 
 /**
@@ -1792,6 +1832,86 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Creates or marks a folder as encrypted using a client-provided passphrase.
+         * @summary Create an encrypted folder
+         * @param {CloudEncryptedFolderCreateRequestModel} cloudEncryptedFolderCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createEncryptedFolder: async (cloudEncryptedFolderCreateRequestModel: CloudEncryptedFolderCreateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudEncryptedFolderCreateRequestModel' is not null or undefined
+            assertParamExists('createEncryptedFolder', 'cloudEncryptedFolderCreateRequestModel', cloudEncryptedFolderCreateRequestModel)
+            const localVarPath = `/Api/Cloud/EncryptedFolder`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderCreateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Removes encrypted-folder metadata and optionally deletes folder contents.
+         * @summary Delete an encrypted folder definition
+         * @param {CloudEncryptedFolderDeleteRequestModel} cloudEncryptedFolderDeleteRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteEncryptedFolder: async (cloudEncryptedFolderDeleteRequestModel: CloudEncryptedFolderDeleteRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudEncryptedFolderDeleteRequestModel' is not null or undefined
+            assertParamExists('deleteEncryptedFolder', 'cloudEncryptedFolderDeleteRequestModel', cloudEncryptedFolderDeleteRequestModel)
+            const localVarPath = `/Api/Cloud/EncryptedFolder`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderDeleteRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {string} key Path/key to the file (user-scoped)
@@ -2102,6 +2222,40 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Returns encrypted folders metadata scoped to the user.
+         * @summary List encrypted folders
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listEncryptedFolders: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Cloud/EncryptedFolder`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Returns files at a given path for the authenticated user.
          * @summary List objects (files) inside a path
          * @param {string} [search] 
@@ -2199,6 +2353,46 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(cloudMoveRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Validates the passphrase and returns the encrypted folder key for client-side encryption.
+         * @summary Unlock an encrypted folder
+         * @param {CloudEncryptedFolderUnlockRequestModel} cloudEncryptedFolderUnlockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        unlockEncryptedFolder: async (cloudEncryptedFolderUnlockRequestModel: CloudEncryptedFolderUnlockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudEncryptedFolderUnlockRequestModel' is not null or undefined
+            assertParamExists('unlockEncryptedFolder', 'cloudEncryptedFolderUnlockRequestModel', cloudEncryptedFolderUnlockRequestModel)
+            const localVarPath = `/Api/Cloud/EncryptedFolder/Unlock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderUnlockRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2541,6 +2735,32 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Creates or marks a folder as encrypted using a client-provided passphrase.
+         * @summary Create an encrypted folder
+         * @param {CloudEncryptedFolderCreateRequestModel} cloudEncryptedFolderCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createEncryptedFolder(cloudEncryptedFolderCreateRequestModel: CloudEncryptedFolderCreateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudEncryptedFolderSummaryBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createEncryptedFolder(cloudEncryptedFolderCreateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.createEncryptedFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Removes encrypted-folder metadata and optionally deletes folder contents.
+         * @summary Delete an encrypted folder definition
+         * @param {CloudEncryptedFolderDeleteRequestModel} cloudEncryptedFolderDeleteRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteEncryptedFolder(cloudEncryptedFolderDeleteRequestModel: CloudEncryptedFolderDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteEncryptedFolder(cloudEncryptedFolderDeleteRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.deleteEncryptedFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {string} key Path/key to the file (user-scoped)
@@ -2633,6 +2853,18 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Returns encrypted folders metadata scoped to the user.
+         * @summary List encrypted folders
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listEncryptedFolders(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudEncryptedFolderListResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listEncryptedFolders(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.listEncryptedFolders']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Returns files at a given path for the authenticated user.
          * @summary List objects (files) inside a path
          * @param {string} [search] 
@@ -2661,6 +2893,19 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.move(cloudMoveRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Validates the passphrase and returns the encrypted folder key for client-side encryption.
+         * @summary Unlock an encrypted folder
+         * @param {CloudEncryptedFolderUnlockRequestModel} cloudEncryptedFolderUnlockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async unlockEncryptedFolder(cloudEncryptedFolderUnlockRequestModel: CloudEncryptedFolderUnlockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudEncryptedFolderUnlockResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.unlockEncryptedFolder(cloudEncryptedFolderUnlockRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.unlockEncryptedFolder']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2786,6 +3031,26 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.createDirectory(requestParameters.cloudKeyRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
+         * Creates or marks a folder as encrypted using a client-provided passphrase.
+         * @summary Create an encrypted folder
+         * @param {CloudApiCreateEncryptedFolderRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createEncryptedFolder(requestParameters: CloudApiCreateEncryptedFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudEncryptedFolderSummaryBaseModel> {
+            return localVarFp.createEncryptedFolder(requestParameters.cloudEncryptedFolderCreateRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Removes encrypted-folder metadata and optionally deletes folder contents.
+         * @summary Delete an encrypted folder definition
+         * @param {CloudApiDeleteEncryptedFolderRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteEncryptedFolder(requestParameters: CloudApiDeleteEncryptedFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.deleteEncryptedFolder(requestParameters.cloudEncryptedFolderDeleteRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {CloudApiDownloadRequest} requestParameters Request parameters.
@@ -2846,6 +3111,15 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
         },
         /**
+         * Returns encrypted folders metadata scoped to the user.
+         * @summary List encrypted folders
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listEncryptedFolders(options?: RawAxiosRequestConfig): AxiosPromise<CloudEncryptedFolderListResponseBaseModel> {
+            return localVarFp.listEncryptedFolders(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Returns files at a given path for the authenticated user.
          * @summary List objects (files) inside a path
          * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
@@ -2864,6 +3138,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.move(requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Validates the passphrase and returns the encrypted folder key for client-side encryption.
+         * @summary Unlock an encrypted folder
+         * @param {CloudApiUnlockEncryptedFolderRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        unlockEncryptedFolder(requestParameters: CloudApiUnlockEncryptedFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudEncryptedFolderUnlockResponseBaseModel> {
+            return localVarFp.unlockEncryptedFolder(requestParameters.cloudEncryptedFolderUnlockRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * Update an existing object by changing metadata or renaming the file (name only).
@@ -2949,6 +3233,20 @@ export interface CloudApiDeleteRequest {
  */
 export interface CloudApiCreateDirectoryRequest {
     readonly cloudKeyRequestModel: CloudKeyRequestModel
+}
+
+/**
+ * Request parameters for createEncryptedFolder operation in CloudApi.
+ */
+export interface CloudApiCreateEncryptedFolderRequest {
+    readonly cloudEncryptedFolderCreateRequestModel: CloudEncryptedFolderCreateRequestModel
+}
+
+/**
+ * Request parameters for deleteEncryptedFolder operation in CloudApi.
+ */
+export interface CloudApiDeleteEncryptedFolderRequest {
+    readonly cloudEncryptedFolderDeleteRequestModel: CloudEncryptedFolderDeleteRequestModel
 }
 
 /**
@@ -3049,6 +3347,13 @@ export interface CloudApiMoveRequest {
 }
 
 /**
+ * Request parameters for unlockEncryptedFolder operation in CloudApi.
+ */
+export interface CloudApiUnlockEncryptedFolderRequest {
+    readonly cloudEncryptedFolderUnlockRequestModel: CloudEncryptedFolderUnlockRequestModel
+}
+
+/**
  * Request parameters for update operation in CloudApi.
  */
 export interface CloudApiUpdateRequest {
@@ -3123,6 +3428,28 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
+     * Creates or marks a folder as encrypted using a client-provided passphrase.
+     * @summary Create an encrypted folder
+     * @param {CloudApiCreateEncryptedFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createEncryptedFolder(requestParameters: CloudApiCreateEncryptedFolderRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).createEncryptedFolder(requestParameters.cloudEncryptedFolderCreateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Removes encrypted-folder metadata and optionally deletes folder contents.
+     * @summary Delete an encrypted folder definition
+     * @param {CloudApiDeleteEncryptedFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteEncryptedFolder(requestParameters: CloudApiDeleteEncryptedFolderRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).deleteEncryptedFolder(requestParameters.cloudEncryptedFolderDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
      * @summary Download a file for the authenticated user (streamed)
      * @param {CloudApiDownloadRequest} requestParameters Request parameters.
@@ -3189,6 +3516,16 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
+     * Returns encrypted folders metadata scoped to the user.
+     * @summary List encrypted folders
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listEncryptedFolders(options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).listEncryptedFolders(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Returns files at a given path for the authenticated user.
      * @summary List objects (files) inside a path
      * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
@@ -3208,6 +3545,17 @@ export class CloudApi extends BaseAPI {
      */
     public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).move(requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Validates the passphrase and returns the encrypted folder key for client-side encryption.
+     * @summary Unlock an encrypted folder
+     * @param {CloudApiUnlockEncryptedFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public unlockEncryptedFolder(requestParameters: CloudApiUnlockEncryptedFolderRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).unlockEncryptedFolder(requestParameters.cloudEncryptedFolderUnlockRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
