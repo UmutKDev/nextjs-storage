@@ -6,13 +6,53 @@ import type { SignInResponse } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { authenticationApiFactory } from "@/Service/Factories";
-import type { AuthenticationTokenResponseModel } from "@/Service/Generates/api";
 
 type Values = {
   email: string;
   password: string;
   twoFactorCode?: string;
   [k: string]: unknown;
+};
+
+type ParsedAuthError =
+  | {
+      kind: "twoFactor";
+    }
+  | {
+      kind: "message";
+      message: string;
+    }
+  | null;
+
+type NextAuthSignInPayload = {
+  email?: string;
+  password?: string;
+  twoFactorCode?: string;
+};
+
+const TWO_FACTOR_ERROR_CODE = "TWO_FACTOR_REQUIRED";
+
+const parseAuthError = (error?: string | null): ParsedAuthError => {
+  if (!error) return null;
+
+  try {
+    const parsed = JSON.parse(error);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      parsed.type === TWO_FACTOR_ERROR_CODE
+    ) {
+      return { kind: "twoFactor" };
+    }
+
+    if (parsed && typeof parsed.message === "string") {
+      return { kind: "message", message: parsed.message };
+    }
+  } catch {
+    /* best-effort parse */
+  }
+
+  return { kind: "message", message: error };
 };
 
 type AuthFormContextType = {
@@ -46,7 +86,7 @@ export default function AuthFormProvider({
   const [values, setValues] = useState<Values>(initialValues);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [twoFactorToken, setTwoFactorToken] = useState<string | null>(null);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
 
   const setField = useCallback((name: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -64,101 +104,125 @@ export default function AuthFormProvider({
     setValues(initialValues);
     setError(null);
     setLoading(false);
-    setTwoFactorToken(null);
+    setTwoFactorRequired(false);
   }, [initialValues]);
 
   const cancelTwoFactor = useCallback(() => {
-    setTwoFactorToken(null);
+    setTwoFactorRequired(false);
     setValues((prev) => ({ ...prev, twoFactorCode: "" }));
     setError(null);
   }, []);
 
-  const finalizeWithTokens = async (
-    tokens: AuthenticationTokenResponseModel
-  ) => {
-    if (!tokens.accessToken) {
-      throw new Error("Geçersiz erişim tokenı.");
-    }
+  const handleNextAuthSignIn = useCallback(
+    async (payload: NextAuthSignInPayload) => {
+      const result = (await signIn("credentials", {
+        redirect: false,
+        callbackUrl: "/",
+        ...payload,
+      })) as SignInResponse | undefined;
 
-    const result = (await signIn("credentials", {
-      redirect: false,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken ?? "",
-      callbackUrl: "/",
-    })) as SignInResponse | undefined;
-
-    if (result?.error) {
-      throw new Error(result.error as string);
-    }
-
-    setTwoFactorToken(null);
-    setValues(initialValues);
-
-    if (result?.ok) {
-      const dest = result.url ?? "/";
-      try {
-        const u = new URL(dest);
-        router.push(u.pathname + u.search + u.hash);
-      } catch {
-        router.push(dest as string);
+      if (!result) {
+        throw new Error("Kimlik doğrulama yanıtı alınamadı.");
       }
-    }
 
-    return result;
-  };
+      if (result.error) {
+        const parsed = parseAuthError(result.error);
+        if (parsed?.kind === "twoFactor") {
+          setTwoFactorRequired(true);
+          setError("Hesabınız için doğrulama kodu gerekiyor.");
+          toast.success("Lütfen doğrulama kodunuzu girin.", {
+            duration: 5000,
+          });
+          return undefined;
+        }
+
+        const message =
+          parsed?.kind === "message"
+            ? parsed.message
+            : "Kimlik doğrulama başarısız oldu.";
+        throw new Error(message);
+      }
+
+      setTwoFactorRequired(false);
+      setValues(initialValues);
+
+      if (result.ok) {
+        const dest = result.url ?? "/";
+        try {
+          const u = new URL(dest);
+          router.push(u.pathname + u.search + u.hash);
+        } catch {
+          router.push(dest as string);
+        }
+      }
+
+      return result;
+    },
+    [initialValues, router, setError, setTwoFactorRequired, setValues]
+  );
 
   const submit = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      if (twoFactorToken) {
-        if (!values.twoFactorCode) {
-          setError("Doğrulama kodu gerekli.");
+      if (!twoFactorRequired) {
+        const verifyRes = await authenticationApiFactory.verifyCredentials({
+          authenticationVerifyCredentialsRequestModel: {
+            email: values.email,
+            password: values.password,
+          },
+        });
+
+        const verification = verifyRes.data?.result;
+        if (!verification?.isValid) {
+          throw new Error("E-posta veya şifre hatalı.");
+        }
+
+        if (verification.twoFactorRequired) {
+          setTwoFactorRequired(true);
+          setError("Hesabınız için doğrulama kodu gerekiyor.");
+          toast.success("Lütfen doğrulama kodunuzu girin.", {
+            duration: 5000,
+          });
           return undefined;
         }
-        const verifyRes =
-          await authenticationApiFactory.verifyTwoFactorLogin({
-            authenticationTwoFactorLoginRequestModel: {
-              code: values.twoFactorCode as string,
-              token: twoFactorToken,
-            },
-          });
-        const tokens = verifyRes.data.result;
-        if (!tokens) throw new Error("Doğrulama başarısız oldu.");
-        return await finalizeWithTokens(tokens);
       }
 
-      const loginRes = await authenticationApiFactory.login({
-        authenticationSignInRequestModel: {
-          email: values.email,
-          password: values.password,
-        },
-      });
-
-      const tokens = loginRes.data.result;
-      if (!tokens) throw new Error("Giriş başarısız.");
-
-      if (tokens.twoFactorRequired) {
-        if (!tokens.twoFactorToken) {
-          throw new Error("İki aşamalı doğrulama için token alınamadı.");
-        }
-        setTwoFactorToken(tokens.twoFactorToken);
-        setError("Hesabınız için doğrulama kodu gerekiyor.");
-        toast.success("Lütfen doğrulama kodunuzu girin.", { duration: 5000 });
+      if (twoFactorRequired && !values.twoFactorCode?.trim()) {
+        setError("Doğrulama kodu gerekli.");
         return undefined;
       }
 
-      return await finalizeWithTokens(tokens);
+      return await handleNextAuthSignIn({
+        email: values.email,
+        password: values.password,
+        twoFactorCode:
+          twoFactorRequired && values.twoFactorCode?.trim()
+            ? values.twoFactorCode.trim()
+            : undefined,
+      });
     } catch (err) {
-      const message = (err instanceof Error && err.message) || "Login failed";
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : "Giriş işlemi başarısız oldu.";
       setError(message);
       toast.error(message, { duration: 6000 });
       return undefined;
     } finally {
       setLoading(false);
     }
-  }, [twoFactorToken, values.email, values.password, values.twoFactorCode]);
+  }, [
+    twoFactorRequired,
+    values.email,
+    values.password,
+    values.twoFactorCode,
+    handleNextAuthSignIn,
+    setError,
+    setLoading,
+    setTwoFactorRequired,
+  ]);
 
   const ctx: AuthFormContextType = {
     values,
@@ -168,7 +232,7 @@ export default function AuthFormProvider({
     loading,
     error,
     reset,
-    twoFactorRequired: !!twoFactorToken,
+    twoFactorRequired,
     cancelTwoFactor,
   };
 

@@ -3,8 +3,194 @@ import {
   accountApiFactory,
   authenticationApiFactory,
 } from "@/Service/Factories";
+import type { AuthenticationTokenResponseModel } from "@/Service/Generates/api";
 import NextAuth, { type NextAuthOptions } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
+
+type DecodedAccessToken = {
+  id: string;
+  fullName?: string;
+  email?: string;
+  image?: string;
+  exp?: number;
+};
+
+type RawCredentials = {
+  email?: string;
+  password?: string;
+  twoFactorCode?: string;
+};
+
+type UserWithTokens = {
+  accessToken: string;
+  refreshToken?: string;
+  accessTokenExpires?: number;
+};
+
+const isUserWithTokens = (u: unknown): u is UserWithTokens =>
+  !!u && typeof u === "object" && "accessToken" in u;
+
+const TWO_FACTOR_ERROR_TYPE = "TWO_FACTOR_REQUIRED";
+const ACCESS_TOKEN_GRACE_PERIOD_MS = 60 * 1000;
+
+const buildTwoFactorError = () =>
+  new Error(
+    JSON.stringify({
+      type: TWO_FACTOR_ERROR_TYPE,
+    })
+  );
+
+const normalizeAuthError = (error: unknown, fallback: string) => {
+  if (error instanceof Error) return error;
+  if (typeof error === "string") return new Error(error);
+  return new Error(fallback);
+};
+
+const ensureTokens = (tokens?: AuthenticationTokenResponseModel | null) => {
+  if (!tokens?.accessToken) {
+    throw new Error("Erişim tokenı yok veya geçersiz.");
+  }
+  if (!tokens.refreshToken) {
+    throw new Error("Refresh token zorunludur.");
+  }
+
+  return {
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+  };
+};
+
+const decodeUserFromToken = async (accessToken: string) => {
+  const decoded = await parseJwt<DecodedAccessToken>(accessToken);
+  if (!decoded?.id) {
+    throw new Error("Token içerisinde kullanıcı bilgisi bulunamadı.");
+  }
+
+  return {
+    id: decoded.id,
+    name: decoded.fullName ?? decoded.email ?? "Kullanıcı",
+    email: decoded.email,
+    image: decoded.image,
+    accessTokenExpires: decoded.exp ? decoded.exp * 1000 : undefined,
+  };
+};
+
+const mapTokensToUser = async (
+  tokens?: AuthenticationTokenResponseModel | null
+) => {
+  const { accessToken, refreshToken } = ensureTokens(tokens);
+  try {
+    const decoded = await decodeUserFromToken(accessToken);
+    const expiresFromResponse = tokens?.expiresIn
+      ? Date.now() + tokens.expiresIn * 1000
+      : undefined;
+    const accessTokenExpires =
+      expiresFromResponse ??
+      decoded.accessTokenExpires ??
+      Date.now() + 5 * 60 * 1000;
+
+    return {
+      ...decoded,
+      accessToken,
+      refreshToken,
+      accessTokenExpires,
+    };
+  } catch (error) {
+    throw normalizeAuthError(error, "Kullanıcı bilgileri çözümlenemedi.");
+  }
+};
+
+const authenticateWithBackend = async (credentials: RawCredentials) => {
+  if (!credentials.email || !credentials.password) {
+    throw new Error("E-posta ve şifre gerekli.");
+  }
+
+  try {
+    const verifyRes = await authenticationApiFactory.verifyCredentials({
+      authenticationVerifyCredentialsRequestModel: {
+        email: credentials.email,
+        password: credentials.password,
+      },
+    });
+
+    const verification = verifyRes.data?.result;
+
+    if (!verification?.isValid) {
+      throw new Error("E-posta veya şifre hatalı.");
+    }
+
+    if (verification.twoFactorRequired && !credentials.twoFactorCode) {
+      throw buildTwoFactorError();
+    }
+  } catch (error) {
+    throw normalizeAuthError(
+      error,
+      "Kimlik doğrulama doğrulaması başarısız oldu."
+    );
+  }
+
+  const loginRes = await authenticationApiFactory.login({
+    authenticationSignInRequestModel: {
+      email: credentials.email,
+      password: credentials.password,
+      twoFactorCode: credentials.twoFactorCode?.trim() || undefined,
+    },
+  });
+
+  const tokens = loginRes.data.result;
+  if (!tokens) {
+    throw new Error("Kimlik doğrulama yanıtı alınamadı.");
+  }
+
+  return tokens;
+};
+
+const refreshSessionToken = async (token: JWT) => {
+  if (typeof token.refreshToken !== "string" || !token.refreshToken) {
+    token.error = "NoRefreshToken";
+    return token;
+  }
+
+  try {
+    const res = await authenticationApiFactory.refreshToken({
+      authenticationRefreshTokenRequestModel: {
+        refreshToken: token.refreshToken,
+      },
+    });
+
+    const tokens = res.data.result;
+
+    if (!tokens?.accessToken) {
+      throw new Error("Yeni erişim tokenı alınamadı.");
+    }
+
+    token.accessToken = tokens.accessToken;
+    token.refreshToken = tokens.refreshToken ?? token.refreshToken;
+
+    try {
+      const decoded = await parseJwt<{ exp?: number }>(tokens.accessToken);
+      const fromExp = decoded.exp ? decoded.exp * 1000 : undefined;
+      const fromResponse = tokens.expiresIn
+        ? Date.now() + tokens.expiresIn * 1000
+        : undefined;
+      token.accessTokenExpires =
+        fromResponse ?? fromExp ?? Date.now() + 5 * 60 * 1000;
+    } catch (err) {
+      console.warn("Failed to decode refreshed access token", err);
+      token.accessTokenExpires = tokens?.expiresIn
+        ? Date.now() + tokens.expiresIn * 1000
+        : undefined;
+    }
+
+    delete token.error;
+    return token;
+  } catch (error) {
+    console.error("Refresh access token error", error);
+    token.error = "RefreshAccessTokenError";
+    return token;
+  }
+};
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -12,114 +198,50 @@ export const authOptions: NextAuthOptions = {
     Credentials({
       name: "Credentials",
       credentials: {
-        accessToken: { label: "Access Token", type: "text" },
-        refreshToken: { label: "Refresh Token", type: "text" },
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+        twoFactorCode: { label: "Two Factor Code", type: "text" },
       },
       async authorize(credentials) {
-        const { accessToken, refreshToken } = (credentials ?? {}) as {
-          accessToken?: string;
-          refreshToken?: string;
-        };
-
-        if (!accessToken) return null;
-
         try {
-          const decoded = await parseJwt<{
-            id: string;
-            fullName?: string;
-            email?: string;
-            image?: string;
-          }>(accessToken);
+          const normalized = (credentials ?? {}) as RawCredentials;
 
-          return {
-            id: decoded.id,
-            name: decoded.fullName ?? decoded.email ?? "Kullanıcı",
-            email: decoded.email,
-            image: decoded.image,
-            accessToken,
-            refreshToken,
-          };
+          const tokens = await authenticateWithBackend(normalized);
+          return await mapTokensToUser(tokens);
         } catch (error) {
-          console.error("Authorize err", error);
-          return null;
+          throw normalizeAuthError(error, "Kimlik doğrulama başarısız oldu.");
         }
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // on initial sign in, store tokens and expiration
-      if (user?.accessToken) {
+      if (isUserWithTokens(user)) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
-
-        try {
-          const decoded = await parseJwt<{ exp?: number }>(user.accessToken);
-          token.accessTokenExpires = decoded.exp
-            ? decoded.exp * 1000
-            : undefined;
-        } catch (err) {
-          console.warn("Failed to decode access token expiration", err);
-          token.accessTokenExpires = undefined;
-        }
+        token.accessTokenExpires = user.accessTokenExpires;
 
         return token;
       }
 
-      if (token.accessToken && token.accessTokenExpires) {
+      if (
+        token.accessToken &&
+        token.accessTokenExpires &&
+        typeof token.accessTokenExpires === "number"
+      ) {
         const now = Date.now();
-        if (now < (token.accessTokenExpires as number) - 60 * 1000) {
+        if (now < token.accessTokenExpires - ACCESS_TOKEN_GRACE_PERIOD_MS) {
           return token;
         }
       }
 
-      // access token expired - try to refresh using refreshToken
-      try {
-        if (!token.refreshToken) {
-          token.error = "NoRefreshToken";
-          return token;
-        }
-
-        const res = await authenticationApiFactory.refreshToken({
-          authenticationRefreshTokenRequestModel: {
-            refreshToken: token.refreshToken,
-          },
-        });
-
-        const tokens = res.data.result;
-
-        // set new tokens
-        token.accessToken = tokens.accessToken;
-        token.refreshToken = tokens.refreshToken ?? token.refreshToken;
-
-        try {
-          const decoded = await parseJwt<{ exp?: number }>(
-            tokens.accessToken ?? ""
-          );
-          token.accessTokenExpires = decoded.exp
-            ? decoded.exp * 1000
-            : undefined;
-        } catch (err) {
-          console.warn("Failed to decode refreshed access token", err);
-          token.accessTokenExpires = undefined;
-        }
-
-        delete token.error;
-
-        return token;
-      } catch (error) {
-        console.error("Refresh access token error", error);
-        token.error = "RefreshAccessTokenError";
-        return token;
-      }
+      return refreshSessionToken(token);
     },
     async session({ session, token }) {
-      // Provide access token to client but do NOT expose refresh token
       if (token?.accessToken) session.accessToken = token.accessToken;
       if (token?.accessTokenExpires)
         session.accessTokenExpires = token.accessTokenExpires;
 
-      // propagate token errors to session so client can react (e.g., force logout)
       if (token?.error) session.error = token.error as string;
 
       try {
@@ -142,7 +264,6 @@ export const authOptions: NextAuthOptions = {
 
       return session;
     },
-    // when the user signs out, try to revoke refresh token on the backend
   },
   events: {
     async signOut({ token }) {
