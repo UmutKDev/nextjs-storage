@@ -274,7 +274,7 @@ export default function Explorer({
       if (selectedFiles.length > 0) {
         await cloudApiFactory._delete({
           cloudDeleteRequestModel: {
-            Key: selectedFiles.map((f) => f.Path!.Key!),
+            Keys: selectedFiles.map((f) => f.Path!.Key!),
             IsDirectory: false,
           },
         });
@@ -283,7 +283,7 @@ export default function Explorer({
       if (selectedDirs.length > 0) {
         await cloudApiFactory._delete({
           cloudDeleteRequestModel: {
-            Key: selectedDirs.map((d) => d.Prefix!),
+            Keys: selectedDirs.map((d) => d.Prefix!),
             IsDirectory: true,
           },
         });
@@ -313,7 +313,7 @@ export default function Explorer({
     setDeleting((prev) => ({ ...prev, [key]: true }));
     try {
       await cloudApiFactory._delete({
-        cloudDeleteRequestModel: { Key: [key], IsDirectory: isDirectory },
+        cloudDeleteRequestModel: { Keys: [key], IsDirectory: isDirectory },
       });
       toast.success("Deleted successfully");
       await Promise.all([
