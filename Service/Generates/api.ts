@@ -239,6 +239,10 @@ export interface CloudDirectoryModel {
     'Prefix': string;
     'IsEncrypted': boolean;
 }
+export interface CloudEncryptedFolderConvertRequestModel {
+    'Path': string;
+    'Passphrase': string;
+}
 export interface CloudEncryptedFolderCreateRequestModel {
     'Path': string;
     'Passphrase': string;
@@ -257,6 +261,11 @@ export interface CloudEncryptedFolderListResponseBaseModel {
 }
 export interface CloudEncryptedFolderListResponseModel {
     'Folders': Array<CloudEncryptedFolderSummaryModel>;
+}
+export interface CloudEncryptedFolderRenameRequestModel {
+    'Path': string;
+    'Name': string;
+    'Passphrase': string;
 }
 export interface CloudEncryptedFolderSummaryBaseModel {
     'result': CloudEncryptedFolderSummaryModel;
@@ -346,6 +355,10 @@ export interface CloudPathModel {
     'Host': string;
     'Key': string;
     'Url': string;
+}
+export interface CloudRenameDirectoryRequestModel {
+    'Key': string;
+    'Name': string;
 }
 export interface CloudUpdateRequestModel {
     'Key': string;
@@ -1785,6 +1798,46 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Marks an existing folder as encrypted using the provided passphrase.
+         * @summary Convert a folder into an encrypted folder
+         * @param {CloudEncryptedFolderConvertRequestModel} cloudEncryptedFolderConvertRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        convertFolderToEncrypted: async (cloudEncryptedFolderConvertRequestModel: CloudEncryptedFolderConvertRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudEncryptedFolderConvertRequestModel' is not null or undefined
+            assertParamExists('convertFolderToEncrypted', 'cloudEncryptedFolderConvertRequestModel', cloudEncryptedFolderConvertRequestModel)
+            const localVarPath = `/Api/Cloud/EncryptedFolder/Convert`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderConvertRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Creates a directory/prefix within the user scoped storage.
          * @summary Create directory (prefix)
          * @param {CloudKeyRequestModel} cloudKeyRequestModel 
@@ -2353,6 +2406,86 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Renames a directory within the same parent path by updating its final segment.
+         * @summary Rename directory (prefix)
+         * @param {CloudRenameDirectoryRequestModel} cloudRenameDirectoryRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        renameDirectory: async (cloudRenameDirectoryRequestModel: CloudRenameDirectoryRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudRenameDirectoryRequestModel' is not null or undefined
+            assertParamExists('renameDirectory', 'cloudRenameDirectoryRequestModel', cloudRenameDirectoryRequestModel)
+            const localVarPath = `/Api/Cloud/RenameDirectory`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudRenameDirectoryRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Renames an encrypted folder after validating the supplied passphrase.
+         * @summary Rename an encrypted folder
+         * @param {CloudEncryptedFolderRenameRequestModel} cloudEncryptedFolderRenameRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        renameEncryptedFolder: async (cloudEncryptedFolderRenameRequestModel: CloudEncryptedFolderRenameRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudEncryptedFolderRenameRequestModel' is not null or undefined
+            assertParamExists('renameEncryptedFolder', 'cloudEncryptedFolderRenameRequestModel', cloudEncryptedFolderRenameRequestModel)
+            const localVarPath = `/Api/Cloud/EncryptedFolder/Rename`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderRenameRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Validates the passphrase and returns the encrypted folder key for client-side encryption.
          * @summary Unlock an encrypted folder
          * @param {CloudEncryptedFolderUnlockRequestModel} cloudEncryptedFolderUnlockRequestModel 
@@ -2715,6 +2848,19 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Marks an existing folder as encrypted using the provided passphrase.
+         * @summary Convert a folder into an encrypted folder
+         * @param {CloudEncryptedFolderConvertRequestModel} cloudEncryptedFolderConvertRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async convertFolderToEncrypted(cloudEncryptedFolderConvertRequestModel: CloudEncryptedFolderConvertRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudEncryptedFolderSummaryBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.convertFolderToEncrypted(cloudEncryptedFolderConvertRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.convertFolderToEncrypted']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Creates a directory/prefix within the user scoped storage.
          * @summary Create directory (prefix)
          * @param {CloudKeyRequestModel} cloudKeyRequestModel 
@@ -2889,6 +3035,32 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Renames a directory within the same parent path by updating its final segment.
+         * @summary Rename directory (prefix)
+         * @param {CloudRenameDirectoryRequestModel} cloudRenameDirectoryRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async renameDirectory(cloudRenameDirectoryRequestModel: CloudRenameDirectoryRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.renameDirectory(cloudRenameDirectoryRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.renameDirectory']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Renames an encrypted folder after validating the supplied passphrase.
+         * @summary Rename an encrypted folder
+         * @param {CloudEncryptedFolderRenameRequestModel} cloudEncryptedFolderRenameRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async renameEncryptedFolder(cloudEncryptedFolderRenameRequestModel: CloudEncryptedFolderRenameRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.renameEncryptedFolder(cloudEncryptedFolderRenameRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.renameEncryptedFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Validates the passphrase and returns the encrypted folder key for client-side encryption.
          * @summary Unlock an encrypted folder
          * @param {CloudEncryptedFolderUnlockRequestModel} cloudEncryptedFolderUnlockRequestModel 
@@ -3014,6 +3186,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp._delete(requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
+         * Marks an existing folder as encrypted using the provided passphrase.
+         * @summary Convert a folder into an encrypted folder
+         * @param {CloudApiConvertFolderToEncryptedRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        convertFolderToEncrypted(requestParameters: CloudApiConvertFolderToEncryptedRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudEncryptedFolderSummaryBaseModel> {
+            return localVarFp.convertFolderToEncrypted(requestParameters.cloudEncryptedFolderConvertRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Creates a directory/prefix within the user scoped storage.
          * @summary Create directory (prefix)
          * @param {CloudApiCreateDirectoryRequest} requestParameters Request parameters.
@@ -3133,6 +3315,26 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.move(requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
+         * Renames a directory within the same parent path by updating its final segment.
+         * @summary Rename directory (prefix)
+         * @param {CloudApiRenameDirectoryRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        renameDirectory(requestParameters: CloudApiRenameDirectoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.renameDirectory(requestParameters.cloudRenameDirectoryRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Renames an encrypted folder after validating the supplied passphrase.
+         * @summary Rename an encrypted folder
+         * @param {CloudApiRenameEncryptedFolderRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        renameEncryptedFolder(requestParameters: CloudApiRenameEncryptedFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.renameEncryptedFolder(requestParameters.cloudEncryptedFolderRenameRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Validates the passphrase and returns the encrypted folder key for client-side encryption.
          * @summary Unlock an encrypted folder
          * @param {CloudApiUnlockEncryptedFolderRequest} requestParameters Request parameters.
@@ -3219,6 +3421,13 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
  */
 export interface CloudApiDeleteRequest {
     readonly cloudDeleteRequestModel: CloudDeleteRequestModel
+}
+
+/**
+ * Request parameters for convertFolderToEncrypted operation in CloudApi.
+ */
+export interface CloudApiConvertFolderToEncryptedRequest {
+    readonly cloudEncryptedFolderConvertRequestModel: CloudEncryptedFolderConvertRequestModel
 }
 
 /**
@@ -3340,6 +3549,20 @@ export interface CloudApiMoveRequest {
 }
 
 /**
+ * Request parameters for renameDirectory operation in CloudApi.
+ */
+export interface CloudApiRenameDirectoryRequest {
+    readonly cloudRenameDirectoryRequestModel: CloudRenameDirectoryRequestModel
+}
+
+/**
+ * Request parameters for renameEncryptedFolder operation in CloudApi.
+ */
+export interface CloudApiRenameEncryptedFolderRequest {
+    readonly cloudEncryptedFolderRenameRequestModel: CloudEncryptedFolderRenameRequestModel
+}
+
+/**
  * Request parameters for unlockEncryptedFolder operation in CloudApi.
  */
 export interface CloudApiUnlockEncryptedFolderRequest {
@@ -3407,6 +3630,17 @@ export class CloudApi extends BaseAPI {
      */
     public _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration)._delete(requestParameters.cloudDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Marks an existing folder as encrypted using the provided passphrase.
+     * @summary Convert a folder into an encrypted folder
+     * @param {CloudApiConvertFolderToEncryptedRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public convertFolderToEncrypted(requestParameters: CloudApiConvertFolderToEncryptedRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).convertFolderToEncrypted(requestParameters.cloudEncryptedFolderConvertRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3538,6 +3772,28 @@ export class CloudApi extends BaseAPI {
      */
     public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).move(requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Renames a directory within the same parent path by updating its final segment.
+     * @summary Rename directory (prefix)
+     * @param {CloudApiRenameDirectoryRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public renameDirectory(requestParameters: CloudApiRenameDirectoryRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).renameDirectory(requestParameters.cloudRenameDirectoryRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Renames an encrypted folder after validating the supplied passphrase.
+     * @summary Rename an encrypted folder
+     * @param {CloudApiRenameEncryptedFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public renameEncryptedFolder(requestParameters: CloudApiRenameEncryptedFolderRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).renameEncryptedFolder(requestParameters.cloudEncryptedFolderRenameRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

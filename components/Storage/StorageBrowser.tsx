@@ -8,6 +8,7 @@ import {
   FolderInput,
   Lock,
   Unlock,
+  Pencil,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -348,6 +349,8 @@ interface StorageBrowserProps {
   onSelect?: (items: Set<string>) => void;
   onMove?: (sourceKey: string, destinationKey: string) => void;
   onMoveClick?: (items: string[]) => void;
+  onRenameFolder?: (dir: Directory) => void;
+  onConvertFolder?: (dir: Directory) => void;
 }
 
 export default function StorageBrowser({
@@ -361,6 +364,8 @@ export default function StorageBrowser({
   selectedItems,
   onSelect,
   onMoveClick,
+  onRenameFolder,
+  onConvertFolder,
 }: StorageBrowserProps) {
   const { setCurrentPath } = useStorage();
   const { promptUnlock, isFolderUnlocked, isFolderEncrypted } =
@@ -517,6 +522,32 @@ export default function StorageBrowser({
 
               {/* Folder Actions */}
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {!meta.encrypted && onConvertFolder ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!loading) onConvertFolder(d);
+                    }}
+                    className="rounded p-1 hover:bg-muted/10"
+                    disabled={loading}
+                    aria-label={`${name} klasörünü şifrele`}
+                  >
+                    <Lock className="size-4 text-primary" />
+                  </button>
+                ) : null}
+                {onRenameFolder ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!loading) onRenameFolder(d);
+                    }}
+                    className="rounded p-1 hover:bg-muted/10"
+                    disabled={loading}
+                    aria-label={`${name} klasörünü yeniden adlandır`}
+                  >
+                    <Pencil className="size-4 text-muted-foreground" />
+                  </button>
+                ) : null}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -730,7 +761,33 @@ export default function StorageBrowser({
                 </div>
 
                 {/* folder actions placed at top-right inside the tile */}
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {!meta.encrypted && onConvertFolder ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading) onConvertFolder(d);
+                      }}
+                      className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
+                      disabled={loading}
+                      aria-label={`${name} klasörünü şifrele`}
+                    >
+                      <Lock className="size-4 text-primary" />
+                    </button>
+                  ) : null}
+                  {onRenameFolder ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading) onRenameFolder(d);
+                      }}
+                      className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
+                      disabled={loading}
+                      aria-label={`${name} klasörünü yeniden adlandır`}
+                    >
+                      <Pencil className="size-4" />
+                    </button>
+                  ) : null}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

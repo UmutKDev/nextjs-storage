@@ -19,9 +19,11 @@ import {} from "@/hooks/useCloudList";
 import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
 import CreateEncryptedFolderModal from "./CreateEncryptedFolderModal";
+import ConvertToEncryptedModal from "./ConvertToEncryptedModal";
 import MoveFileModal from "./MoveFileModal";
 import FileUploadModal from "./FileUploadModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import RenameFolderModal from "./RenameFolderModal";
 import toast from "react-hot-toast";
 import {
   Trash2,
@@ -56,6 +58,12 @@ import {
 const normalizeFolderPath = (path?: string | null) => {
   if (!path) return "";
   return path.replace(/^\/+|\/+$/g, "");
+};
+
+const getFolderNameFromPrefix = (prefix?: string | null) => {
+  if (!prefix) return "";
+  const segments = prefix.split("/").filter(Boolean);
+  return segments.length ? segments[segments.length - 1] : prefix;
 };
 
 type EncryptedDeleteRequest = CloudEncryptedFolderDeleteRequestModel & {
@@ -97,6 +105,8 @@ export default function Explorer({
   pageSize: number;
 }) {
   // main data hook
+  const { invalidateBreadcrumb, invalidateObjects, invalidateDirectories } =
+    invalidates;
   const { invalidate: invalidateUsage } = useUserStorageUsage();
   const {
     isFolderEncrypted,
@@ -127,6 +137,23 @@ export default function Explorer({
   const [encryptedFolderName, setEncryptedFolderName] = React.useState("");
   const [encryptedPassphrase, setEncryptedPassphrase] = React.useState("");
   const [creatingEncrypted, setCreatingEncrypted] = React.useState(false);
+  const [renameTarget, setRenameTarget] = React.useState<CloudDirectoryModel | null>(null);
+  const [renameValue, setRenameValue] = React.useState("");
+  const [convertTarget, setConvertTarget] = React.useState<CloudDirectoryModel | null>(null);
+  const [convertPassphrase, setConvertPassphrase] = React.useState("");
+  const [converting, setConverting] = React.useState(false);
+  const [renaming, setRenaming] = React.useState(false);
+  const renameNormalizedPath = renameTarget
+    ? normalizeFolderPath(renameTarget.Prefix)
+    : "";
+  const renameIsEncrypted = Boolean(
+    renameTarget &&
+      renameNormalizedPath &&
+      (isFolderEncrypted(renameNormalizedPath) || renameTarget.IsEncrypted)
+  );
+  const renameCurrentName = renameTarget
+    ? getFolderNameFromPrefix(renameTarget.Prefix)
+    : "";
 
   // delete UI state
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
@@ -207,8 +234,8 @@ export default function Explorer({
       toast.success("Moved successfully");
       setSelectedItems(new Set());
       await Promise.all([
-        invalidates.invalidateObjects(),
-        invalidates.invalidateDirectories(),
+        invalidateObjects(),
+        invalidateDirectories(),
       ]);
     } catch (e) {
       console.error(e);
@@ -382,8 +409,8 @@ export default function Explorer({
       toast.success("Deleted selected items");
       setSelectedItems(new Set());
       await Promise.all([
-        invalidates.invalidateObjects(),
-        invalidates.invalidateDirectories(),
+        invalidateObjects(),
+        invalidateDirectories(),
         invalidateUsage(),
       ]);
     } catch (e) {
@@ -448,8 +475,8 @@ export default function Explorer({
       }
       toast.success("Deleted successfully");
       await Promise.all([
-        invalidates.invalidateObjects(),
-        invalidates.invalidateDirectories(),
+        invalidateObjects(),
+        invalidateDirectories(),
         invalidateUsage(),
       ]);
     } catch (e) {
@@ -514,7 +541,7 @@ export default function Explorer({
       });
 
       // invalidate relevant queries so UI refreshes
-      await Promise.all([invalidates.invalidateDirectories()]);
+      await Promise.all([invalidateDirectories()]);
 
       toast.success("Folder created");
       setShowCreateFolder(false);
@@ -561,7 +588,7 @@ export default function Explorer({
       setEncryptedFolderName("");
       setEncryptedPassphrase("");
       await Promise.all([
-        invalidates.invalidateDirectories(),
+        invalidateDirectories(),
         refetchManifest(),
       ]);
     } catch (error) {
@@ -574,6 +601,203 @@ export default function Explorer({
       setCreatingEncrypted(false);
     }
   }
+
+  const closeConvertModal = React.useCallback(() => {
+    setConvertTarget(null);
+    setConvertPassphrase("");
+  }, []);
+
+  const handleConvertRequest = React.useCallback(
+    (dir: CloudDirectoryModel) => {
+      const normalizedPath = normalizeFolderPath(dir.Prefix);
+      if (!normalizedPath) {
+        toast.error("Klasör yolu bulunamadı");
+        return;
+      }
+      if (isFolderEncrypted(normalizedPath) || dir.IsEncrypted) {
+        toast.error("Bu klasör zaten şifreli");
+        return;
+      }
+      setConvertTarget(dir);
+      setConvertPassphrase("");
+    },
+    [isFolderEncrypted]
+  );
+
+  const handleConvertSubmit = React.useCallback(async () => {
+    if (!convertTarget) return;
+    const normalizedPath = normalizeFolderPath(convertTarget.Prefix);
+    if (!normalizedPath) {
+      toast.error("Klasör yolu bulunamadı");
+      return;
+    }
+    const passphrase = convertPassphrase.trim();
+    if (passphrase.length < 8) {
+      toast.error("Parola en az 8 karakter olmalı");
+      return;
+    }
+
+    setConverting(true);
+    try {
+      await cloudApiFactory.convertFolderToEncrypted({
+        cloudEncryptedFolderConvertRequestModel: {
+          Path: normalizedPath,
+          Passphrase: passphrase,
+        },
+      });
+      toast.success("Klasör şifreli hale getirildi");
+      closeConvertModal();
+      await Promise.all([
+        invalidateDirectories(),
+        invalidateObjects(),
+        refetchManifest(),
+      ]);
+    } catch (error) {
+      console.error(error);
+      if (isAxiosError(error) && error.response?.status === 409) {
+        toast.error("Klasör zaten şifreli görünüyor");
+      } else {
+        toast.error("Klasör şifrelenemedi");
+      }
+    } finally {
+      setConverting(false);
+    }
+  }, [
+    closeConvertModal,
+    convertPassphrase,
+    convertTarget,
+    invalidateDirectories,
+    invalidateObjects,
+    refetchManifest,
+  ]);
+
+  const closeRenameModal = React.useCallback(() => {
+    setRenameTarget(null);
+    setRenameValue("");
+  }, []);
+
+  const handleRenameRequest = React.useCallback(
+    (dir: CloudDirectoryModel) => {
+      setRenameTarget(dir);
+      setRenameValue(getFolderNameFromPrefix(dir.Prefix));
+    },
+    []
+  );
+
+  const renameFolder = React.useCallback(
+    async (
+      dir: CloudDirectoryModel,
+      newName: string,
+      passphraseOverride?: string
+    ) => {
+      const prefix = dir.Prefix ?? "";
+      const normalizedPath = normalizeFolderPath(prefix);
+      const folderDisplayName =
+        getFolderNameFromPrefix(prefix) || dir.Name || "bu klasör";
+      const isEncryptedTarget = Boolean(
+        normalizedPath &&
+          (isFolderEncrypted(normalizedPath) || dir.IsEncrypted)
+      );
+
+      const executeRename = async (passphrase?: string) => {
+        setRenaming(true);
+        try {
+          if (isEncryptedTarget) {
+            if (!normalizedPath) {
+              throw new Error("Klasör yolu bulunamadı");
+            }
+            if (!passphrase) {
+              throw new Error("Klasör için parola gerekli");
+            }
+            await cloudApiFactory.renameEncryptedFolder({
+              cloudEncryptedFolderRenameRequestModel: {
+                Path: normalizedPath,
+                Name: newName,
+                Passphrase: passphrase,
+              },
+            });
+            await refetchManifest();
+          } else {
+            await cloudApiFactory.renameDirectory({
+              cloudRenameDirectoryRequestModel: {
+                Key: prefix,
+                Name: newName,
+              },
+            });
+          }
+
+          toast.success("Klasör yeniden adlandırıldı");
+          setRenameTarget(null);
+          setRenameValue("");
+          await Promise.all([
+            invalidateDirectories(),
+            invalidateObjects(),
+            invalidateBreadcrumb(),
+          ]);
+        } catch (error) {
+          console.error(error);
+          toast.error("Klasör yeniden adlandırılamadı");
+        } finally {
+          setRenaming(false);
+        }
+      };
+
+      if (isEncryptedTarget) {
+        if (!normalizedPath) {
+          toast.error("Klasör yolu bulunamadı");
+          return;
+        }
+        const passphrase =
+          passphraseOverride ?? getFolderPassphrase(normalizedPath);
+        if (!passphrase) {
+          promptUnlock({
+            path: normalizedPath,
+            label: folderDisplayName,
+            onSuccess: (_, unlockedPassphrase) => {
+              if (unlockedPassphrase) {
+                void renameFolder(dir, newName, unlockedPassphrase);
+              }
+            },
+          });
+          return;
+        }
+        await executeRename(passphrase);
+        return;
+      }
+
+      await executeRename();
+    },
+    [
+      getFolderPassphrase,
+      invalidateBreadcrumb,
+      invalidateDirectories,
+      invalidateObjects,
+      isFolderEncrypted,
+      promptUnlock,
+      refetchManifest,
+    ]
+  );
+
+  const handleRenameConfirm = React.useCallback(async () => {
+    if (!renameTarget) return;
+    const trimmed = renameValue.trim();
+    if (!trimmed) {
+      toast.error("Klasör adı gerekli");
+      return;
+    }
+    if (trimmed.includes("/")) {
+      toast.error("Klasör adı '/' içeremez");
+      return;
+    }
+
+    const currentName = getFolderNameFromPrefix(renameTarget.Prefix);
+    if (currentName === trimmed) {
+      closeRenameModal();
+      return;
+    }
+
+    await renameFolder(renameTarget, trimmed);
+  }, [closeRenameModal, renameFolder, renameTarget, renameValue]);
 
   const handleSelectAll = () => {
     const allKeys = new Set<string>();
@@ -707,6 +931,8 @@ export default function Explorer({
                     setMoveSourceKeys(items);
                     setShowMoveModal(true);
                   }}
+                  onRenameFolder={handleRenameRequest}
+                  onConvertFolder={handleConvertRequest}
                 />
 
                 {objectsQuery.isSuccess &&
@@ -781,6 +1007,27 @@ export default function Explorer({
           onPassphraseChange={setEncryptedPassphrase}
           onSubmit={createEncryptedFolder}
           loading={creatingEncrypted}
+        />
+        <ConvertToEncryptedModal
+          open={Boolean(convertTarget)}
+          onClose={closeConvertModal}
+          folderName={
+            convertTarget ? getFolderNameFromPrefix(convertTarget.Prefix) : ""
+          }
+          passphrase={convertPassphrase}
+          onPassphraseChange={setConvertPassphrase}
+          onSubmit={() => void handleConvertSubmit()}
+          loading={converting}
+        />
+        <RenameFolderModal
+          open={Boolean(renameTarget)}
+          onClose={closeRenameModal}
+          value={renameValue}
+          onChange={setRenameValue}
+          onSubmit={() => void handleRenameConfirm()}
+          loading={renaming}
+          currentName={renameCurrentName}
+          isEncrypted={renameIsEncrypted}
         />
 
         <FileUploadModal
