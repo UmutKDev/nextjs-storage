@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Explorer from "@/components/Storage/Explorer";
 import Sidebar from "@/components/Storage/Sidebar";
-import { useCloudList } from "@/hooks/useCloudList";
+import { useInfiniteCloudList } from "@/hooks/useCloudList";
 import { useStorage } from "@/components/Storage/StorageProvider";
 import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
 
@@ -11,25 +11,14 @@ export default function StoragePage() {
   const { currentPath } = useStorage();
   const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders();
 
-  // Pagination state
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(50);
-  const [prevPath, setPrevPath] = useState(currentPath);
-
-  if (currentPath !== prevPath) {
-    setPrevPath(currentPath);
-    setPage(1);
-  }
-
-  const skip = (page - 1) * pageSize;
+  const pageSize = 50;
 
   const isCurrentEncrypted = isFolderEncrypted(currentPath);
   const isCurrentUnlocked = isFolderUnlocked(currentPath);
   const isCurrentLocked = isCurrentEncrypted && !isCurrentUnlocked;
 
   const { breadcrumbQuery, objectsQuery, directoriesQuery, invalidates } =
-    useCloudList(currentPath, {
-      skip,
+    useInfiniteCloudList(currentPath, {
       take: pageSize,
       refetchInterval: isCurrentLocked ? false : 5000,
       objectsEnabled: !isCurrentLocked,
@@ -71,10 +60,6 @@ export default function StoragePage() {
               setShowCreateEncryptedFolder={setShowCreateEncryptedFolder}
               showUpload={showUpload}
               setShowUpload={setShowUpload}
-              // Pagination
-              page={page}
-              setPage={setPage}
-              pageSize={pageSize}
             />
           </div>
         </div>

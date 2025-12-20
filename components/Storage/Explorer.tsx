@@ -14,7 +14,11 @@ import type {
   CloudEncryptedFolderDeleteRequestModel,
 } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
-import { UseQueryResult } from "@tanstack/react-query";
+import {
+  UseInfiniteQueryResult,
+  UseQueryResult,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import {} from "@/hooks/useCloudList";
 import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
@@ -29,8 +33,7 @@ import {
   Trash2,
   LayoutGrid,
   List,
-  ChevronLeft,
-  ChevronRight,
+  Loader2,
   Folder,
   FolderInput,
   Lock,
@@ -79,14 +82,17 @@ export default function Explorer({
   setShowCreateEncryptedFolder,
   showUpload,
   setShowUpload,
-  page,
-  setPage,
-  pageSize,
 }: {
   queries: {
     breadcrumbQuery: UseQueryResult<CloudBreadCrumbListModelResult, Error>;
-    objectsQuery: UseQueryResult<CloudObjectListModelResult, Error>;
-    directoriesQuery: UseQueryResult<CloudDirectoryListModelResult, Error>;
+    objectsQuery: UseInfiniteQueryResult<
+      InfiniteData<CloudObjectListModelResult, number>,
+      Error
+    >;
+    directoriesQuery: UseInfiniteQueryResult<
+      InfiniteData<CloudDirectoryListModelResult, number>,
+      Error
+    >;
   };
   currentPath: string;
   invalidates: {
@@ -100,9 +106,6 @@ export default function Explorer({
   setShowCreateEncryptedFolder: (show: boolean) => void;
   showUpload: boolean;
   setShowUpload: (show: boolean) => void;
-  page: number;
-  setPage: (page: number) => void;
-  pageSize: number;
 }) {
   // main data hook
   const { invalidateBreadcrumb, invalidateObjects, invalidateDirectories } =
@@ -137,9 +140,11 @@ export default function Explorer({
   const [encryptedFolderName, setEncryptedFolderName] = React.useState("");
   const [encryptedPassphrase, setEncryptedPassphrase] = React.useState("");
   const [creatingEncrypted, setCreatingEncrypted] = React.useState(false);
-  const [renameTarget, setRenameTarget] = React.useState<CloudDirectoryModel | null>(null);
+  const [renameTarget, setRenameTarget] =
+    React.useState<CloudDirectoryModel | null>(null);
   const [renameValue, setRenameValue] = React.useState("");
-  const [convertTarget, setConvertTarget] = React.useState<CloudDirectoryModel | null>(null);
+  const [convertTarget, setConvertTarget] =
+    React.useState<CloudDirectoryModel | null>(null);
   const [convertPassphrase, setConvertPassphrase] = React.useState("");
   const [converting, setConverting] = React.useState(false);
   const [renaming, setRenaming] = React.useState(false);
@@ -168,12 +173,13 @@ export default function Explorer({
   const [activeId, setActiveId] = React.useState<string | null>(null);
 
   const contents = React.useMemo(
-    () => objectsQuery.data?.items ?? [],
-    [objectsQuery.data?.items]
+    () => objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
+    [objectsQuery.data]
   );
   const directories = React.useMemo(
-    () => directoriesQuery.data?.items ?? [],
-    [directoriesQuery.data?.items]
+    () =>
+      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
+    [directoriesQuery.data]
   );
 
   const activeItem = React.useMemo(() => {
@@ -194,11 +200,69 @@ export default function Explorer({
     useSensor(KeyboardSensor)
   );
 
-  // Pagination logic
-  const totalFiles = objectsQuery.data?.options?.count ?? 0;
-  const totalDirs = directoriesQuery.data?.options?.count ?? 0;
-  const totalItems = Math.max(totalFiles, totalDirs);
-  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const totalFiles = React.useMemo(() => {
+    const pages = objectsQuery.data?.pages ?? [];
+    if (pages.length === 0) return 0;
+    return pages[pages.length - 1]?.options?.count ?? 0;
+  }, [objectsQuery.data]);
+
+  const totalDirs = React.useMemo(() => {
+    const pages = directoriesQuery.data?.pages ?? [];
+    if (pages.length === 0) return 0;
+    return pages[pages.length - 1]?.options?.count ?? 0;
+  }, [directoriesQuery.data]);
+
+  const loadedCount = contents.length + directories.length;
+  const totalItems = Math.max(totalFiles, totalDirs, loadedCount);
+
+  const hasMoreObjects = objectsQuery.hasNextPage ?? false;
+  const hasMoreDirectories = directoriesQuery.hasNextPage ?? false;
+  const canLoadMore = hasMoreObjects || hasMoreDirectories;
+  const isFetchingMore =
+    objectsQuery.isFetchingNextPage || directoriesQuery.isFetchingNextPage;
+
+  const {
+    fetchNextPage: fetchNextObjects,
+    isFetchingNextPage: fetchingNextObjects,
+  } = objectsQuery;
+  const {
+    fetchNextPage: fetchNextDirectories,
+    isFetchingNextPage: fetchingNextDirectories,
+  } = directoriesQuery;
+
+  const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
+  const loadMore = React.useCallback(() => {
+    if (!canLoadMore) return;
+    if (hasMoreDirectories && !fetchingNextDirectories) {
+      void fetchNextDirectories();
+    }
+    if (hasMoreObjects && !fetchingNextObjects) {
+      void fetchNextObjects();
+    }
+  }, [
+    canLoadMore,
+    fetchNextDirectories,
+    fetchNextObjects,
+    fetchingNextDirectories,
+    fetchingNextObjects,
+    hasMoreDirectories,
+    hasMoreObjects,
+  ]);
+
+  React.useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+        loadMore();
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   // Filter logic
   const filteredContents = React.useMemo(() => {
@@ -233,10 +297,7 @@ export default function Explorer({
       });
       toast.success("Moved successfully");
       setSelectedItems(new Set());
-      await Promise.all([
-        invalidateObjects(),
-        invalidateDirectories(),
-      ]);
+      await Promise.all([invalidateObjects(), invalidateDirectories()]);
     } catch (e) {
       console.error(e);
       toast.error("Failed to move item");
@@ -587,10 +648,7 @@ export default function Explorer({
       setShowCreateEncryptedFolder(false);
       setEncryptedFolderName("");
       setEncryptedPassphrase("");
-      await Promise.all([
-        invalidateDirectories(),
-        refetchManifest(),
-      ]);
+      await Promise.all([invalidateDirectories(), refetchManifest()]);
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 409) {
         toast.error("Bu isimde şifreli klasör zaten var");
@@ -676,13 +734,10 @@ export default function Explorer({
     setRenameValue("");
   }, []);
 
-  const handleRenameRequest = React.useCallback(
-    (dir: CloudDirectoryModel) => {
-      setRenameTarget(dir);
-      setRenameValue(getFolderNameFromPrefix(dir.Prefix));
-    },
-    []
-  );
+  const handleRenameRequest = React.useCallback((dir: CloudDirectoryModel) => {
+    setRenameTarget(dir);
+    setRenameValue(getFolderNameFromPrefix(dir.Prefix));
+  }, []);
 
   const renameFolder = React.useCallback(
     async (
@@ -695,8 +750,7 @@ export default function Explorer({
       const folderDisplayName =
         getFolderNameFromPrefix(prefix) || dir.Name || "bu klasör";
       const isEncryptedTarget = Boolean(
-        normalizedPath &&
-          (isFolderEncrypted(normalizedPath) || dir.IsEncrypted)
+        normalizedPath && (isFolderEncrypted(normalizedPath) || dir.IsEncrypted)
       );
 
       const executeRename = async (passphrase?: string) => {
@@ -919,7 +973,11 @@ export default function Explorer({
                   directories={filteredDirectories}
                   contents={filteredContents}
                   onPreview={(file) => setPreviewFile(file)}
-                  loading={isNavigating || objectsQuery.isLoading}
+                  loading={
+                    isNavigating ||
+                    objectsQuery.isLoading ||
+                    directoriesQuery.isLoading
+                  }
                   viewMode={viewMode}
                   onViewModeChange={setViewMode}
                   onDelete={(item) => setToDelete(item)}
@@ -950,34 +1008,49 @@ export default function Explorer({
                     />
                   </div>
                 ) : null}
+
+                <div ref={loadMoreRef} className="h-12 w-full" />
+                {isFetchingMore ? (
+                  <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Daha fazlası yükleniyor...
+                  </div>
+                ) : canLoadMore ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => loadMore()}
+                    >
+                      Daha fazla getir
+                    </Button>
+                  </div>
+                ) : null}
               </>
             )}
           </div>
         </div>
 
-        {/* Pagination Footer */}
+        {/* Infinite load status */}
         <div className="p-4 border-t bg-card/50 backdrop-blur-sm flex items-center justify-between shrink-0">
           <div className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
+            {loadedCount > 0
+              ? `Yüklenen: ${loadedCount}${
+                  totalItems ? ` / ${totalItems}` : ""
+                }`
+              : "Henüz içerik yok"}
           </div>
           <div className="flex items-center gap-2">
+            {isFetchingMore && (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            )}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
+              onClick={() => loadMore()}
+              disabled={!canLoadMore || isFetchingMore}
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
+              {canLoadMore ? "Daha Fazla Yükle" : "Tümü yüklendi"}
             </Button>
           </div>
         </div>

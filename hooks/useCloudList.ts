@@ -1,9 +1,18 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import { cloudApiFactory } from "@/Service/Factories";
 import { useSession } from "next-auth/react";
+import type {
+  CloudDirectoryListModelResult,
+  CloudObjectListModelResult,
+} from "@/Service/Generates/api";
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
@@ -94,6 +103,38 @@ export const createCloudDirectoriesQueryKey = (
     skip,
     take,
     search,
+  ] as const;
+
+export const createInfiniteObjectsQueryKey = (
+  path: string,
+  delimiter = true,
+  isMetadataProcessing = false,
+  take = 100,
+  search: string | undefined = undefined
+) =>
+  [
+    ...CLOUD_OBJECTS_QUERY_KEY,
+    path,
+    delimiter,
+    isMetadataProcessing,
+    take,
+    search,
+    "infinite",
+  ] as const;
+
+export const createInfiniteDirectoriesQueryKey = (
+  path: string,
+  delimiter = true,
+  take = 100,
+  search: string | undefined = undefined
+) =>
+  [
+    ...CLOUD_DIRECTORIES_QUERY_KEY,
+    path,
+    delimiter,
+    take,
+    search,
+    "infinite",
   ] as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -257,6 +298,215 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     breadcrumbQuery,
     objectsQuery,
     directoriesQuery,
+    invalidates: {
+      invalidate,
+      invalidateBreadcrumb,
+      invalidateObjects,
+      invalidateDirectories,
+    },
+    currentPath: normalizedPath,
+    isRoot: normalizedPath === "",
+  };
+}
+
+export function useInfiniteCloudList(
+  path?: string,
+  options?: UseCloudListOptions
+) {
+  const { status } = useSession();
+  const {
+    delimiter = true,
+    isMetadataProcessing = false,
+    refetchOnMount = "always",
+    enabled = true,
+    take = 100,
+    search = undefined,
+    refetchInterval = false,
+    objectsEnabled = true,
+    directoriesEnabled = true,
+    breadcrumbEnabled = true,
+  } = options ?? {};
+
+  const queryClient = useQueryClient();
+  const normalizedPath = useMemo(() => normalizePath(path), [path]);
+
+  const breadcrumbQueryKey = useMemo(
+    () => createCloudBreadcrumbQueryKey(normalizedPath, delimiter),
+    [normalizedPath, delimiter]
+  );
+
+  const objectsQueryKey = useMemo(
+    () =>
+      createInfiniteObjectsQueryKey(
+        normalizedPath,
+        delimiter,
+        isMetadataProcessing,
+        take,
+        search
+      ),
+    [normalizedPath, delimiter, isMetadataProcessing, take, search]
+  );
+
+  const directoriesQueryKey = useMemo(
+    () =>
+      createInfiniteDirectoriesQueryKey(
+        normalizedPath,
+        delimiter,
+        take,
+        search
+      ),
+    [normalizedPath, delimiter, take, search]
+  );
+
+  const breadcrumbQuery = useQuery({
+    queryKey: breadcrumbQueryKey,
+    queryFn: async ({ signal }) =>
+      await cloudApiFactory.listBreadcrumb(
+        { path: normalizedPath, delimiter },
+        { signal }
+      ),
+    select: (res) => res.data?.result,
+    staleTime: STALE_TIME,
+    refetchOnMount,
+    refetchOnWindowFocus: false,
+    enabled: status === "authenticated" && enabled && breadcrumbEnabled,
+  });
+
+  const objectsQuery = useInfiniteQuery<
+    CloudObjectListModelResult,
+    Error,
+    InfiniteData<CloudObjectListModelResult, number>,
+    ReturnType<typeof createInfiniteObjectsQueryKey>,
+    number
+  >({
+    queryKey: objectsQueryKey,
+    queryFn: async ({ pageParam = 0, signal }) =>
+      await cloudApiFactory
+        .listObjects(
+          {
+            path: normalizedPath,
+            delimiter,
+            isMetadataProcessing,
+            skip: pageParam,
+            take,
+            search,
+          },
+          { signal }
+        )
+        .then((res) => res.data?.result),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage) return undefined;
+      const total = lastPage.options?.count ?? 0;
+      const nextSkip = (lastPage.options?.skip ?? 0) + take;
+      if (nextSkip >= total) return undefined;
+      return nextSkip;
+    },
+    initialPageParam: 0,
+    refetchOnMount,
+    refetchOnWindowFocus: false,
+    enabled: status === "authenticated" && enabled && objectsEnabled,
+    refetchInterval: objectsEnabled ? refetchInterval : false,
+  });
+
+  const directoriesQuery = useInfiniteQuery<
+    CloudDirectoryListModelResult,
+    Error,
+    InfiniteData<CloudDirectoryListModelResult, number>,
+    ReturnType<typeof createInfiniteDirectoriesQueryKey>,
+    number
+  >({
+    queryKey: directoriesQueryKey,
+    queryFn: async ({ pageParam = 0, signal }) =>
+      await cloudApiFactory
+        .listDirectories(
+          { path: normalizedPath, delimiter, skip: pageParam, take, search },
+          { signal }
+        )
+        .then((res) => res.data?.result),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage) return undefined;
+      const total = lastPage.options?.count ?? 0;
+      const nextSkip = (lastPage.options?.skip ?? 0) + take;
+      if (nextSkip >= total) return undefined;
+      return nextSkip;
+    },
+    initialPageParam: 0,
+    refetchOnMount,
+    refetchOnWindowFocus: false,
+    enabled: status === "authenticated" && enabled && directoriesEnabled,
+    refetchInterval: directoriesEnabled ? refetchInterval : false,
+  });
+
+  const combinedObjects = useMemo(
+    () =>
+      objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
+    [objectsQuery.data]
+  );
+
+  const combinedDirectories = useMemo(
+    () =>
+      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
+    [directoriesQuery.data]
+  );
+
+  const invalidate = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: CLOUD_LIST_QUERY_KEY,
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_LIST_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_LIST_QUERY_KEY[1] &&
+          q.queryKey[2] === normalizedPath,
+      }),
+    [queryClient, normalizedPath]
+  );
+
+  const invalidateBreadcrumb = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: CLOUD_BREADCRUMB_QUERY_KEY,
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_BREADCRUMB_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_BREADCRUMB_QUERY_KEY[1] &&
+          q.queryKey[2] === normalizedPath,
+      }),
+    [queryClient, normalizedPath]
+  );
+
+  const invalidateObjects = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: CLOUD_OBJECTS_QUERY_KEY,
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_OBJECTS_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_OBJECTS_QUERY_KEY[1] &&
+          q.queryKey[2] === normalizedPath,
+      }),
+    [queryClient, normalizedPath]
+  );
+
+  const invalidateDirectories = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: CLOUD_DIRECTORIES_QUERY_KEY,
+        predicate: (q) =>
+          Array.isArray(q.queryKey) &&
+          q.queryKey[0] === CLOUD_DIRECTORIES_QUERY_KEY[0] &&
+          q.queryKey[1] === CLOUD_DIRECTORIES_QUERY_KEY[1] &&
+          q.queryKey[2] === normalizedPath,
+      }),
+    [queryClient, normalizedPath]
+  );
+
+  return {
+    breadcrumbQuery,
+    objectsQuery,
+    directoriesQuery,
+    objects: combinedObjects,
+    directories: combinedDirectories,
     invalidates: {
       invalidate,
       invalidateBreadcrumb,
