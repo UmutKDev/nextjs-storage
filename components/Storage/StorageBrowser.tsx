@@ -522,42 +522,50 @@ export default function StorageBrowser({
 
               {/* Folder Actions */}
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                {!meta.encrypted && onConvertFolder ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!loading) onConvertFolder(d);
-                    }}
-                    className="rounded p-1 hover:bg-muted/10"
-                    disabled={loading}
-                    aria-label={`${name} klasörünü şifrele`}
-                  >
-                    <Lock className="size-4 text-primary" />
-                  </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded p-1 hover:bg-muted/10"
+                    >
+                      <MoreHorizontal size={16} className="text-muted-foreground" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {onRenameFolder ? (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!loading) onRenameFolder(d);
+                        }}
+                      >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Düzenle
+                  </DropdownMenuItem>
                 ) : null}
-                {onRenameFolder ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!loading) onRenameFolder(d);
-                    }}
-                    className="rounded p-1 hover:bg-muted/10"
-                    disabled={loading}
-                    aria-label={`${name} klasörünü yeniden adlandır`}
-                  >
-                    <Pencil className="size-4 text-muted-foreground" />
-                  </button>
-                ) : null}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!loading && onDelete) onDelete(d);
-                  }}
-                  className="rounded p-1 hover:bg-muted/10"
-                  disabled={loading || Boolean(deleting[key])}
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </button>
+                    {!meta.encrypted && onConvertFolder ? (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!loading) onConvertFolder(d);
+                        }}
+                      >
+                        <Lock className="mr-2 h-4 w-4" />
+                        Şifrele
+                      </DropdownMenuItem>
+                    ) : null}
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading && onDelete) onDelete(d);
+                      }}
+                      disabled={loading || Boolean(deleting[key])}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Sil
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </DraggableItem>
@@ -647,18 +655,19 @@ export default function StorageBrowser({
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!loading && c) setToEdit(c);
-                          }}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!loading && c && c.Path?.Key && onMoveClick)
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading && c) setToEdit(c);
+                      }}
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading && c && c.Path?.Key && onMoveClick)
                               onMoveClick([c.Path.Key]);
                           }}
                         >
@@ -762,42 +771,53 @@ export default function StorageBrowser({
 
                 {/* folder actions placed at top-right inside the tile */}
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {!meta.encrypted && onConvertFolder ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!loading) onConvertFolder(d);
-                      }}
-                      className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
-                      disabled={loading}
-                      aria-label={`${name} klasörünü şifrele`}
-                    >
-                      <Lock className="size-4 text-primary" />
-                    </button>
-                  ) : null}
-                  {onRenameFolder ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!loading) onRenameFolder(d);
-                      }}
-                      className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
-                      disabled={loading}
-                      aria-label={`${name} klasörünü yeniden adlandır`}
-                    >
-                      <Pencil className="size-4" />
-                    </button>
-                  ) : null}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!loading && onDelete) onDelete(d);
-                    }}
-                    className="rounded-full p-1.5 bg-background/80 hover:bg-destructive/10 hover:text-destructive shadow-sm border"
-                    disabled={loading || Boolean(deleting[key])}
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
+                      >
+                        <MoreHorizontal
+                          size={16}
+                          className="text-muted-foreground"
+                        />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {onRenameFolder ? (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!loading) onRenameFolder(d);
+                          }}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Düzenle
+                        </DropdownMenuItem>
+                      ) : null}
+                      {!meta.encrypted && onConvertFolder ? (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!loading) onConvertFolder(d);
+                          }}
+                        >
+                          <Lock className="mr-2 h-4 w-4" />
+                          Şifrele
+                        </DropdownMenuItem>
+                      ) : null}
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!loading && onDelete) onDelete(d);
+                        }}
+                        disabled={loading || Boolean(deleting[key])}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Sil
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
@@ -872,17 +892,6 @@ export default function StorageBrowser({
                 </div>
 
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!loading && c && onDelete) onDelete(c);
-                    }}
-                    className="rounded-full p-1.5 bg-background/80 hover:bg-destructive/10 hover:text-destructive shadow-sm border"
-                    disabled={loading || Boolean(deleting[c!.Path?.Key ?? ""])}
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
@@ -902,6 +911,7 @@ export default function StorageBrowser({
                           if (!loading && c) setToEdit(c);
                         }}
                       >
+                        <Pencil className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -913,6 +923,16 @@ export default function StorageBrowser({
                       >
                         <FolderInput className="mr-2 h-4 w-4" />
                         Move
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!loading && c && onDelete) onDelete(c);
+                        }}
+                        disabled={loading || Boolean(deleting[c!.Path?.Key ?? ""])}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
