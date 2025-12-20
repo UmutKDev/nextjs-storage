@@ -935,8 +935,9 @@ export default function StorageBrowser({
     return (
       <SmartGallery
         items={galleryItems}
-        gap={12}
-        minColumnWidth={220}
+        gap={8}
+        targetRowHeight={320}
+        tolerance={0.2}
         className="pt-1"
       />
     );

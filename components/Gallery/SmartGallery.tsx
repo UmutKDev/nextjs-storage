@@ -16,67 +16,86 @@ type PositionedItem = SmartGalleryItem & {
   top: number;
 };
 
-function computeLayout(
+function computeJustifiedLayout(
   items: SmartGalleryItem[],
   containerWidth: number,
   gap: number,
-  minColumnWidth: number
+  targetRowHeight: number,
+  tolerance: number
 ): { positioned: PositionedItem[]; height: number } {
   if (!containerWidth || items.length === 0) {
     return { positioned: [], height: 0 };
   }
 
-  const columnCount = Math.max(
-    1,
-    Math.floor((containerWidth + gap) / (minColumnWidth + gap))
-  );
-  const columnWidth =
-    (containerWidth - gap * Math.max(columnCount - 1, 0)) / columnCount;
-
-  const columnHeights = new Array<number>(columnCount).fill(0);
+  const safeTarget = Math.max(targetRowHeight, 120);
   const positioned: PositionedItem[] = [];
+  let row: SmartGalleryItem[] = [];
+  let rowAspectSum = 0;
+  let y = 0;
 
-  items.forEach((item) => {
-    const safeAspect = Math.min(Math.max(item.aspectRatio || 1, 0.25), 5);
-    const height = columnWidth / safeAspect;
+  const clampAspect = (a: number) => Math.min(Math.max(a || 1, 0.2), 6);
 
-    let targetCol = 0;
-    for (let i = 1; i < columnCount; i += 1) {
-      if (columnHeights[i] < columnHeights[targetCol]) {
-        targetCol = i;
-      }
-    }
+  const flushRow = (isLast: boolean) => {
+    if (row.length === 0) return;
+    const totalGap = gap * Math.max(row.length - 1, 0);
+    const rowHeight = (containerWidth - totalGap) / rowAspectSum;
+    const maxHeight = safeTarget * (1 + tolerance);
+    const minHeight = safeTarget * (1 - tolerance);
 
-    const top = columnHeights[targetCol];
-    const left = targetCol * (columnWidth + gap);
+    const finalHeight = isLast
+      ? Math.max(Math.min(rowHeight, maxHeight), minHeight)
+      : Math.min(Math.max(rowHeight, minHeight), maxHeight);
 
-    columnHeights[targetCol] = top + height + gap;
-
-    positioned.push({
-      ...item,
-      width: columnWidth,
-      height,
-      left,
-      top,
+    let x = 0;
+    row.forEach((item) => {
+      const aspect = clampAspect(item.aspectRatio);
+      const width = finalHeight * aspect;
+      positioned.push({
+        ...item,
+        width,
+        height: finalHeight,
+        left: x,
+        top: y,
+      });
+      x += width + gap;
     });
+
+    y += finalHeight + gap;
+    row = [];
+    rowAspectSum = 0;
+  };
+
+  items.forEach((item, idx) => {
+    const aspect = clampAspect(item.aspectRatio);
+    row.push({ ...item, aspectRatio: aspect });
+    rowAspectSum += aspect;
+
+    const totalGap = gap * Math.max(row.length - 1, 0);
+    const rowHeight = (containerWidth - totalGap) / rowAspectSum;
+    const withinTolerance = rowHeight <= safeTarget * (1 + tolerance);
+    const isLast = idx === items.length - 1;
+
+    if (withinTolerance || isLast) {
+      flushRow(isLast);
+    }
   });
 
-  const layoutHeight = positioned.length
-    ? Math.max(...columnHeights) - gap
-    : 0;
+  const layoutHeight = positioned.length ? Math.max(...positioned.map((p) => p.top + p.height)) : 0;
 
-  return { positioned, height: Math.max(layoutHeight, 0) };
+  return { positioned, height: layoutHeight };
 }
 
 export default function SmartGallery({
   items,
   gap = 12,
-  minColumnWidth = 240,
+  targetRowHeight = 280,
+  tolerance = 0.25,
   className,
 }: {
   items: SmartGalleryItem[];
   gap?: number;
-  minColumnWidth?: number;
+  targetRowHeight?: number;
+  tolerance?: number;
   className?: string;
 }) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
@@ -100,12 +119,12 @@ export default function SmartGallery({
   }, []);
 
   const { positioned, height } = React.useMemo(
-    () => computeLayout(items, width, gap, minColumnWidth),
-    [gap, items, minColumnWidth, width]
+    () =>
+      computeJustifiedLayout(items, width, gap, targetRowHeight, tolerance),
+    [gap, items, targetRowHeight, tolerance, width]
   );
 
-  const fallbackHeight =
-    height || (items.length > 0 ? minColumnWidth : 0);
+  const fallbackHeight = height || (items.length > 0 ? targetRowHeight : 0);
 
   return (
     <div
