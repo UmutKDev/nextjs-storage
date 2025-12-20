@@ -34,6 +34,9 @@ export default function SearchBar({
         <Input
           className="pl-10 h-10"
           placeholder={placeholder}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
           value={val}
           onChange={(e) => setVal(e.target.value)}
         />
