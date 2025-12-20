@@ -23,6 +23,7 @@ import EditFileModal from "./EditFileModal";
 import FileIcon from "./FileIcon";
 
 import { cn } from "@/lib/utils";
+import SmartGallery from "../Gallery/SmartGallery";
 
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 
@@ -45,14 +46,16 @@ const normalizeDirectoryPath = (prefix?: string | null) => {
 
 function GridThumbnail({
   file,
-  onSpan,
+  onAspect,
+  className,
 }: {
   file: CloudObject;
-  onSpan?: (span: { row: number; col: number }) => void;
+  onAspect?: (aspect: number) => void;
+  className?: string;
 }) {
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
-  const lastSpanRef = React.useRef<{ row: number; col: number } | null>(null);
+  const lastAspectRef = React.useRef<number | null>(null);
 
   const url = file?.Path?.Url ?? file?.Path?.Key;
   const mime = (file?.MimeType ?? "").toLowerCase();
@@ -131,7 +134,12 @@ function GridThumbnail({
   if ((!isImage && !isVideo) || !url || error) {
     return (
       // fallback for non-image files keeps a compact placeholder that's full width
-      <div className="w-full aspect-4/3 flex items-center justify-center rounded-md bg-muted/20">
+      <div
+        className={cn(
+          "w-full h-full min-h-[160px] flex items-center justify-center rounded-md bg-muted/20",
+          className
+        )}
+      >
         <FileIcon extension={file.Extension} />
       </div>
     );
@@ -141,55 +149,29 @@ function GridThumbnail({
     if (!img) return;
     const w = img.naturalWidth || img.width || 1;
     const h = img.naturalHeight || img.height || 1;
-    const aspect = w / h;
+    const aspect = Math.max(w / h, 0.1);
 
-    // Decide spans by aspect ratio
-    let col = 1;
-    let row = 1;
-
-    if (aspect >= 2.4) col = 3;
-    else if (aspect >= 1.6) col = 2;
-
-    if (aspect <= 0.35) row = 3;
-    else if (aspect <= 0.6) row = 2;
-
-    const next = { row, col };
-    // Only call onSpan if span changed to avoid repeated setState cycles
-    if (
-      !lastSpanRef.current ||
-      lastSpanRef.current.col !== next.col ||
-      lastSpanRef.current.row !== next.row
-    ) {
-      lastSpanRef.current = next;
-      onSpan?.(next);
+    if (!lastAspectRef.current || Math.abs(lastAspectRef.current - aspect) > 0.01) {
+      lastAspectRef.current = aspect;
+      onAspect?.(aspect);
     }
   };
 
   const handleVideoDims = (w: number, h: number) => {
-    // reuse the same sizing heuristic as images for grid spans
-    const aspect = (w || 1) / (h || 1);
-    let col = 1;
-    let row = 1;
-
-    if (aspect >= 2.4) col = 3;
-    else if (aspect >= 1.6) col = 2;
-
-    if (aspect <= 0.35) row = 3;
-    else if (aspect <= 0.6) row = 2;
-
-    const next = { row, col };
-    if (
-      !lastSpanRef.current ||
-      lastSpanRef.current.col !== next.col ||
-      lastSpanRef.current.row !== next.row
-    ) {
-      lastSpanRef.current = next;
-      onSpan?.(next);
+    const aspect = Math.max((w || 1) / (h || 1), 0.1);
+    if (!lastAspectRef.current || Math.abs(lastAspectRef.current - aspect) > 0.01) {
+      lastAspectRef.current = aspect;
+      onAspect?.(aspect);
     }
   };
 
   return (
-    <div className="w-full relative rounded-md overflow-hidden bg-muted/5">
+    <div
+      className={cn(
+        "w-full h-full relative rounded-md overflow-hidden bg-muted/5",
+        className
+      )}
+    >
       {/* Loading state for video thumb */}
       {(!loaded || (isVideo && thumbLoading)) && (
         <div className="absolute inset-0 flex items-center justify-center">
@@ -206,9 +188,7 @@ function GridThumbnail({
           ref={(el) => {
             if (el) handleImageLoad(el);
           }}
-          // let the image flow naturally (width 100%, auto height) so tall/wide images
-          // expand without being cropped to a square — avoids gaps in masonry layout
-          className={`w-full h-auto object-cover transition-all duration-300 ${
+          className={`w-full h-full object-cover transition-all duration-300 ${
             loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
           onLoad={() => setLoaded(true)}
@@ -222,12 +202,12 @@ function GridThumbnail({
         <div className="w-full h-auto">
           {thumb ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
+              <img
               src={thumb}
               alt={file.Name}
               onLoad={(e) => {
                 setLoaded(true);
-                // derive spans from the generated thumbnail
+                // derive aspect from the generated thumbnail
                 const img = e.currentTarget as HTMLImageElement;
                 handleVideoDims(
                   img.naturalWidth || img.width,
@@ -251,7 +231,7 @@ function GridThumbnail({
                 handleVideoDims(t.videoWidth || 1, t.videoHeight || 1);
                 setLoaded(true);
               }}
-              className={`w-full h-auto object-cover transition-all duration-300 ${
+              className={`w-full h-full object-cover transition-all duration-300 ${
                 loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
               }`}
             />
@@ -372,20 +352,20 @@ export default function StorageBrowser({
     useEncryptedFolders();
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
 
-  // per-item spans (row/col) for the grid (used in grid view)
-  const [spans, setSpans] = React.useState<
-    Record<string, { row: number; col: number }>
+  // track per-item aspect ratios so the smart grid can lay items out
+  const [aspectRatios, setAspectRatios] = React.useState<
+    Record<string, number>
   >({});
 
-  const setSpanForKey = React.useCallback(
-    (key: string, span: { row: number; col: number }) =>
-      setSpans((prev) => {
+  const setAspectForKey = React.useCallback(
+    (key: string, aspect: number) =>
+      setAspectRatios((prev) => {
+        if (!aspect || Number.isNaN(aspect)) return prev;
+        const clamped = Math.min(Math.max(aspect, 0.25), 4);
         const existing = prev[key];
-        // don't update state if it's identical -> prevents infinite update loops
-        if (existing && existing.col === span.col && existing.row === span.row)
-          return prev;
+        if (existing && Math.abs(existing - clamped) < 0.01) return prev;
 
-        return { ...prev, [key]: span };
+        return { ...prev, [key]: clamped };
       }),
     []
   );
@@ -695,48 +675,48 @@ export default function StorageBrowser({
     </div>
   );
 
-  const renderGrid = () => (
-    // use a simple masonry-like layout using CSS columns so items can
-    // have variable heights (tall / wide images won't be cropped to squares)
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 items-start">
-      {/* Directories */}
-      {(directories ?? []).map((d, idx) => {
-        const key = d.Prefix || `dir-${idx}`;
-        const meta = getDirectoryMeta(d);
-        const name = meta.displayName;
+  const renderGrid = () => {
+    const galleryItems: {
+      key: string;
+      aspectRatio: number;
+      render: (box: { width: number; height: number }) => React.ReactNode;
+    }[] = [];
 
-        return (
+    (directories ?? []).forEach((d, idx) => {
+      const key = d.Prefix || `dir-${idx}`;
+      const meta = getDirectoryMeta(d);
+      const name = meta.displayName;
+
+      galleryItems.push({
+        key,
+        aspectRatio: 1,
+        render: () => (
           <DraggableItem
-            key={key}
             id={key}
             type="folder"
             selected={selectedItems.has(key)}
             onSelect={(multi) => handleSelect(key, multi)}
             onClick={() => {}}
-            className="group"
+            className="group h-full"
             data={d}
           >
             <div
-              className="relative inline-block w-full rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden p-0"
-              style={{
-                gridColumnEnd: `span ${spans[key]?.col ?? 1}`,
-                gridRowEnd: `span ${spans[key]?.row ?? 1}`,
-              }}
+              className="relative w-full h-full rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden p-0"
               onClick={(e) => handleItemClick(d, "folder", e)}
             >
-              {/* ensure folders stay a predictable square tile so they don't stretch */}
-              <div className="aspect-square p-3 flex flex-col items-center justify-center gap-2">
-                <div
-                  className="absolute top-2 left-2 z-10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.has(key)}
-                    onChange={() => handleSelect(key, true)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                </div>
+              <div
+                className="absolute top-2 left-2 z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedItems.has(key)}
+                  onChange={() => handleSelect(key, true)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </div>
+
+              <div className="h-full p-3 flex flex-col items-center justify-center gap-2">
                 <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-2">
                   <Folder
                     size={32}
@@ -769,7 +749,6 @@ export default function StorageBrowser({
                   )}
                 </div>
 
-                {/* folder actions placed at top-right inside the tile */}
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -822,128 +801,146 @@ export default function StorageBrowser({
               </div>
             </div>
           </DraggableItem>
-        );
-      })}
+        ),
+      });
+    });
 
-      {/* Files */}
-      {(loading ? Array.from({ length: 8 }) : contents ?? []).map(
-        (item: unknown, idx) => {
-          const c = loading ? undefined : (item as CloudObject);
-          const key = c?.Path?.Key ?? `file-${idx}`;
+    const fileItems = loading ? Array.from({ length: 12 }) : contents ?? [];
 
-          if (loading) {
-            return (
-              <div
-                key={idx}
-                className="aspect-square rounded-xl border bg-muted/10 p-4 flex flex-col gap-3"
-              >
-                <div className="flex-1 rounded-lg bg-muted/20 animate-pulse" />
-                <div className="h-4 w-2/3 rounded bg-muted/20 animate-pulse mx-auto" />
-              </div>
-            );
-          }
+    fileItems.forEach((item: unknown, idx) => {
+      if (loading) {
+        const key = `file-skeleton-${idx}`;
+        galleryItems.push({
+          key,
+          aspectRatio: 1.2,
+          render: () => (
+            <div className="w-full h-full rounded-xl border bg-muted/10 p-4 flex flex-col gap-3 animate-pulse">
+              <div className="flex-1 rounded-lg bg-muted/20" />
+              <div className="h-4 w-2/3 rounded bg-muted/20 mx-auto" />
+            </div>
+          ),
+        });
+        return;
+      }
 
-          return (
-            <DraggableItem
-              key={key}
-              id={key}
-              type="file"
-              selected={selectedItems.has(key)}
-              onSelect={(multi) => handleSelect(key, multi)}
-              onClick={() => {}}
-              className="group"
-              data={c}
+      const c = item as CloudObject;
+      const key = c?.Path?.Key ?? `file-${idx}`;
+      const metaWidth = c?.Metadata?.Width ? Number(c.Metadata.Width) : null;
+      const metaHeight = c?.Metadata?.Height ? Number(c.Metadata.Height) : null;
+      const metadataAspect =
+        metaWidth && metaHeight && metaHeight > 0 ? metaWidth / metaHeight : null;
+      const aspect =
+        aspectRatios[key] ??
+        (metadataAspect && Number.isFinite(metadataAspect)
+          ? metadataAspect
+          : 1.2);
+
+      galleryItems.push({
+        key,
+        aspectRatio: Math.min(Math.max(aspect, 0.3), 4),
+        render: () => (
+          <DraggableItem
+            id={key}
+            type="file"
+            selected={selectedItems.has(key)}
+            onSelect={(multi) => handleSelect(key, multi)}
+            onClick={() => {}}
+            className="group h-full"
+            data={c}
+          >
+            <div
+              className="relative w-full h-full rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden"
+              onClick={(e) => handleItemClick(c!, "file", e)}
             >
               <div
-                className="relative inline-block w-full mb-3 rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden"
-                style={{
-                  gridColumnEnd: `span ${spans[key]?.col ?? 1}`,
-                  gridRowEnd: `span ${spans[key]?.row ?? 1}`,
-                }}
-                onClick={(e) => handleItemClick(c!, "file", e)}
+                className="absolute top-2 left-2 z-10"
+                onClick={(e) => e.stopPropagation()}
               >
-                <div
-                  className="absolute top-2 left-2 z-10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.has(key)}
-                    onChange={() => handleSelect(key, true)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                </div>
+                <input
+                  type="checkbox"
+                  checked={selectedItems.has(key)}
+                  onChange={() => handleSelect(key, true)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </div>
 
-                <div className="w-full overflow-hidden rounded-lg bg-muted/5 relative">
-                  <GridThumbnail
-                    file={c!}
-                    onSpan={(s) => setSpanForKey(key, s)}
-                  />
+              <div className="w-full h-full overflow-hidden rounded-lg bg-muted/5 relative">
+                <GridThumbnail
+                  file={c!}
+                  onAspect={(ratio) => setAspectForKey(key, ratio)}
+                />
 
-                  {/* overlay metadata so the image area is used fully and there's no extra vertical gap */}
-                  <div className="absolute left-0 right-0 bottom-0 px-3 py-2 bg-linear-to-t from-black/60 to-transparent text-white text-xs flex items-center justify-between gap-2">
-                    <div className="truncate font-medium" title={c!.Name}>
-                      {c!.Name}
-                    </div>
-                    <div className="whitespace-nowrap opacity-90 hidden sm:block">
-                      {humanFileSize(c!.Size)}
-                    </div>
+                <div className="absolute left-0 right-0 bottom-0 px-3 py-2 bg-linear-to-t from-black/60 to-transparent text-white text-xs flex items-center justify-between gap-2">
+                  <div className="truncate font-medium" title={c!.Name}>
+                    {c!.Name}
+                  </div>
+                  <div className="whitespace-nowrap opacity-90 hidden sm:block">
+                    {humanFileSize(c!.Size)}
                   </div>
                 </div>
-
-                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
-                      >
-                        <MoreHorizontal
-                          size={16}
-                          className="text-muted-foreground"
-                        />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!loading && c) setToEdit(c);
-                        }}
-                      >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!loading && c && c.Path?.Key && onMoveClick)
-                            onMoveClick([c.Path.Key]);
-                        }}
-                      >
-                        <FolderInput className="mr-2 h-4 w-4" />
-                        Move
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!loading && c && onDelete) onDelete(c);
-                        }}
-                        disabled={loading || Boolean(deleting[c!.Path?.Key ?? ""])}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
               </div>
-            </DraggableItem>
-          );
-        }
-      )}
-    </div>
-  );
+
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
+                    >
+                      <MoreHorizontal
+                        size={16}
+                        className="text-muted-foreground"
+                      />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading && c) setToEdit(c);
+                      }}
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading && c && c.Path?.Key && onMoveClick)
+                          onMoveClick([c.Path.Key]);
+                      }}
+                    >
+                      <FolderInput className="mr-2 h-4 w-4" />
+                      Move
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!loading && c && onDelete) onDelete(c);
+                      }}
+                      disabled={loading || Boolean(deleting[c!.Path?.Key ?? ""])}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </DraggableItem>
+        ),
+      });
+    });
+
+    return (
+      <SmartGallery
+        items={galleryItems}
+        gap={12}
+        minColumnWidth={220}
+        className="pt-1"
+      />
+    );
+  };
 
   return (
     <>
