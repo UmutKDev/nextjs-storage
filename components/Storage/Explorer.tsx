@@ -33,7 +33,6 @@ import {
   Trash2,
   LayoutGrid,
   List,
-  Loader2,
   Folder,
   FolderInput,
   Lock,
