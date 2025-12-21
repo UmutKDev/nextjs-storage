@@ -24,6 +24,7 @@ type UnlockPrompt = {
 
 type EncryptedFoldersContextValue = {
   manifest: CloudEncryptedFolderSummaryModel[];
+  manifestLoading: boolean;
   isFolderEncrypted: (path?: string | null) => boolean;
   isFolderUnlocked: (path?: string | null) => boolean;
   getFolderKey: (path?: string | null) => string | undefined;
@@ -93,45 +94,68 @@ export default function EncryptedFoldersProvider({
     () => manifestQuery.data ?? [],
     [manifestQuery.data]
   );
+  const manifestLoading = manifestQuery.isLoading;
 
   const encryptedPaths = useMemo(() => {
     return new Set(manifest.map((f) => normalizeFolderPath(f.Path)));
   }, [manifest]);
 
+  const findEncryptedAncestor = useCallback(
+    (normalized?: string | null) => {
+      if (!normalized) return undefined;
+      let current = normalized;
+      while (current) {
+        if (encryptedPaths.has(current)) return current;
+        const separatorIndex = current.lastIndexOf("/");
+        if (separatorIndex === -1) break;
+        current = current.slice(0, separatorIndex);
+      }
+      if (encryptedPaths.has(current)) return current;
+      return undefined;
+    },
+    [encryptedPaths]
+  );
+
   const isFolderEncrypted = useCallback(
     (path?: string | null) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) return false;
-      return encryptedPaths.has(normalized);
+      return Boolean(findEncryptedAncestor(normalized));
     },
-    [encryptedPaths]
+    [findEncryptedAncestor]
   );
 
   const isFolderUnlocked = useCallback(
     (path?: string | null) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) return false;
-      return Boolean(folderKeys[normalized]);
+      const encryptedPath = findEncryptedAncestor(normalized);
+      if (!encryptedPath) return false;
+      return Boolean(folderKeys[encryptedPath]);
     },
-    [folderKeys]
+    [findEncryptedAncestor, folderKeys]
   );
 
   const getFolderKey = useCallback(
     (path?: string | null) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) return undefined;
-      return folderKeys[normalized];
+      const encryptedPath = findEncryptedAncestor(normalized);
+      if (!encryptedPath) return undefined;
+      return folderKeys[encryptedPath];
     },
-    [folderKeys]
+    [findEncryptedAncestor, folderKeys]
   );
 
   const getFolderPassphrase = useCallback(
     (path?: string | null) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) return undefined;
-      return folderPassphrases[normalized];
+      const encryptedPath = findEncryptedAncestor(normalized);
+      if (!encryptedPath) return undefined;
+      return folderPassphrases[encryptedPath];
     },
-    [folderPassphrases]
+    [findEncryptedAncestor, folderPassphrases]
   );
 
   const cacheFolderKey = useCallback((path: string, key: string) => {
@@ -218,15 +242,17 @@ export default function EncryptedFoldersProvider({
         return;
       }
 
+      const encryptedPath = findEncryptedAncestor(normalized);
+      const targetPath = encryptedPath ?? normalized;
       const displayName =
         label ||
         normalized.split("/").filter(Boolean).pop() ||
         normalized ||
         "this folder";
 
-      setUnlockPrompt({ path: normalized, displayName, onSuccess });
+      setUnlockPrompt({ path: targetPath, displayName, onSuccess });
     },
-    [getFolderKey, getFolderPassphrase, isFolderUnlocked]
+    [findEncryptedAncestor, getFolderKey, getFolderPassphrase, isFolderUnlocked]
   );
 
   const handleUnlockSubmit = useCallback(
@@ -247,6 +273,7 @@ export default function EncryptedFoldersProvider({
   const value = useMemo<EncryptedFoldersContextValue>(
     () => ({
       manifest,
+      manifestLoading,
       isFolderEncrypted,
       isFolderUnlocked,
       getFolderKey,
@@ -258,6 +285,7 @@ export default function EncryptedFoldersProvider({
     }),
     [
       manifest,
+      manifestLoading,
       isFolderEncrypted,
       isFolderUnlocked,
       getFolderKey,

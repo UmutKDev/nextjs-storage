@@ -37,6 +37,7 @@ import {
   Folder,
   FolderInput,
   Lock,
+  Loader2,
 } from "lucide-react";
 import {} from "@/components/ui/card";
 
@@ -117,6 +118,7 @@ export default function Explorer({
     promptUnlock,
     refetchManifest,
     getFolderPassphrase,
+    manifestLoading,
   } = useEncryptedFolders();
 
   // UI state
@@ -287,7 +289,42 @@ export default function Explorer({
     setSelectedItems(new Set());
   }, [currentPath]);
 
-  const handleMove = async (sourceKeys: string[], destinationKey: string) => {
+  const handleMove = async (
+    sourceKeys: string[],
+    destinationKey: string,
+    options?: { skipUnlockPrompt?: boolean }
+  ): Promise<boolean> => {
+    const normalizedDestination = normalizeFolderPath(
+      destinationKey === "/" ? "" : destinationKey
+    );
+    const destinationEncrypted =
+      normalizedDestination && isFolderEncrypted(normalizedDestination);
+    const destinationUnlocked = destinationEncrypted
+      ? isFolderUnlocked(normalizedDestination)
+      : true;
+
+    if (
+      destinationEncrypted &&
+      !destinationUnlocked &&
+      !options?.skipUnlockPrompt &&
+      normalizedDestination
+    ) {
+      const destinationLabel =
+        getFolderNameFromPrefix(destinationKey) ||
+        normalizedDestination ||
+        "şifreli klasör";
+      promptUnlock({
+        path: normalizedDestination,
+        label: destinationLabel,
+        onSuccess: () => {
+          void handleMove(sourceKeys, destinationKey, {
+            skipUnlockPrompt: true,
+          });
+        },
+      });
+      return false;
+    }
+
     try {
       await cloudApiFactory.move({
         cloudMoveRequestModel: {
@@ -298,9 +335,11 @@ export default function Explorer({
       toast.success("Moved successfully");
       setSelectedItems(new Set());
       await Promise.all([invalidateObjects(), invalidateDirectories()]);
+      return true;
     } catch (e) {
       console.error(e);
       toast.error("Failed to move item");
+      return false;
     }
   };
 
@@ -941,7 +980,21 @@ export default function Explorer({
 
         <div className="flex-1 overflow-hidden relative">
           <div className="absolute inset-0 overflow-y-auto p-4">
-            {isCurrentLocked ? (
+            {manifestLoading ? (
+              <div className="h-full flex flex-col items-center justify-center gap-4 text-center text-muted-foreground">
+                <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Şifreleme durumu yükleniyor
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Lütfen klasörün güvenlik durumunu kontrol ederken bekleyin.
+                  </p>
+                </div>
+              </div>
+            ) : isCurrentLocked ? (
               <div className="h-full flex flex-col items-center justify-center text-center gap-5 px-4 py-10">
                 <div className="w-14 h-14 rounded-full bg-muted/40 flex items-center justify-center text-muted-foreground">
                   <Lock className="w-6 h-6" />

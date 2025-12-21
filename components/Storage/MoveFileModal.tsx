@@ -3,17 +3,24 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Folder, ArrowLeft, Loader2, X } from "lucide-react";
+import { Folder, ArrowLeft, Loader2, X, Lock, Unlock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCloudList } from "@/hooks/useCloudList";
+import type { CloudDirectoryModel } from "@/Service/Generates/api";
+import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 
 interface MoveFileModalProps {
   open: boolean;
   onClose: () => void;
   sourceKeys: string[];
-  onMove: (sourceKeys: string[], destinationKey: string) => Promise<void>;
+  onMove: (sourceKeys: string[], destinationKey: string) => Promise<boolean>;
   initialPath?: string;
 }
+
+const normalizeFolderPath = (path?: string | null) => {
+  if (!path) return "";
+  return path.replace(/^\/+|\/+$/g, "");
+};
 
 export default function MoveFileModal({
   open,
@@ -26,6 +33,8 @@ export default function MoveFileModal({
   const [manualPath, setManualPath] = useState("");
   const [isManual, setIsManual] = useState(false);
   const [moving, setMoving] = useState(false);
+  const { isFolderEncrypted, isFolderUnlocked, promptUnlock } =
+    useEncryptedFolders();
 
   // Fetch directories for the current path
   const { directoriesQuery } = useCloudList(currentPath, {
@@ -44,9 +53,25 @@ export default function MoveFileModal({
     }
   }, [open, initialPath]);
 
-  const handleNavigate = (dirName: string) => {
-    const newPath = currentPath ? `${currentPath}/${dirName}` : dirName;
-    setCurrentPath(newPath);
+  const handleNavigate = (dir: CloudDirectoryModel) => {
+    const normalized = normalizeFolderPath(dir.Prefix);
+    if (normalized) {
+      const encrypted = isFolderEncrypted(normalized);
+      const unlocked = encrypted ? isFolderUnlocked(normalized) : true;
+      if (encrypted && !unlocked) {
+        const label =
+          dir.Name ||
+          normalized.split("/").filter(Boolean).pop() ||
+          "şifreli klasör";
+        promptUnlock({
+          path: normalized,
+          label,
+          onSuccess: () => setCurrentPath(normalized),
+        });
+        return;
+      }
+      setCurrentPath(normalized);
+    }
   };
 
   const handleNavigateUp = () => {
@@ -57,11 +82,13 @@ export default function MoveFileModal({
   };
 
   const handleConfirm = async () => {
-    const destination = isManual ? manualPath : currentPath;
+    const destination = (isManual ? manualPath : currentPath).trim();
     setMoving(true);
     try {
-      await onMove(sourceKeys, destination);
-      onClose();
+      const moved = await onMove(sourceKeys, destination);
+      if (moved) {
+        onClose();
+      }
     } catch (error) {
       console.error("Move failed", error);
     } finally {
@@ -161,16 +188,37 @@ export default function MoveFileModal({
                       </div>
                     ) : (
                       directories.map((dir) => {
+                        const normalized = normalizeFolderPath(dir.Prefix);
+                        const segments =
+                          dir.Prefix?.split("/").filter(Boolean) ?? [];
                         const name =
-                          dir.Prefix?.split("/").filter(Boolean).pop() || "";
+                          segments[segments.length - 1] || dir.Name || "";
+                        const encrypted = normalized
+                          ? isFolderEncrypted(normalized)
+                          : false;
+                        const unlocked = encrypted
+                          ? isFolderUnlocked(normalized)
+                          : true;
                         return (
                           <button
                             key={dir.Prefix}
-                            onClick={() => handleNavigate(name)}
+                            onClick={() => handleNavigate(dir)}
                             className="w-full flex items-center gap-3 p-2 hover:bg-accent rounded-sm text-sm text-left"
                           >
-                            <Folder className="h-4 w-4 text-blue-500 fill-blue-500/20" />
-                            <span className="truncate">{name}</span>
+                            <Folder
+                              className="h-4 w-4 text-blue-500 fill-blue-500/20"
+                            />
+                            <span className="truncate flex-1">{name}</span>
+                            {encrypted && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                {unlocked ? (
+                                  <Unlock className="h-3 w-3" />
+                                ) : (
+                                  <Lock className="h-3 w-3" />
+                                )}
+                                {unlocked ? "Kilitsiz" : "Şifreli"}
+                              </span>
+                            )}
                           </button>
                         );
                       })
