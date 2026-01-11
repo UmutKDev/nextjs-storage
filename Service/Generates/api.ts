@@ -238,58 +238,10 @@ export interface CloudDirectoryModel {
     'Name': string;
     'Prefix': string;
     'IsEncrypted': boolean;
-}
-export interface CloudEncryptedFolderConvertRequestModel {
-    'Path': string;
-    'Passphrase': string;
-}
-export interface CloudEncryptedFolderCreateRequestModel {
-    'Path': string;
-    'Passphrase': string;
-}
-export interface CloudEncryptedFolderDeleteRequestModel {
-    'Path': string;
-    'ShouldDeleteContents'?: boolean;
     /**
-     * Required when ShouldDeleteContents is true
+     * True if encrypted folder is locked (no valid session)
      */
-    'Passphrase'?: string;
-}
-export interface CloudEncryptedFolderListResponseBaseModel {
-    'result': CloudEncryptedFolderListResponseModel;
-    'status': BaseStatusModel;
-}
-export interface CloudEncryptedFolderListResponseModel {
-    'Folders': Array<CloudEncryptedFolderSummaryModel>;
-}
-export interface CloudEncryptedFolderRenameRequestModel {
-    'Path': string;
-    'Name': string;
-    'Passphrase': string;
-}
-export interface CloudEncryptedFolderSummaryBaseModel {
-    'result': CloudEncryptedFolderSummaryModel;
-    'status': BaseStatusModel;
-}
-export interface CloudEncryptedFolderSummaryModel {
-    'Path': string;
-    'CreatedAt': string;
-    'UpdatedAt': string;
-}
-export interface CloudEncryptedFolderUnlockRequestModel {
-    'Path': string;
-    'Passphrase': string;
-}
-export interface CloudEncryptedFolderUnlockResponseBaseModel {
-    'result': CloudEncryptedFolderUnlockResponseModel;
-    'status': BaseStatusModel;
-}
-export interface CloudEncryptedFolderUnlockResponseModel {
-    'Path': string;
-    /**
-     * Base64 encoded symmetric key for the folder
-     */
-    'FolderKey': string;
+    'IsLocked': boolean;
 }
 export interface CloudGetMultipartPartUrlRequestModel {
     'Key': string;
@@ -303,9 +255,6 @@ export interface CloudGetMultipartPartUrlResponseBaseModel {
 export interface CloudGetMultipartPartUrlResponseModel {
     'Url': string;
     'Expires': number;
-}
-export interface CloudKeyRequestModel {
-    'Key': string;
 }
 export interface CloudListResponseBaseModel {
     'result': CloudListResponseModel;
@@ -356,10 +305,6 @@ export interface CloudPathModel {
     'Key': string;
     'Url': string;
 }
-export interface CloudRenameDirectoryRequestModel {
-    'Key': string;
-    'Name': string;
-}
 export interface CloudUpdateRequestModel {
     'Key': string;
     'Name'?: string;
@@ -403,6 +348,88 @@ export interface DefinitionGroupResponseModel {
     'description': string;
     'isCommon': boolean;
     'date': BaseDateModel;
+}
+export interface DirectoryConvertToEncryptedRequestModel {
+    /**
+     * Directory path to convert
+     */
+    'Path': string;
+}
+export interface DirectoryCreateRequestModel {
+    /**
+     * Directory path to create
+     */
+    'Path': string;
+    /**
+     * Create as encrypted directory
+     */
+    'IsEncrypted'?: boolean;
+}
+export interface DirectoryDecryptRequestModel {
+    /**
+     * Encrypted directory path to decrypt
+     */
+    'Path': string;
+}
+export interface DirectoryDeleteRequestModel {
+    /**
+     * Directory path to delete
+     */
+    'Path': string;
+}
+export interface DirectoryLockRequestModel {
+    /**
+     * Encrypted directory path to lock
+     */
+    'Path': string;
+}
+export interface DirectoryRenameRequestModel {
+    /**
+     * Current directory path
+     */
+    'Path': string;
+    /**
+     * New directory name (not full path)
+     */
+    'Name': string;
+}
+export interface DirectoryResponseBaseModel {
+    'result': DirectoryResponseModel;
+    'status': BaseStatusModel;
+}
+export interface DirectoryResponseModel {
+    'Path': string;
+    'IsEncrypted': boolean;
+    'CreatedAt'?: string;
+    'UpdatedAt'?: string;
+}
+export interface DirectoryUnlockRequestModel {
+    /**
+     * Encrypted directory path
+     */
+    'Path': string;
+}
+export interface DirectoryUnlockResponseBaseModel {
+    'result': DirectoryUnlockResponseModel;
+    'status': BaseStatusModel;
+}
+export interface DirectoryUnlockResponseModel {
+    /**
+     * Directory path that was unlocked
+     */
+    'Path': string;
+    /**
+     * Session token for subsequent requests. Pass via X-Folder-Session header.
+     */
+    'SessionToken': string;
+    /**
+     * Session expiration timestamp (Unix epoch in seconds)
+     */
+    'ExpiresAt': number;
+    /**
+     * Session TTL in seconds
+     */
+    'TTL': number;
 }
 export interface InternalServerErrorResponseModel {
     'result': any;
@@ -1798,16 +1825,19 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Marks an existing folder as encrypted using the provided passphrase.
-         * @summary Convert a folder into an encrypted folder
-         * @param {CloudEncryptedFolderConvertRequestModel} cloudEncryptedFolderConvertRequestModel 
+         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Convert a directory to encrypted
+         * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
+         * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        convertFolderToEncrypted: async (cloudEncryptedFolderConvertRequestModel: CloudEncryptedFolderConvertRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudEncryptedFolderConvertRequestModel' is not null or undefined
-            assertParamExists('convertFolderToEncrypted', 'cloudEncryptedFolderConvertRequestModel', cloudEncryptedFolderConvertRequestModel)
-            const localVarPath = `/Api/Cloud/EncryptedFolder/Convert`;
+        directoryConvertToEncrypted: async (xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryConvertToEncrypted', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryConvertToEncryptedRequestModel' is not null or undefined
+            assertParamExists('directoryConvertToEncrypted', 'directoryConvertToEncryptedRequestModel', directoryConvertToEncryptedRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Encrypt`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1827,10 +1857,13 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderConvertRequestModel, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryConvertToEncryptedRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1838,16 +1871,17 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Creates a directory/prefix within the user scoped storage.
-         * @summary Create directory (prefix)
-         * @param {CloudKeyRequestModel} cloudKeyRequestModel 
+         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
+         * @summary Create a directory
+         * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createDirectory: async (cloudKeyRequestModel: CloudKeyRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudKeyRequestModel' is not null or undefined
-            assertParamExists('createDirectory', 'cloudKeyRequestModel', cloudKeyRequestModel)
-            const localVarPath = `/Api/Cloud/CreateDirectory`;
+        directoryCreate: async (directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryCreateRequestModel' is not null or undefined
+            assertParamExists('directoryCreate', 'directoryCreateRequestModel', directoryCreateRequestModel)
+            const localVarPath = `/Api/Cloud/Directories`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1867,10 +1901,13 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudKeyRequestModel, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryCreateRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1878,16 +1915,19 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Creates or marks a folder as encrypted using a client-provided passphrase.
-         * @summary Create an encrypted folder
-         * @param {CloudEncryptedFolderCreateRequestModel} cloudEncryptedFolderCreateRequestModel 
+         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
+         * @summary Remove encryption from a directory
+         * @param {string} xFolderPassphrase Passphrase for decryption
+         * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createEncryptedFolder: async (cloudEncryptedFolderCreateRequestModel: CloudEncryptedFolderCreateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudEncryptedFolderCreateRequestModel' is not null or undefined
-            assertParamExists('createEncryptedFolder', 'cloudEncryptedFolderCreateRequestModel', cloudEncryptedFolderCreateRequestModel)
-            const localVarPath = `/Api/Cloud/EncryptedFolder`;
+        directoryDecrypt: async (xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryDecrypt', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryDecryptRequestModel' is not null or undefined
+            assertParamExists('directoryDecrypt', 'directoryDecryptRequestModel', directoryDecryptRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Decrypt`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1907,10 +1947,13 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderCreateRequestModel, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryDecryptRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1918,16 +1961,17 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Removes encrypted-folder metadata and optionally deletes folder contents.
-         * @summary Delete an encrypted folder definition
-         * @param {CloudEncryptedFolderDeleteRequestModel} cloudEncryptedFolderDeleteRequestModel 
+         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Delete a directory
+         * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteEncryptedFolder: async (cloudEncryptedFolderDeleteRequestModel: CloudEncryptedFolderDeleteRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudEncryptedFolderDeleteRequestModel' is not null or undefined
-            assertParamExists('deleteEncryptedFolder', 'cloudEncryptedFolderDeleteRequestModel', cloudEncryptedFolderDeleteRequestModel)
-            const localVarPath = `/Api/Cloud/EncryptedFolder`;
+        directoryDelete: async (directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryDeleteRequestModel' is not null or undefined
+            assertParamExists('directoryDelete', 'directoryDeleteRequestModel', directoryDeleteRequestModel)
+            const localVarPath = `/Api/Cloud/Directories`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1947,10 +1991,143 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderDeleteRequestModel, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryDeleteRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Invalidates the session token for an encrypted directory.
+         * @summary Lock an encrypted directory
+         * @param {DirectoryLockRequestModel} directoryLockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryLock: async (directoryLockRequestModel: DirectoryLockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryLockRequestModel' is not null or undefined
+            assertParamExists('directoryLock', 'directoryLockRequestModel', directoryLockRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Lock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryLockRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Rename a directory
+         * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryRename: async (directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryRenameRequestModel' is not null or undefined
+            assertParamExists('directoryRename', 'directoryRenameRequestModel', directoryRenameRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Rename`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryRenameRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
+         * @summary Unlock an encrypted directory
+         * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
+         * @param {DirectoryUnlockRequestModel} directoryUnlockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryUnlock: async (xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryUnlock', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryUnlockRequestModel' is not null or undefined
+            assertParamExists('directoryUnlock', 'directoryUnlockRequestModel', directoryUnlockRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Unlock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryUnlockRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2086,7 +2263,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
+         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List files and directories
          * @param {string} [search] 
          * @param {number} [skip] 
@@ -2094,10 +2271,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        list: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        list: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2140,6 +2318,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -2209,17 +2390,18 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Returns directory prefixes (folders) for a given path.
+         * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List directories inside a path
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listDirectories: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listDirectories: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Directories`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2258,40 +2440,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Returns encrypted folders metadata scoped to the user.
-         * @summary List encrypted folders
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listEncryptedFolders: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/Api/Cloud/EncryptedFolder`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -2302,7 +2453,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Returns files at a given path for the authenticated user.
+         * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List objects (files) inside a path
          * @param {string} [search] 
          * @param {number} [skip] 
@@ -2310,10 +2461,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listObjects: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listObjects: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Objects`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2356,6 +2508,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -2399,126 +2554,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(cloudMoveRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Renames a directory within the same parent path by updating its final segment.
-         * @summary Rename directory (prefix)
-         * @param {CloudRenameDirectoryRequestModel} cloudRenameDirectoryRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        renameDirectory: async (cloudRenameDirectoryRequestModel: CloudRenameDirectoryRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudRenameDirectoryRequestModel' is not null or undefined
-            assertParamExists('renameDirectory', 'cloudRenameDirectoryRequestModel', cloudRenameDirectoryRequestModel)
-            const localVarPath = `/Api/Cloud/RenameDirectory`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudRenameDirectoryRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Renames an encrypted folder after validating the supplied passphrase.
-         * @summary Rename an encrypted folder
-         * @param {CloudEncryptedFolderRenameRequestModel} cloudEncryptedFolderRenameRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        renameEncryptedFolder: async (cloudEncryptedFolderRenameRequestModel: CloudEncryptedFolderRenameRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudEncryptedFolderRenameRequestModel' is not null or undefined
-            assertParamExists('renameEncryptedFolder', 'cloudEncryptedFolderRenameRequestModel', cloudEncryptedFolderRenameRequestModel)
-            const localVarPath = `/Api/Cloud/EncryptedFolder/Rename`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderRenameRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Validates the passphrase and returns the encrypted folder key for client-side encryption.
-         * @summary Unlock an encrypted folder
-         * @param {CloudEncryptedFolderUnlockRequestModel} cloudEncryptedFolderUnlockRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        unlockEncryptedFolder: async (cloudEncryptedFolderUnlockRequestModel: CloudEncryptedFolderUnlockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudEncryptedFolderUnlockRequestModel' is not null or undefined
-            assertParamExists('unlockEncryptedFolder', 'cloudEncryptedFolderUnlockRequestModel', cloudEncryptedFolderUnlockRequestModel)
-            const localVarPath = `/Api/Cloud/EncryptedFolder/Unlock`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudEncryptedFolderUnlockRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2848,55 +2883,100 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Marks an existing folder as encrypted using the provided passphrase.
-         * @summary Convert a folder into an encrypted folder
-         * @param {CloudEncryptedFolderConvertRequestModel} cloudEncryptedFolderConvertRequestModel 
+         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Convert a directory to encrypted
+         * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
+         * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async convertFolderToEncrypted(cloudEncryptedFolderConvertRequestModel: CloudEncryptedFolderConvertRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudEncryptedFolderSummaryBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.convertFolderToEncrypted(cloudEncryptedFolderConvertRequestModel, options);
+        async directoryConvertToEncrypted(xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConvertToEncrypted(xFolderPassphrase, directoryConvertToEncryptedRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.convertFolderToEncrypted']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryConvertToEncrypted']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Creates a directory/prefix within the user scoped storage.
-         * @summary Create directory (prefix)
-         * @param {CloudKeyRequestModel} cloudKeyRequestModel 
+         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
+         * @summary Create a directory
+         * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createDirectory(cloudKeyRequestModel: CloudKeyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createDirectory(cloudKeyRequestModel, options);
+        async directoryCreate(directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryCreate(directoryCreateRequestModel, xFolderPassphrase, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.createDirectory']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryCreate']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Creates or marks a folder as encrypted using a client-provided passphrase.
-         * @summary Create an encrypted folder
-         * @param {CloudEncryptedFolderCreateRequestModel} cloudEncryptedFolderCreateRequestModel 
+         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
+         * @summary Remove encryption from a directory
+         * @param {string} xFolderPassphrase Passphrase for decryption
+         * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createEncryptedFolder(cloudEncryptedFolderCreateRequestModel: CloudEncryptedFolderCreateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudEncryptedFolderSummaryBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createEncryptedFolder(cloudEncryptedFolderCreateRequestModel, options);
+        async directoryDecrypt(xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDecrypt(xFolderPassphrase, directoryDecryptRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.createEncryptedFolder']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryDecrypt']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Removes encrypted-folder metadata and optionally deletes folder contents.
-         * @summary Delete an encrypted folder definition
-         * @param {CloudEncryptedFolderDeleteRequestModel} cloudEncryptedFolderDeleteRequestModel 
+         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Delete a directory
+         * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteEncryptedFolder(cloudEncryptedFolderDeleteRequestModel: CloudEncryptedFolderDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteEncryptedFolder(cloudEncryptedFolderDeleteRequestModel, options);
+        async directoryDelete(directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDelete(directoryDeleteRequestModel, xFolderPassphrase, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.deleteEncryptedFolder']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Invalidates the session token for an encrypted directory.
+         * @summary Lock an encrypted directory
+         * @param {DirectoryLockRequestModel} directoryLockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryLock(directoryLockRequestModel: DirectoryLockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryLock(directoryLockRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryLock']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Rename a directory
+         * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryRename(directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryRename(directoryRenameRequestModel, xFolderPassphrase, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryRename']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
+         * @summary Unlock an encrypted directory
+         * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
+         * @param {DirectoryUnlockRequestModel} directoryUnlockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryUnlock(xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryUnlockResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryUnlock(xFolderPassphrase, directoryUnlockRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryUnlock']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2940,7 +3020,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
+         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List files and directories
          * @param {string} [search] 
          * @param {number} [skip] 
@@ -2948,11 +3028,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async list(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, path, delimiter, isMetadataProcessing, options);
+        async list(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.list']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -2975,36 +3056,25 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Returns directory prefixes (folders) for a given path.
+         * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List directories inside a path
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listDirectories(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(search, skip, take, path, delimiter, options);
+        async listDirectories(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(search, skip, take, path, delimiter, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listDirectories']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Returns encrypted folders metadata scoped to the user.
-         * @summary List encrypted folders
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listEncryptedFolders(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudEncryptedFolderListResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listEncryptedFolders(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.listEncryptedFolders']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns files at a given path for the authenticated user.
+         * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List objects (files) inside a path
          * @param {string} [search] 
          * @param {number} [skip] 
@@ -3012,11 +3082,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listObjects(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(search, skip, take, path, delimiter, isMetadataProcessing, options);
+        async listObjects(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listObjects']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3032,45 +3103,6 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.move(cloudMoveRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Renames a directory within the same parent path by updating its final segment.
-         * @summary Rename directory (prefix)
-         * @param {CloudRenameDirectoryRequestModel} cloudRenameDirectoryRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async renameDirectory(cloudRenameDirectoryRequestModel: CloudRenameDirectoryRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.renameDirectory(cloudRenameDirectoryRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.renameDirectory']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Renames an encrypted folder after validating the supplied passphrase.
-         * @summary Rename an encrypted folder
-         * @param {CloudEncryptedFolderRenameRequestModel} cloudEncryptedFolderRenameRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async renameEncryptedFolder(cloudEncryptedFolderRenameRequestModel: CloudEncryptedFolderRenameRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.renameEncryptedFolder(cloudEncryptedFolderRenameRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.renameEncryptedFolder']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Validates the passphrase and returns the encrypted folder key for client-side encryption.
-         * @summary Unlock an encrypted folder
-         * @param {CloudEncryptedFolderUnlockRequestModel} cloudEncryptedFolderUnlockRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async unlockEncryptedFolder(cloudEncryptedFolderUnlockRequestModel: CloudEncryptedFolderUnlockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudEncryptedFolderUnlockResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.unlockEncryptedFolder(cloudEncryptedFolderUnlockRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.unlockEncryptedFolder']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -3186,44 +3218,74 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp._delete(requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * Marks an existing folder as encrypted using the provided passphrase.
-         * @summary Convert a folder into an encrypted folder
-         * @param {CloudApiConvertFolderToEncryptedRequest} requestParameters Request parameters.
+         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Convert a directory to encrypted
+         * @param {CloudApiDirectoryConvertToEncryptedRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        convertFolderToEncrypted(requestParameters: CloudApiConvertFolderToEncryptedRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudEncryptedFolderSummaryBaseModel> {
-            return localVarFp.convertFolderToEncrypted(requestParameters.cloudEncryptedFolderConvertRequestModel, options).then((request) => request(axios, basePath));
+        directoryConvertToEncrypted(requestParameters: CloudApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * Creates a directory/prefix within the user scoped storage.
-         * @summary Create directory (prefix)
-         * @param {CloudApiCreateDirectoryRequest} requestParameters Request parameters.
+         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
+         * @summary Create a directory
+         * @param {CloudApiDirectoryCreateRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createDirectory(requestParameters: CloudApiCreateDirectoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.createDirectory(requestParameters.cloudKeyRequestModel, options).then((request) => request(axios, basePath));
+        directoryCreate(requestParameters: CloudApiDirectoryCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(axios, basePath));
         },
         /**
-         * Creates or marks a folder as encrypted using a client-provided passphrase.
-         * @summary Create an encrypted folder
-         * @param {CloudApiCreateEncryptedFolderRequest} requestParameters Request parameters.
+         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
+         * @summary Remove encryption from a directory
+         * @param {CloudApiDirectoryDecryptRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createEncryptedFolder(requestParameters: CloudApiCreateEncryptedFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudEncryptedFolderSummaryBaseModel> {
-            return localVarFp.createEncryptedFolder(requestParameters.cloudEncryptedFolderCreateRequestModel, options).then((request) => request(axios, basePath));
+        directoryDecrypt(requestParameters: CloudApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * Removes encrypted-folder metadata and optionally deletes folder contents.
-         * @summary Delete an encrypted folder definition
-         * @param {CloudApiDeleteEncryptedFolderRequest} requestParameters Request parameters.
+         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Delete a directory
+         * @param {CloudApiDirectoryDeleteRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteEncryptedFolder(requestParameters: CloudApiDeleteEncryptedFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.deleteEncryptedFolder(requestParameters.cloudEncryptedFolderDeleteRequestModel, options).then((request) => request(axios, basePath));
+        directoryDelete(requestParameters: CloudApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Invalidates the session token for an encrypted directory.
+         * @summary Lock an encrypted directory
+         * @param {CloudApiDirectoryLockRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryLock(requestParameters: CloudApiDirectoryLockRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.directoryLock(requestParameters.directoryLockRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Rename a directory
+         * @param {CloudApiDirectoryRenameRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryRename(requestParameters: CloudApiDirectoryRenameRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
+         * @summary Unlock an encrypted directory
+         * @param {CloudApiDirectoryUnlockRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryUnlock(requestParameters: CloudApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryUnlockResponseBaseModel> {
+            return localVarFp.directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
@@ -3256,14 +3318,14 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(axios, basePath));
         },
         /**
-         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
+         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List files and directories
          * @param {CloudApiListRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudListResponseBaseModel> {
-            return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
+            return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns breadcrumb entries (path pieces) for the supplied path.
@@ -3276,33 +3338,24 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
         },
         /**
-         * Returns directory prefixes (folders) for a given path.
+         * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List directories inside a path
          * @param {CloudApiListDirectoriesRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudDirectoryListBaseModel> {
-            return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
+            return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
-         * Returns encrypted folders metadata scoped to the user.
-         * @summary List encrypted folders
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listEncryptedFolders(options?: RawAxiosRequestConfig): AxiosPromise<CloudEncryptedFolderListResponseBaseModel> {
-            return localVarFp.listEncryptedFolders(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns files at a given path for the authenticated user.
+         * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List objects (files) inside a path
          * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectListBaseModel> {
-            return localVarFp.listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
+            return localVarFp.listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Move an object from SourceKey to DestinationKey within the user scope.
@@ -3313,36 +3366,6 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.move(requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Renames a directory within the same parent path by updating its final segment.
-         * @summary Rename directory (prefix)
-         * @param {CloudApiRenameDirectoryRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        renameDirectory(requestParameters: CloudApiRenameDirectoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.renameDirectory(requestParameters.cloudRenameDirectoryRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Renames an encrypted folder after validating the supplied passphrase.
-         * @summary Rename an encrypted folder
-         * @param {CloudApiRenameEncryptedFolderRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        renameEncryptedFolder(requestParameters: CloudApiRenameEncryptedFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.renameEncryptedFolder(requestParameters.cloudEncryptedFolderRenameRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Validates the passphrase and returns the encrypted folder key for client-side encryption.
-         * @summary Unlock an encrypted folder
-         * @param {CloudApiUnlockEncryptedFolderRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        unlockEncryptedFolder(requestParameters: CloudApiUnlockEncryptedFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudEncryptedFolderUnlockResponseBaseModel> {
-            return localVarFp.unlockEncryptedFolder(requestParameters.cloudEncryptedFolderUnlockRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * Update an existing object by changing metadata or renaming the file (name only).
@@ -3424,31 +3447,82 @@ export interface CloudApiDeleteRequest {
 }
 
 /**
- * Request parameters for convertFolderToEncrypted operation in CloudApi.
+ * Request parameters for directoryConvertToEncrypted operation in CloudApi.
  */
-export interface CloudApiConvertFolderToEncryptedRequest {
-    readonly cloudEncryptedFolderConvertRequestModel: CloudEncryptedFolderConvertRequestModel
+export interface CloudApiDirectoryConvertToEncryptedRequest {
+    /**
+     * Passphrase for encryption (min 8 chars)
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel
 }
 
 /**
- * Request parameters for createDirectory operation in CloudApi.
+ * Request parameters for directoryCreate operation in CloudApi.
  */
-export interface CloudApiCreateDirectoryRequest {
-    readonly cloudKeyRequestModel: CloudKeyRequestModel
+export interface CloudApiDirectoryCreateRequest {
+    readonly directoryCreateRequestModel: DirectoryCreateRequestModel
+
+    /**
+     * Passphrase for encrypted directory (min 8 chars)
+     */
+    readonly xFolderPassphrase?: string
 }
 
 /**
- * Request parameters for createEncryptedFolder operation in CloudApi.
+ * Request parameters for directoryDecrypt operation in CloudApi.
  */
-export interface CloudApiCreateEncryptedFolderRequest {
-    readonly cloudEncryptedFolderCreateRequestModel: CloudEncryptedFolderCreateRequestModel
+export interface CloudApiDirectoryDecryptRequest {
+    /**
+     * Passphrase for decryption
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryDecryptRequestModel: DirectoryDecryptRequestModel
 }
 
 /**
- * Request parameters for deleteEncryptedFolder operation in CloudApi.
+ * Request parameters for directoryDelete operation in CloudApi.
  */
-export interface CloudApiDeleteEncryptedFolderRequest {
-    readonly cloudEncryptedFolderDeleteRequestModel: CloudEncryptedFolderDeleteRequestModel
+export interface CloudApiDirectoryDeleteRequest {
+    readonly directoryDeleteRequestModel: DirectoryDeleteRequestModel
+
+    /**
+     * Passphrase for encrypted directory
+     */
+    readonly xFolderPassphrase?: string
+}
+
+/**
+ * Request parameters for directoryLock operation in CloudApi.
+ */
+export interface CloudApiDirectoryLockRequest {
+    readonly directoryLockRequestModel: DirectoryLockRequestModel
+}
+
+/**
+ * Request parameters for directoryRename operation in CloudApi.
+ */
+export interface CloudApiDirectoryRenameRequest {
+    readonly directoryRenameRequestModel: DirectoryRenameRequestModel
+
+    /**
+     * Passphrase for encrypted directory
+     */
+    readonly xFolderPassphrase?: string
+}
+
+/**
+ * Request parameters for directoryUnlock operation in CloudApi.
+ */
+export interface CloudApiDirectoryUnlockRequest {
+    /**
+     * Passphrase for encrypted directory (min 8 chars)
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryUnlockRequestModel: DirectoryUnlockRequestModel
 }
 
 /**
@@ -3492,6 +3566,11 @@ export interface CloudApiListRequest {
     readonly delimiter?: boolean
 
     readonly isMetadataProcessing?: boolean
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3522,6 +3601,11 @@ export interface CloudApiListDirectoriesRequest {
     readonly path?: string
 
     readonly delimiter?: boolean
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3539,6 +3623,11 @@ export interface CloudApiListObjectsRequest {
     readonly delimiter?: boolean
 
     readonly isMetadataProcessing?: boolean
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3546,27 +3635,6 @@ export interface CloudApiListObjectsRequest {
  */
 export interface CloudApiMoveRequest {
     readonly cloudMoveRequestModel: CloudMoveRequestModel
-}
-
-/**
- * Request parameters for renameDirectory operation in CloudApi.
- */
-export interface CloudApiRenameDirectoryRequest {
-    readonly cloudRenameDirectoryRequestModel: CloudRenameDirectoryRequestModel
-}
-
-/**
- * Request parameters for renameEncryptedFolder operation in CloudApi.
- */
-export interface CloudApiRenameEncryptedFolderRequest {
-    readonly cloudEncryptedFolderRenameRequestModel: CloudEncryptedFolderRenameRequestModel
-}
-
-/**
- * Request parameters for unlockEncryptedFolder operation in CloudApi.
- */
-export interface CloudApiUnlockEncryptedFolderRequest {
-    readonly cloudEncryptedFolderUnlockRequestModel: CloudEncryptedFolderUnlockRequestModel
 }
 
 /**
@@ -3633,47 +3701,80 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * Marks an existing folder as encrypted using the provided passphrase.
-     * @summary Convert a folder into an encrypted folder
-     * @param {CloudApiConvertFolderToEncryptedRequest} requestParameters Request parameters.
+     * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
+     * @summary Convert a directory to encrypted
+     * @param {CloudApiDirectoryConvertToEncryptedRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public convertFolderToEncrypted(requestParameters: CloudApiConvertFolderToEncryptedRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).convertFolderToEncrypted(requestParameters.cloudEncryptedFolderConvertRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public directoryConvertToEncrypted(requestParameters: CloudApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Creates a directory/prefix within the user scoped storage.
-     * @summary Create directory (prefix)
-     * @param {CloudApiCreateDirectoryRequest} requestParameters Request parameters.
+     * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
+     * @summary Create a directory
+     * @param {CloudApiDirectoryCreateRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public createDirectory(requestParameters: CloudApiCreateDirectoryRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).createDirectory(requestParameters.cloudKeyRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public directoryCreate(requestParameters: CloudApiDirectoryCreateRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Creates or marks a folder as encrypted using a client-provided passphrase.
-     * @summary Create an encrypted folder
-     * @param {CloudApiCreateEncryptedFolderRequest} requestParameters Request parameters.
+     * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
+     * @summary Remove encryption from a directory
+     * @param {CloudApiDirectoryDecryptRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public createEncryptedFolder(requestParameters: CloudApiCreateEncryptedFolderRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).createEncryptedFolder(requestParameters.cloudEncryptedFolderCreateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public directoryDecrypt(requestParameters: CloudApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Removes encrypted-folder metadata and optionally deletes folder contents.
-     * @summary Delete an encrypted folder definition
-     * @param {CloudApiDeleteEncryptedFolderRequest} requestParameters Request parameters.
+     * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+     * @summary Delete a directory
+     * @param {CloudApiDirectoryDeleteRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public deleteEncryptedFolder(requestParameters: CloudApiDeleteEncryptedFolderRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).deleteEncryptedFolder(requestParameters.cloudEncryptedFolderDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public directoryDelete(requestParameters: CloudApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Invalidates the session token for an encrypted directory.
+     * @summary Lock an encrypted directory
+     * @param {CloudApiDirectoryLockRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryLock(requestParameters: CloudApiDirectoryLockRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).directoryLock(requestParameters.directoryLockRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+     * @summary Rename a directory
+     * @param {CloudApiDirectoryRenameRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryRename(requestParameters: CloudApiDirectoryRenameRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
+     * @summary Unlock an encrypted directory
+     * @param {CloudApiDirectoryUnlockRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryUnlock(requestParameters: CloudApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3710,14 +3811,14 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags.
+     * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
      * @summary List files and directories
      * @param {CloudApiListRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3732,35 +3833,25 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
-     * Returns directory prefixes (folders) for a given path.
+     * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
      * @summary List directories inside a path
      * @param {CloudApiListDirectoriesRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Returns encrypted folders metadata scoped to the user.
-     * @summary List encrypted folders
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public listEncryptedFolders(options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listEncryptedFolders(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns files at a given path for the authenticated user.
+     * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
      * @summary List objects (files) inside a path
      * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3772,39 +3863,6 @@ export class CloudApi extends BaseAPI {
      */
     public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).move(requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Renames a directory within the same parent path by updating its final segment.
-     * @summary Rename directory (prefix)
-     * @param {CloudApiRenameDirectoryRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public renameDirectory(requestParameters: CloudApiRenameDirectoryRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).renameDirectory(requestParameters.cloudRenameDirectoryRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Renames an encrypted folder after validating the supplied passphrase.
-     * @summary Rename an encrypted folder
-     * @param {CloudApiRenameEncryptedFolderRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public renameEncryptedFolder(requestParameters: CloudApiRenameEncryptedFolderRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).renameEncryptedFolder(requestParameters.cloudEncryptedFolderRenameRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Validates the passphrase and returns the encrypted folder key for client-side encryption.
-     * @summary Unlock an encrypted folder
-     * @param {CloudApiUnlockEncryptedFolderRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public unlockEncryptedFolder(requestParameters: CloudApiUnlockEncryptedFolderRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).unlockEncryptedFolder(requestParameters.cloudEncryptedFolderUnlockRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

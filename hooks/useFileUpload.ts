@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import type { AxiosProgressEvent } from "axios";
 import useCloudList from "./useCloudList";
 import useUserStorageUsage from "./useUserStorageUsage";
+import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
 
 export type UploadStatus = "uploading" | "completed" | "failed" | "cancelled";
 
@@ -21,6 +22,7 @@ export function useFileUpload(currentPath: string | null) {
   // the upload modal/component mounts to avoid unnecessary network requests.
   const { invalidates } = useCloudList(currentPath || "", { enabled: false });
   const { invalidate: invalidatesUsage } = useUserStorageUsage(); // to ensure usage is up to date after upload
+  const { getSessionToken } = useEncryptedFolders();
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const controllersRef = useRef<Record<string, AbortController>>({});
   // query client is not required here; invalidation helpers from useCloudList
@@ -55,6 +57,10 @@ export function useFileUpload(currentPath: string | null) {
 
   const uploadFile = useCallback(
     async (file: File) => {
+      const sessionToken = getSessionToken(currentPath || "");
+      const headers = sessionToken
+        ? { "X-Folder-Session": sessionToken }
+        : undefined;
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       const newItem: UploadItem = {
         id,
@@ -80,16 +86,19 @@ export function useFileUpload(currentPath: string | null) {
         const key = `${prefix}${file.name}`;
 
         // 1. Create Multipart Upload
-        const createResp = await cloudApiFactory.uploadCreateMultipartUpload({
-          cloudCreateMultipartUploadRequestModel: {
-            Key: key,
-            ContentType: file.type || undefined,
-            TotalSize: file.size,
-            Metadata: {
-              originalFileName: file.name,
+        const createResp = await cloudApiFactory.uploadCreateMultipartUpload(
+          {
+            cloudCreateMultipartUploadRequestModel: {
+              Key: key,
+              ContentType: file.type || undefined,
+              TotalSize: file.size,
+              Metadata: {
+                originalFileName: file.name,
+              },
             },
           },
-        });
+          { headers }
+        );
 
         uploadId = createResp.data?.result?.UploadId;
         finalKey = createResp.data?.result?.Key ?? key;
@@ -117,6 +126,7 @@ export function useFileUpload(currentPath: string | null) {
           const partResp = await cloudApiFactory.uploadPart(
             { key: finalKey, uploadId, partNumber, file: chunkFile },
             {
+              headers,
               signal: controller.signal,
               onUploadProgress: (e: AxiosProgressEvent) => {
                 const loaded = e.loaded ?? 0;
@@ -134,13 +144,16 @@ export function useFileUpload(currentPath: string | null) {
         }
 
         // 3. Complete Multipart Upload
-        await cloudApiFactory.uploadCompleteMultipartUpload({
-          cloudCompleteMultipartUploadRequestModel: {
-            Key: finalKey,
-            UploadId: uploadId,
-            Parts: parts,
+        await cloudApiFactory.uploadCompleteMultipartUpload(
+          {
+            cloudCompleteMultipartUploadRequestModel: {
+              Key: finalKey,
+              UploadId: uploadId,
+              Parts: parts,
+            },
           },
-        });
+          { headers }
+        );
 
         updateUpload(id, { progress: 100, status: "completed" });
 
@@ -155,12 +168,15 @@ export function useFileUpload(currentPath: string | null) {
         // Cleanup on server if possible
         if (uploadId && finalKey) {
           try {
-            await cloudApiFactory.uploadAbortMultipartUpload({
-              cloudAbortMultipartUploadRequestModel: {
-                Key: finalKey!,
-                UploadId: uploadId!,
+            await cloudApiFactory.uploadAbortMultipartUpload(
+              {
+                cloudAbortMultipartUploadRequestModel: {
+                  Key: finalKey!,
+                  UploadId: uploadId!,
+                },
               },
-            });
+              { headers }
+            );
           } catch (e) {
             console.warn("Abort failed", e);
           }
@@ -186,7 +202,7 @@ export function useFileUpload(currentPath: string | null) {
         delete controllersRef.current[id];
       }
     },
-    [currentPath, updateUpload, invalidates, invalidatesUsage]
+    [currentPath, updateUpload, invalidates, invalidatesUsage, getSessionToken]
   );
 
   const handleFiles = useCallback(

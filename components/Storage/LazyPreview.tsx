@@ -154,7 +154,7 @@ export default function LazyPreview({
   const renderContent = () => {
     if (!inView) {
       return (
-        <div className="flex flex-col items-center justify-center p-12 text-muted-foreground gap-3">
+        <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
           <span className="text-sm font-medium">Preparing preview...</span>
         </div>
@@ -162,14 +162,31 @@ export default function LazyPreview({
     }
 
     if (isImage) {
+      const width = file?.Metadata?.Width
+        ? parseInt(file.Metadata.Width)
+        : undefined;
+      const height = file?.Metadata?.Height
+        ? parseInt(file.Metadata.Height)
+        : undefined;
+      const aspectRatio = width && height ? width / height : undefined;
+
       return (
         <div
-          className={`relative flex items-center justify-center bg-muted/5 rounded-lg overflow-hidden ${
-            isFullScreen ? "h-full min-h-[80vh]" : "min-h-[200px]"
+          className={`relative flex items-center justify-center bg-muted/5 rounded-lg overflow-hidden w-full ${
+            isFullScreen ? "h-full" : "h-auto"
           }`}
+          style={{
+            aspectRatio:
+              !isFullScreen && aspectRatio ? `${aspectRatio}` : undefined,
+            minHeight: isFullScreen
+              ? "80vh"
+              : aspectRatio
+              ? undefined
+              : "300px",
+          }}
         >
           {!imgLoaded && !imgError && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/10">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground/50" />
             </div>
           )}
@@ -182,13 +199,17 @@ export default function LazyPreview({
               scale: imgLoaded ? 1 : 0.98,
             }}
             transition={{ duration: 0.3 }}
-            className={`${
+            className={`w-auto max-w-full object-contain shadow-sm ${
               isFullScreen ? "max-h-[90vh]" : "max-h-[70vh]"
-            } w-auto max-w-full object-contain shadow-sm`}
+            }`}
+            style={{
+              aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
+            }}
             onLoad={() => setImgLoaded(true)}
             onError={() => setImgError(true)}
             loading="lazy"
           />
+
           {imgError && (
             <div className="flex flex-col items-center gap-2 text-muted-foreground p-8">
               <AlertCircle className="h-8 w-8" />

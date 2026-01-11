@@ -13,6 +13,9 @@ import type {
   CloudDirectoryListModelResult,
   CloudObjectListModelResult,
 } from "@/Service/Generates/api";
+import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
+import { isAxiosError } from "axios";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,14 +55,6 @@ const normalizePath = (path?: string): string => {
   if (!path || path === "/") return "";
   return path.replace(/^\/+/, "");
 };
-
-// /** Parent path'i hesaplar, root için null döner */
-// const getParentPath = (path: string): string | null => {
-//   if (!path) return null;
-//   const segments = path.split("/").filter(Boolean);
-//   segments.pop();
-//   return segments.join("/");
-// };
 
 /** Query key oluşturur */
 export const createCloudListQueryKey = (
@@ -143,6 +138,7 @@ export const createInfiniteDirectoriesQueryKey = (
 
 export function useCloudList(path?: string, options?: UseCloudListOptions) {
   const { status } = useSession();
+  const { getSessionToken } = useEncryptedFolders();
   const {
     delimiter = true,
     isMetadataProcessing = false,
@@ -159,6 +155,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
 
   const queryClient = useQueryClient();
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
+  const sessionToken = getSessionToken(normalizedPath);
 
   const breadcrumbQueryKey = useMemo(
     () => createCloudBreadcrumbQueryKey(normalizedPath, delimiter),
@@ -216,6 +213,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
           skip,
           take,
           search,
+          xFolderSession: sessionToken || undefined,
         },
         { signal }
       ),
@@ -224,13 +222,24 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     refetchOnWindowFocus: false,
     enabled: status === "authenticated" && enabled && objectsEnabled,
     refetchInterval: objectsEnabled ? refetchInterval : false,
+    retry: (failureCount, error) => {
+      if (isAxiosError(error) && error.response?.status === 403) return false;
+      return failureCount < 3;
+    },
   });
 
   const directoriesQuery = useQuery({
     queryKey: directoriesQueryKey,
     queryFn: async ({ signal }) =>
       await cloudApiFactory.listDirectories(
-        { path: normalizedPath, delimiter, skip, take, search },
+        {
+          path: normalizedPath,
+          delimiter,
+          skip,
+          take,
+          search,
+          xFolderSession: sessionToken || undefined,
+        },
         { signal }
       ),
     select: (res) => res.data?.result,
@@ -239,6 +248,10 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     refetchOnWindowFocus: false,
     enabled: status === "authenticated" && enabled && directoriesEnabled,
     refetchInterval: directoriesEnabled ? refetchInterval : false,
+    retry: (failureCount, error) => {
+      if (isAxiosError(error) && error.response?.status === 403) return false;
+      return failureCount < 3;
+    },
   });
 
   // Invalidate helper - mevcut path için cache'i temizler
@@ -314,6 +327,7 @@ export function useInfiniteCloudList(
   options?: UseCloudListOptions
 ) {
   const { status } = useSession();
+  const { getSessionToken } = useEncryptedFolders();
   const {
     delimiter = true,
     isMetadataProcessing = false,
@@ -329,6 +343,7 @@ export function useInfiniteCloudList(
 
   const queryClient = useQueryClient();
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
+  const sessionToken = getSessionToken(normalizedPath);
 
   const breadcrumbQueryKey = useMemo(
     () => createCloudBreadcrumbQueryKey(normalizedPath, delimiter),
@@ -390,6 +405,7 @@ export function useInfiniteCloudList(
             skip: pageParam,
             take,
             search,
+            xFolderSession: sessionToken || undefined,
           },
           { signal }
         )
@@ -406,6 +422,10 @@ export function useInfiniteCloudList(
     refetchOnWindowFocus: false,
     enabled: status === "authenticated" && enabled && objectsEnabled,
     refetchInterval: objectsEnabled ? refetchInterval : false,
+    retry: (failureCount, error) => {
+      if (isAxiosError(error) && error.response?.status === 403) return false;
+      return failureCount < 3;
+    },
   });
 
   const directoriesQuery = useInfiniteQuery<
@@ -419,7 +439,14 @@ export function useInfiniteCloudList(
     queryFn: async ({ pageParam = 0, signal }) =>
       await cloudApiFactory
         .listDirectories(
-          { path: normalizedPath, delimiter, skip: pageParam, take, search },
+          {
+            path: normalizedPath,
+            delimiter,
+            skip: pageParam,
+            take,
+            search,
+            xFolderSession: sessionToken || undefined,
+          },
           { signal }
         )
         .then((res) => res.data?.result),
@@ -435,11 +462,14 @@ export function useInfiniteCloudList(
     refetchOnWindowFocus: false,
     enabled: status === "authenticated" && enabled && directoriesEnabled,
     refetchInterval: directoriesEnabled ? refetchInterval : false,
+    retry: (failureCount, error) => {
+      if (isAxiosError(error) && error.response?.status === 403) return false;
+      return failureCount < 3;
+    },
   });
 
   const combinedObjects = useMemo(
-    () =>
-      objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
+    () => objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
     [objectsQuery.data]
   );
 

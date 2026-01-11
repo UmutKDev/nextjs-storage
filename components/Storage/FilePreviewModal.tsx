@@ -15,6 +15,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
 import ShareFileModal from "./ShareFileModal";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 import type { CloudObjectModel } from "@/Service/Generates/api";
 
@@ -138,72 +140,100 @@ export default function FilePreviewModal({
               : "w-full h-[92vh] sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl rounded-xl"
           }`}
         >
-          <div className="flex items-center justify-between p-4 border-b border-muted/10 shrink-0 gap-4">
+          <div className="flex items-center justify-between p-3 border-b border-border/40 shrink-0 gap-4 bg-muted/5">
             <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-              <div
-                className="text-sm font-semibold truncate"
-                title={file.Metadata?.Originalfilename ?? file.Name}
-              >
-                {file.Metadata?.Originalfilename ?? file.Name}
-              </div>
-              <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-full uppercase shrink-0">
-                {file.Extension?.toUpperCase()}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {file.Path?.Url || file.Path?.Host ? (
-                <a
-                  href={
-                    file.Path?.Url ??
-                    `${String(file.Path?.Host).replace(/\/$/, "")}/${
-                      file.Path?.Key
-                    }`
-                  }
-                  download={file.Name}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  onClick={(e) => e.stopPropagation()}
-                  className="rounded-2xl px-2 py-1 text-sm hover:bg-muted/55 flex items-center gap-2 bg-muted"
+              <div className="flex flex-col min-w-0">
+                <div
+                  className="text-sm font-semibold truncate text-foreground"
+                  title={file.Metadata?.Originalfilename ?? file.Name}
                 >
-                  <DownloadCloud size={16} />
-                  <span className="hidden sm:inline">Download</span>
-                </a>
+                  {file.Metadata?.Originalfilename ?? file.Name}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="uppercase font-medium tracking-wide text-[10px] bg-muted px-1.5 rounded-sm">
+                    {file.Extension}
+                  </span>
+                  {file.Size && (
+                    <>
+                      <span className="text-muted-foreground/40">•</span>
+                      <span>{(file.Size / 1024).toFixed(1)} KB</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {file.Path?.Url || file.Path?.Host ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  title="İndir"
+                  asChild
+                >
+                  <a
+                    href={
+                      file.Path?.Url ??
+                      `${String(file.Path?.Host).replace(/\/$/, "")}/${
+                        file.Path?.Key
+                      }`
+                    }
+                    download={file.Name}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <DownloadCloud size={18} />
+                  </a>
+                </Button>
               ) : null}
 
-              <button
+              <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={() => setShowShareModal(true)}
-                className="rounded-md p-1 hover:bg-muted/10"
-                title="Share"
+                title="Paylaş"
               >
-                <Share2 size={20} />
-              </button>
+                <Share2 size={18} />
+              </Button>
 
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 onClick={() => onDelete?.(file)}
-                className="rounded-md p-1 hover:bg-muted/10 text-destructive"
-                title="Delete"
+                title="Sil"
               >
-                <Trash2 size={20} />
-              </button>
+                <Trash2 size={18} />
+              </Button>
 
-              <button
+              <div className="h-6 w-px bg-border/60 mx-1" />
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className="rounded-md p-1 hover:bg-muted/10"
-                title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+                title={isFullScreen ? "Küçült" : "Tam Ekran"}
               >
                 {isFullScreen ? (
-                  <Minimize2 size={20} />
+                  <Minimize2 size={18} />
                 ) : (
-                  <Maximize2 size={20} />
+                  <Maximize2 size={18} />
                 )}
-              </button>
+              </Button>
 
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={onClose}
-                className="rounded-md p-1 hover:bg-muted/10"
               >
-                <X />
-              </button>
+                <X size={18} />
+              </Button>
             </div>
           </div>
 

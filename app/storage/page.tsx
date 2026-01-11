@@ -27,8 +27,6 @@ export default function StoragePage() {
 
   // Lifted state for modals
   const [showCreateFolder, setShowCreateFolder] = useState(false);
-  const [showCreateEncryptedFolder, setShowCreateEncryptedFolder] =
-    useState(false);
   const [showUpload, setShowUpload] = useState(false);
 
   return (
@@ -37,7 +35,6 @@ export default function StoragePage() {
       <Sidebar
         className="hidden md:flex flex-none w-64 pt-24"
         onCreateFolder={() => setShowCreateFolder(true)}
-        onCreateEncryptedFolder={() => setShowCreateEncryptedFolder(true)}
         onUpload={() => setShowUpload(true)}
       />
 
@@ -56,8 +53,6 @@ export default function StoragePage() {
               // Pass state down
               showCreateFolder={showCreateFolder}
               setShowCreateFolder={setShowCreateFolder}
-              showCreateEncryptedFolder={showCreateEncryptedFolder}
-              setShowCreateEncryptedFolder={setShowCreateEncryptedFolder}
               showUpload={showUpload}
               setShowUpload={setShowUpload}
             />

@@ -7,36 +7,33 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 
 import { cloudApiFactory } from "@/Service/Factories";
-import type { CloudEncryptedFolderSummaryModel } from "@/Service/Generates";
 import UnlockEncryptedFolderModal from "./UnlockEncryptedFolderModal";
 
 type UnlockPrompt = {
   path: string;
   displayName: string;
-  onSuccess?: (key: string, passphrase?: string) => void;
+  onSuccess?: (token: string) => void;
 };
 
 type EncryptedFoldersContextValue = {
-  manifest: CloudEncryptedFolderSummaryModel[];
-  manifestLoading: boolean;
   isFolderEncrypted: (path?: string | null) => boolean;
   isFolderUnlocked: (path?: string | null) => boolean;
-  getFolderKey: (path?: string | null) => string | undefined;
+  getSessionToken: (path?: string | null) => string | null;
   getFolderPassphrase: (path?: string | null) => string | undefined;
+  registerEncryptedPath: (path: string) => void;
   promptUnlock: (options: {
     path: string;
     label?: string;
-    onSuccess?: (key: string, passphrase?: string) => void;
+    onSuccess?: (token: string) => void;
   }) => void;
-  clearFolderKey: (path: string) => void;
-  clearAllKeys: () => void;
-  refetchManifest: () => Promise<unknown>;
+  clearSession: (path: string) => void;
+  clearAllSessions: () => void;
+  refetchManifest: () => Promise<void>;
 };
 
 const EncryptedFoldersContext = createContext<
@@ -73,36 +70,63 @@ export default function EncryptedFoldersProvider({
   children,
 }: React.PropsWithChildren) {
   const { status } = useSession();
-  const [folderKeys, setFolderKeys] = useState<Record<string, string>>({});
-  const [folderPassphrases, setFolderPassphrases] = React.useState<
-    Record<string, string>
+
+  const [encryptedPaths, setEncryptedPaths] = useState<Set<string>>(new Set());
+  const [sessions, setSessions] = useState<
+    Record<string, { token: string; expiresAt: number }>
   >({});
+  const [passphrases, setPassphrases] = useState<Record<string, string>>({});
   const [unlockPrompt, setUnlockPrompt] = useState<UnlockPrompt | null>(null);
 
-  const manifestQuery = useQuery({
-    queryKey: ["cloud", "encrypted-folders"],
-    queryFn: async ({ signal }) => {
-      const response = await cloudApiFactory.listEncryptedFolders({ signal });
-      return response.data?.result?.Folders ?? [];
-    },
-    enabled: status === "authenticated",
-    refetchOnWindowFocus: false,
-    staleTime: 60_000,
-  });
+  // Restore sessions from sessionStorage on mount
+  React.useEffect(() => {
+    try {
+      const storedSessions = window.sessionStorage.getItem("folderSessions");
+      if (storedSessions) {
+        const parsed = JSON.parse(storedSessions);
+        setSessions(parsed);
+      }
 
-  const manifest = React.useMemo(
-    () => manifestQuery.data ?? [],
-    [manifestQuery.data]
-  );
-  const manifestLoading = manifestQuery.isLoading;
+      const storedKeys = window.sessionStorage.getItem("folderPassphrases");
+      if (storedKeys) {
+        setPassphrases(JSON.parse(storedKeys));
+      }
 
-  const encryptedPaths = useMemo(() => {
-    return new Set(manifest.map((f) => normalizeFolderPath(f.Path)));
-  }, [manifest]);
+      const storedEncrypted = window.sessionStorage.getItem("encryptedPaths");
+      if (storedEncrypted) {
+        setEncryptedPaths(new Set(JSON.parse(storedEncrypted)));
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }, []);
+
+  // Persist sessions
+  React.useEffect(() => {
+    window.sessionStorage.setItem("folderSessions", JSON.stringify(sessions));
+  }, [sessions]);
+
+  // Persist passphrases
+  React.useEffect(() => {
+    window.sessionStorage.setItem(
+      "folderPassphrases",
+      JSON.stringify(passphrases)
+    );
+  }, [passphrases]);
+
+  // Persist encrypted metadata known paths
+  React.useEffect(() => {
+    window.sessionStorage.setItem(
+      "encryptedPaths",
+      JSON.stringify(Array.from(encryptedPaths))
+    );
+  }, [encryptedPaths]);
 
   const findEncryptedAncestor = useCallback(
     (normalized?: string | null) => {
       if (!normalized) return undefined;
+      if (encryptedPaths.has(normalized)) return normalized;
+
       let current = normalized;
       while (current) {
         if (encryptedPaths.has(current)) return current;
@@ -125,26 +149,33 @@ export default function EncryptedFoldersProvider({
     [findEncryptedAncestor]
   );
 
-  const isFolderUnlocked = useCallback(
-    (path?: string | null) => {
-      const normalized = normalizeFolderPath(path);
-      if (!normalized) return false;
-      const encryptedPath = findEncryptedAncestor(normalized);
-      if (!encryptedPath) return false;
-      return Boolean(folderKeys[encryptedPath]);
-    },
-    [findEncryptedAncestor, folderKeys]
-  );
+  const registerEncryptedPath = useCallback((path: string) => {
+    const normalized = normalizeFolderPath(path);
+    if (!normalized) return;
+    setEncryptedPaths((prev) => {
+      if (prev.has(normalized)) return prev;
+      const next = new Set(prev);
+      next.add(normalized);
+      return next;
+    });
+  }, []);
 
-  const getFolderKey = useCallback(
+  const getSessionToken = useCallback(
     (path?: string | null) => {
       const normalized = normalizeFolderPath(path);
-      if (!normalized) return undefined;
+      if (!normalized) return null;
       const encryptedPath = findEncryptedAncestor(normalized);
-      if (!encryptedPath) return undefined;
-      return folderKeys[encryptedPath];
+      if (!encryptedPath) return null;
+
+      const session = sessions[encryptedPath];
+      if (!session) return null;
+
+      if (session.expiresAt * 1000 < Date.now() + 10000) {
+        return null;
+      }
+      return session.token;
     },
-    [findEncryptedAncestor, folderKeys]
+    [findEncryptedAncestor, sessions]
   );
 
   const getFolderPassphrase = useCallback(
@@ -153,74 +184,76 @@ export default function EncryptedFoldersProvider({
       if (!normalized) return undefined;
       const encryptedPath = findEncryptedAncestor(normalized);
       if (!encryptedPath) return undefined;
-      return folderPassphrases[encryptedPath];
+      return passphrases[encryptedPath];
     },
-    [findEncryptedAncestor, folderPassphrases]
+    [findEncryptedAncestor, passphrases]
   );
 
-  const cacheFolderKey = useCallback((path: string, key: string) => {
-    const normalized = normalizeFolderPath(path);
-    if (!normalized) return;
-    setFolderKeys((prev) => ({ ...prev, [normalized]: key }));
-  }, []);
+  const isFolderUnlocked = useCallback(
+    (path?: string | null) => {
+      return Boolean(getSessionToken(path));
+    },
+    [getSessionToken]
+  );
 
-  const cacheFolderPassphrase = useCallback((path: string, passphrase: string) => {
+  const clearSession = useCallback((path: string) => {
     const normalized = normalizeFolderPath(path);
     if (!normalized) return;
-    setFolderPassphrases((prev) => ({ ...prev, [normalized]: passphrase }));
-  }, []);
-
-  const clearFolderKey = useCallback((path: string) => {
-    const normalized = normalizeFolderPath(path);
-    if (!normalized) return;
-    setFolderKeys((prev) => {
+    setSessions((prev) => {
       const next = { ...prev };
       delete next[normalized];
       return next;
     });
-    setFolderPassphrases((prev) => {
+    setPassphrases((prev) => {
       const next = { ...prev };
       delete next[normalized];
       return next;
     });
   }, []);
 
-  const clearAllKeys = useCallback(() => {
-    setFolderKeys({});
-    setFolderPassphrases({});
+  const clearAllSessions = useCallback(() => {
+    setSessions({});
+    setPassphrases({});
+    setEncryptedPaths(new Set());
   }, []);
 
   React.useEffect(() => {
     if (status === "unauthenticated") {
-      clearAllKeys();
+      clearAllSessions();
     }
-  }, [status, clearAllKeys]);
-
-  React.useEffect(() => {
-    const handler = () => {
-      clearAllKeys();
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [clearAllKeys]);
+  }, [status, clearAllSessions]);
 
   const unlockFolder = useCallback(
     async (path: string, passphrase: string) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) throw new Error("Invalid folder path.");
-      const response = await cloudApiFactory.unlockEncryptedFolder({
-        cloudEncryptedFolderUnlockRequestModel: {
+
+      const response = await cloudApiFactory.directoryUnlock({
+        xFolderPassphrase: passphrase,
+        directoryUnlockRequestModel: {
           Path: normalized,
-          Passphrase: passphrase,
         },
       });
-      const key = response.data?.result?.FolderKey;
-      if (!key) throw new Error("No folder key returned by the server.");
-      cacheFolderKey(normalized, key);
-      cacheFolderPassphrase(normalized, passphrase);
-      return key;
+
+      const result = response.data?.result;
+      if (!result) throw new Error("No result returned from server.");
+
+      const { SessionToken, ExpiresAt } = result;
+      if (!SessionToken) throw new Error("No session token returned.");
+
+      setSessions((prev) => ({
+        ...prev,
+        [normalized]: {
+          token: SessionToken,
+          expiresAt: ExpiresAt ?? Date.now() / 1000 + 900,
+        },
+      }));
+      setPassphrases((prev) => ({ ...prev, [normalized]: passphrase }));
+      registerEncryptedPath(normalized);
+
+      return SessionToken;
     },
-    [cacheFolderKey, cacheFolderPassphrase]
+    [registerEncryptedPath]
   );
 
   const promptUnlock = useCallback(
@@ -231,14 +264,14 @@ export default function EncryptedFoldersProvider({
     }: {
       path: string;
       label?: string;
-      onSuccess?: (key: string, passphrase?: string) => void;
+      onSuccess?: (token: string) => void;
     }) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) return;
 
       if (isFolderUnlocked(normalized)) {
-        const cachedKey = getFolderKey(normalized);
-        if (cachedKey) onSuccess?.(cachedKey, getFolderPassphrase(normalized));
+        const token = getSessionToken(normalized);
+        if (token) onSuccess?.(token);
         return;
       }
 
@@ -248,20 +281,20 @@ export default function EncryptedFoldersProvider({
         label ||
         normalized.split("/").filter(Boolean).pop() ||
         normalized ||
-        "this folder";
+        "bu klasör";
 
       setUnlockPrompt({ path: targetPath, displayName, onSuccess });
     },
-    [findEncryptedAncestor, getFolderKey, getFolderPassphrase, isFolderUnlocked]
+    [findEncryptedAncestor, getSessionToken, isFolderUnlocked]
   );
 
   const handleUnlockSubmit = useCallback(
     async (passphrase: string) => {
       if (!unlockPrompt) return;
       try {
-        const key = await unlockFolder(unlockPrompt.path, passphrase);
+        const token = await unlockFolder(unlockPrompt.path, passphrase);
         toast.success("Folder unlocked");
-        unlockPrompt.onSuccess?.(key, passphrase);
+        unlockPrompt.onSuccess?.(token);
         setUnlockPrompt(null);
       } catch (error) {
         throw new Error(getErrorMessage(error));
@@ -272,28 +305,25 @@ export default function EncryptedFoldersProvider({
 
   const value = useMemo<EncryptedFoldersContextValue>(
     () => ({
-      manifest,
-      manifestLoading,
       isFolderEncrypted,
       isFolderUnlocked,
-      getFolderKey,
+      getSessionToken,
       getFolderPassphrase,
+      registerEncryptedPath,
       promptUnlock,
-      clearFolderKey,
-      clearAllKeys,
-      refetchManifest: manifestQuery.refetch,
+      clearSession,
+      clearAllSessions,
+      refetchManifest: async () => {}, // No-op
     }),
     [
-      manifest,
-      manifestLoading,
       isFolderEncrypted,
       isFolderUnlocked,
-      getFolderKey,
+      getSessionToken,
       getFolderPassphrase,
+      registerEncryptedPath,
       promptUnlock,
-      clearFolderKey,
-      clearAllKeys,
-      manifestQuery.refetch,
+      clearSession,
+      clearAllSessions,
     ]
   );
 

@@ -11,7 +11,6 @@ import type {
   CloudBreadCrumbListModelResult,
   CloudObjectListModelResult,
   CloudDirectoryListModelResult,
-  CloudEncryptedFolderDeleteRequestModel,
 } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
 import {
@@ -38,7 +37,6 @@ import {
   Lock,
   Loader2,
 } from "lucide-react";
-import {} from "@/components/ui/card";
 
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import FilePreviewModal from "./FilePreviewModal";
@@ -69,17 +67,12 @@ const getFolderNameFromPrefix = (prefix?: string | null) => {
   return segments.length ? segments[segments.length - 1] : prefix;
 };
 
-type EncryptedDeleteRequest = CloudEncryptedFolderDeleteRequestModel & {
-  Passphrase: string;
-};
 export default function Explorer({
   queries: { breadcrumbQuery, objectsQuery, directoriesQuery },
   currentPath,
   invalidates,
   showCreateFolder,
   setShowCreateFolder,
-  showCreateEncryptedFolder,
-  setShowCreateEncryptedFolder,
   showUpload,
   setShowUpload,
 }: {
@@ -102,8 +95,6 @@ export default function Explorer({
   };
   showCreateFolder: boolean;
   setShowCreateFolder: (show: boolean) => void;
-  showCreateEncryptedFolder: boolean;
-  setShowCreateEncryptedFolder: (show: boolean) => void;
   showUpload: boolean;
   setShowUpload: (show: boolean) => void;
 }) {
@@ -115,9 +106,9 @@ export default function Explorer({
     isFolderEncrypted,
     isFolderUnlocked,
     promptUnlock,
-    refetchManifest,
     getFolderPassphrase,
-    manifestLoading,
+    registerEncryptedPath,
+    refetchManifest,
   } = useEncryptedFolders();
 
   // UI state
@@ -132,12 +123,57 @@ export default function Explorer({
   const prevPath = React.useRef(currentPath);
   const folderLabel =
     currentPath.split("/").filter(Boolean).pop() || "bu klasör";
-  const isCurrentEncrypted = isFolderEncrypted(currentPath);
-  const isCurrentLocked = isCurrentEncrypted && !isFolderUnlocked(currentPath);
+
+  // Check if current view is locked based on 403 errors or provider state
+  const accessDeniedState = React.useMemo(() => {
+    const dirError = directoriesQuery.error;
+    const objError = objectsQuery.error;
+
+    const error =
+      (isAxiosError(dirError) && dirError.response?.status === 403
+        ? dirError
+        : null) ||
+      (isAxiosError(objError) && objError.response?.status === 403
+        ? objError
+        : null);
+
+    if (!error) return null;
+
+    let path = currentPath;
+    const data = error.response?.data;
+    if (data?.message && typeof data.message === "string") {
+      const match = data.message.match(/Folder "(.*?)" is encrypted/);
+      if (match && match[1]) {
+        path = match[1];
+      }
+    }
+
+    return { path };
+  }, [directoriesQuery.error, objectsQuery.error, currentPath]);
+
+  // If we found an encrypted parent via 403, register it immediately
+  React.useEffect(() => {
+    if (accessDeniedState?.path) {
+      registerEncryptedPath(accessDeniedState.path);
+    }
+  }, [accessDeniedState, registerEncryptedPath]);
+
+  const isAccessDenied = !!accessDeniedState;
+  const lockPath = accessDeniedState?.path || currentPath;
+
+  const isCurrentEncrypted =
+    isFolderEncrypted(currentPath) ||
+    isFolderEncrypted(lockPath) ||
+    isAccessDenied;
+  const isCurrentLocked =
+    isAccessDenied || (isCurrentEncrypted && !isFolderUnlocked(lockPath));
 
   // create folder UI state
   const [newFolderName, setNewFolderName] = React.useState("");
+  const [newFolderEncrypted, setNewFolderEncrypted] = React.useState(false);
+  const [newFolderPassphrase, setNewFolderPassphrase] = React.useState("");
   const [creating, setCreating] = React.useState(false);
+  // Deprecated separate encrypted state but kept to avoid breaking removal of modal if needed later
   const [encryptedFolderName, setEncryptedFolderName] = React.useState("");
   const [encryptedPassphrase, setEncryptedPassphrase] = React.useState("");
   const [creatingEncrypted, setCreatingEncrypted] = React.useState(false);
@@ -182,6 +218,15 @@ export default function Explorer({
       directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
     [directoriesQuery.data]
   );
+
+  // Register encrypted paths
+  React.useEffect(() => {
+    directories.forEach((d) => {
+      if (d.IsEncrypted && d.Prefix) {
+        registerEncryptedPath(d.Prefix);
+      }
+    });
+  }, [directories, registerEncryptedPath]);
 
   const activeItem = React.useMemo(() => {
     if (!activeId) return null;
@@ -357,43 +402,16 @@ export default function Explorer({
 
     if (sourceId === targetId) return;
 
-    // Determine destination path
-    // If dropped on a folder in the list, targetId is the folder prefix (e.g. "A/B/")
-    // If dropped on a breadcrumb, targetId is the path (e.g. "A" or "")
-
-    // We need to construct the full destination key: destinationFolder + filename
-
-    // Get filename from source
-    // sourceId is the full key (e.g. "A/file.txt") or folder prefix ("A/B/")
-    // If it's a folder, we are moving a folder.
-
     const sourceData = active.data.current;
     const isSourceFolder = sourceData?.type === "folder";
-
-    // // Extract name
-    // let name = "";
-    // if (isSourceFolder) {
-    //   const segments = sourceId.split("/").filter(Boolean);
-    //   name = segments[segments.length - 1];
-    // } else {
-    //   const segments = sourceId.split("/");
-    //   name = segments[segments.length - 1];
-    // }
-
-    // Determine target folder path
-    // If target is root, path is empty string.
-    // If target is "A/B/", path is "A/B/".
-    // Breadcrumb root has id "".
 
     let targetFolder = targetId.replace(/^\/+/, "");
     if (targetFolder && !targetFolder.endsWith("/")) {
       targetFolder += "/";
     }
 
-    // Check if we are dropping into the same folder
     let currentParent = "";
     if (isSourceFolder) {
-      // sourceId is "A/B/"
       const noSlash = sourceId.slice(0, -1);
       const lastSlash = noSlash.lastIndexOf("/");
       currentParent =
@@ -406,7 +424,6 @@ export default function Explorer({
 
     if (currentParent === targetFolder) return;
 
-    // For move operation, DestinationKey should be the target directory
     const destinationKey = targetFolder === "" ? "/" : targetFolder;
 
     handleMove([sourceId], destinationKey);
@@ -440,7 +457,6 @@ export default function Explorer({
         if (normalizedPath && isFolderEncrypted(normalizedPath)) {
           encryptedDirs.push(dir);
         } else if (dir.IsEncrypted) {
-          // fallback for api-provided flag
           encryptedDirs.push(dir);
         } else {
           regularDirs.push(dir);
@@ -492,17 +508,14 @@ export default function Explorer({
             const normalizedPath = normalizeFolderPath(dir.Prefix);
             if (!normalizedPath) return;
             const passphrase = getFolderPassphrase(normalizedPath);
-            if (!passphrase) return;
-            await cloudApiFactory.deleteEncryptedFolder({
-              cloudEncryptedFolderDeleteRequestModel: {
+            await cloudApiFactory.directoryDelete({
+              directoryDeleteRequestModel: {
                 Path: normalizedPath,
-                ShouldDeleteContents: true,
-                Passphrase: passphrase,
-              } as EncryptedDeleteRequest,
+              },
+              xFolderPassphrase: passphrase,
             });
           })
         );
-        await refetchManifest();
       }
 
       toast.success("Deleted selected items");
@@ -550,14 +563,12 @@ export default function Explorer({
             });
             return;
           }
-          await cloudApiFactory.deleteEncryptedFolder({
-            cloudEncryptedFolderDeleteRequestModel: {
+          await cloudApiFactory.directoryDelete({
+            directoryDeleteRequestModel: {
               Path: normalizedPath,
-              ShouldDeleteContents: true,
-              Passphrase: passphrase,
-            } as EncryptedDeleteRequest,
+            },
+            xFolderPassphrase: passphrase,
           });
-          await refetchManifest();
         } else {
           await cloudApiFactory._delete({
             cloudDeleteRequestModel: {
@@ -587,7 +598,6 @@ export default function Explorer({
     }
   }
 
-  // Helper to get name for delete modal
   function getItemName(item: CloudObjectModel | CloudDirectoryModel) {
     if ("Prefix" in item) {
       const prefix = item.Prefix ?? "";
@@ -597,7 +607,6 @@ export default function Explorer({
     return item.Name;
   }
 
-  // When path changes set navigating state so panels immediately show loading
   React.useEffect(() => {
     if (prevPath.current !== currentPath) {
       prevPath.current = currentPath;
@@ -605,7 +614,6 @@ export default function Explorer({
     }
   }, [currentPath]);
 
-  // When fetch completes, clear navigating state (small debounce to avoid flicker)
   React.useEffect(() => {
     if (!objectsQuery.isFetching && !directoriesQuery.isFetching) {
       const t = setTimeout(() => setIsNavigating(false), 120);
@@ -625,29 +633,52 @@ export default function Explorer({
       return;
     }
 
+    if (newFolderEncrypted) {
+      if (newFolderPassphrase.length < 8) {
+        toast.error("Parola en az 8 karakter olmalı");
+        return;
+      }
+    }
+
     setCreating(true);
     try {
-      // build key with trailing slash
       const prefix = currentPath
         ? currentPath.endsWith("/")
           ? currentPath
           : `${currentPath}/`
         : "";
-      const key = `${prefix}${name}/`;
 
-      await cloudApiFactory.createDirectory({
-        cloudKeyRequestModel: { Key: key },
-      });
+      if (newFolderEncrypted) {
+        const path = `${prefix}${name}`.replace(/\/+/g, "/").replace(/\/$/, "");
+        await cloudApiFactory.directoryCreate({
+          directoryCreateRequestModel: { Path: path, IsEncrypted: true },
+          xFolderPassphrase: newFolderPassphrase,
+        });
+        await refetchManifest();
+      } else {
+        const key = `${prefix}${name}/`;
+        // Updated to use directoryCreate
+        await cloudApiFactory.directoryCreate({
+          directoryCreateRequestModel: { Path: key, IsEncrypted: false },
+        });
+      }
 
-      // invalidate relevant queries so UI refreshes
       await Promise.all([invalidateDirectories()]);
 
-      toast.success("Folder created");
+      toast.success(
+        newFolderEncrypted ? "Şifreli klasör oluşturuldu" : "Folder created"
+      );
       setShowCreateFolder(false);
       setNewFolderName("");
+      setNewFolderEncrypted(false);
+      setNewFolderPassphrase("");
     } catch (e) {
       console.error(e);
-      toast.error("Failed to create folder");
+      if (isAxiosError(e) && e.response?.status === 409) {
+        toast.error("Bu isimde klasör zaten var");
+      } else {
+        toast.error("Failed to create folder");
+      }
     } finally {
       setCreating(false);
     }
@@ -675,15 +706,17 @@ export default function Explorer({
       const prefix = currentPath ? `${currentPath}/` : "";
       const path = `${prefix}${name}`.replace(/\/+/g, "/").replace(/\/$/, "");
 
-      await cloudApiFactory.createEncryptedFolder({
-        cloudEncryptedFolderCreateRequestModel: {
+      // Updated to use directoryCreate with passphrase
+      await cloudApiFactory.directoryCreate({
+        directoryCreateRequestModel: {
           Path: path,
-          Passphrase: passphrase,
+          IsEncrypted: true,
         },
+        xFolderPassphrase: passphrase,
       });
 
       toast.success("Şifreli klasör oluşturuldu");
-      setShowCreateEncryptedFolder(false);
+      setShowCreateFolder(false);
       setEncryptedFolderName("");
       setEncryptedPassphrase("");
       await Promise.all([invalidateDirectories(), refetchManifest()]);
@@ -735,11 +768,12 @@ export default function Explorer({
 
     setConverting(true);
     try {
-      await cloudApiFactory.convertFolderToEncrypted({
-        cloudEncryptedFolderConvertRequestModel: {
+      // Updated to use directoryConvertToEncrypted
+      await cloudApiFactory.directoryConvertToEncrypted({
+        directoryConvertToEncryptedRequestModel: {
           Path: normalizedPath,
-          Passphrase: passphrase,
         },
+        xFolderPassphrase: passphrase,
       });
       toast.success("Klasör şifreli hale getirildi");
       closeConvertModal();
@@ -801,18 +835,29 @@ export default function Explorer({
             if (!passphrase) {
               throw new Error("Klasör için parola gerekli");
             }
-            await cloudApiFactory.renameEncryptedFolder({
-              cloudEncryptedFolderRenameRequestModel: {
+            // Updated to use directoryRename
+            await cloudApiFactory.directoryRename({
+              directoryRenameRequestModel: {
                 Path: normalizedPath,
                 Name: newName,
-                Passphrase: passphrase,
               },
+              xFolderPassphrase: passphrase,
             });
             await refetchManifest();
           } else {
-            await cloudApiFactory.renameDirectory({
-              cloudRenameDirectoryRequestModel: {
-                Key: prefix,
+            // Unencrypted also uses directoryRename now if supported,
+            // but cloudApiFactory.renameDirectory (deprecated) might be what was used.
+            // Migration says: 	PUT /Cloud/Directories/Rename
+            // So we use directoryRename for both.
+
+            // Wait, normalizedPath is path. api expects Path of directory, and Name.
+            // Standard directory rename also uses directoryRename now.
+
+            if (!normalizedPath) throw new Error("Invalid path");
+
+            await cloudApiFactory.directoryRename({
+              directoryRenameRequestModel: {
+                Path: normalizedPath,
                 Name: newName,
               },
             });
@@ -845,9 +890,15 @@ export default function Explorer({
           promptUnlock({
             path: normalizedPath,
             label: folderDisplayName,
-            onSuccess: (_, unlockedPassphrase) => {
-              if (unlockedPassphrase) {
-                void renameFolder(dir, newName, unlockedPassphrase);
+            onSuccess: (token) => {
+              // We need passphrase for rename, not token.
+              // But promptUnlock's onSuccess gives token (and previously passphrase).
+              // I removed passphrase from onSuccess signature in provider!
+              // I should check if I can get passphrase via getFolderPassphrase after unlock.
+              // Yes, unlockFolder updates passesphrases state.
+              const p = getFolderPassphrase(normalizedPath);
+              if (p) {
+                void renameFolder(dir, newName, p);
               }
             },
           });
@@ -979,21 +1030,7 @@ export default function Explorer({
 
         <div className="flex-1 overflow-hidden relative">
           <div className="absolute inset-0 overflow-y-auto p-4">
-            {manifestLoading ? (
-              <div className="h-full flex flex-col items-center justify-center gap-4 text-center text-muted-foreground">
-                <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    Şifreleme durumu yükleniyor
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Lütfen klasörün güvenlik durumunu kontrol ederken bekleyin.
-                  </p>
-                </div>
-              </div>
-            ) : isCurrentLocked ? (
+            {isCurrentLocked ? (
               <div className="h-full flex flex-col items-center justify-center text-center gap-5 px-4 py-10">
                 <div className="w-14 h-14 rounded-full bg-muted/40 flex items-center justify-center text-muted-foreground">
                   <Lock className="w-6 h-6" />
@@ -1010,8 +1047,8 @@ export default function Explorer({
                 <Button
                   onClick={() =>
                     promptUnlock({
-                      path: currentPath,
-                      label: folderLabel,
+                      path: lockPath,
+                      label: getFolderNameFromPrefix(lockPath) || folderLabel,
                     })
                   }
                   size="sm"
@@ -1117,12 +1154,21 @@ export default function Explorer({
 
         <CreateFolderModal
           open={showCreateFolder}
-          onClose={() => setShowCreateFolder(false)}
+          onClose={() => {
+            setShowCreateFolder(false);
+            setNewFolderEncrypted(false);
+            setNewFolderPassphrase("");
+          }}
           onSubmit={createFolder}
           loading={creating}
           value={newFolderName}
           onChange={setNewFolderName}
+          isEncrypted={newFolderEncrypted}
+          onIsEncryptedChange={setNewFolderEncrypted}
+          passphrase={newFolderPassphrase}
+          onPassphraseChange={setNewFolderPassphrase}
         />
+        {/* Deprecated legacy encrypted modal
         <CreateEncryptedFolderModal
           open={showCreateEncryptedFolder}
           onClose={() => setShowCreateEncryptedFolder(false)}
@@ -1132,7 +1178,8 @@ export default function Explorer({
           onPassphraseChange={setEncryptedPassphrase}
           onSubmit={createEncryptedFolder}
           loading={creatingEncrypted}
-        />
+        /> 
+        */}
         <ConvertToEncryptedModal
           open={Boolean(convertTarget)}
           onClose={closeConvertModal}
@@ -1177,6 +1224,10 @@ export default function Explorer({
           onClose={() => setPreviewFile(null)}
           files={filteredContents}
           onChange={setPreviewFile}
+          onDelete={(file) => {
+            setPreviewFile(null);
+            setToDelete(file);
+          }}
         />
 
         <DragOverlay dropAnimation={null}>

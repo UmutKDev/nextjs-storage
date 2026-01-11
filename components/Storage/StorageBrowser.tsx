@@ -151,7 +151,10 @@ function GridThumbnail({
     const h = img.naturalHeight || img.height || 1;
     const aspect = Math.max(w / h, 0.1);
 
-    if (!lastAspectRef.current || Math.abs(lastAspectRef.current - aspect) > 0.01) {
+    if (
+      !lastAspectRef.current ||
+      Math.abs(lastAspectRef.current - aspect) > 0.01
+    ) {
       lastAspectRef.current = aspect;
       onAspect?.(aspect);
     }
@@ -159,7 +162,10 @@ function GridThumbnail({
 
   const handleVideoDims = (w: number, h: number) => {
     const aspect = Math.max((w || 1) / (h || 1), 0.1);
-    if (!lastAspectRef.current || Math.abs(lastAspectRef.current - aspect) > 0.01) {
+    if (
+      !lastAspectRef.current ||
+      Math.abs(lastAspectRef.current - aspect) > 0.01
+    ) {
       lastAspectRef.current = aspect;
       onAspect?.(aspect);
     }
@@ -168,13 +174,19 @@ function GridThumbnail({
   return (
     <div
       className={cn(
-        "w-full h-full relative rounded-md overflow-hidden bg-muted/5",
+        "w-full relative rounded-md overflow-hidden bg-muted/5 flex items-center justify-center", // Removed fixed heights, added centering
         className
       )}
+      style={{
+        maxHeight: className?.includes("min-h-") ? undefined : "60vh", // Prevent excessively tall images
+        aspectRatio: lastAspectRef.current
+          ? `${lastAspectRef.current}`
+          : undefined,
+      }}
     >
       {/* Loading state for video thumb */}
       {(!loaded || (isVideo && thumbLoading)) && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center z-10">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/50" />
         </div>
       )}
@@ -188,7 +200,8 @@ function GridThumbnail({
           ref={(el) => {
             if (el) handleImageLoad(el);
           }}
-          className={`w-full h-full object-cover transition-all duration-300 ${
+          className={`w-full h-auto object-contain transition-all duration-300 ${
+            // Changed object-cover to contain to see full image if aspects differ
             loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
           onLoad={() => setLoaded(true)}
@@ -197,30 +210,29 @@ function GridThumbnail({
         />
       )}
 
-      {/* Video files: prefer generated thumbnail, otherwise fall back to a video element */}
+      {/* Video files */}
       {isVideo && (
-        <div className="w-full h-auto">
+        <div className="w-full h-auto flex items-center justify-center bg-black">
           {thumb ? (
             // eslint-disable-next-line @next/next/no-img-element
-              <img
+            <img
               src={thumb}
               alt={file.Name}
               onLoad={(e) => {
                 setLoaded(true);
-                // derive aspect from the generated thumbnail
                 const img = e.currentTarget as HTMLImageElement;
                 handleVideoDims(
                   img.naturalWidth || img.width,
                   img.naturalHeight || img.height
                 );
               }}
-              className={`w-full h-auto object-cover transition-all duration-300 ${
+              className={`w-full h-auto object-contain transition-all duration-300 ${
                 loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
               }`}
               loading="lazy"
             />
           ) : (
-            // fallback: show a muted video element (may show first frame)
+            // fallback video
             <video
               src={url}
               muted
@@ -231,15 +243,15 @@ function GridThumbnail({
                 handleVideoDims(t.videoWidth || 1, t.videoHeight || 1);
                 setLoaded(true);
               }}
-              className={`w-full h-full object-cover transition-all duration-300 ${
+              className={`w-full h-auto object-contain transition-all duration-300 ${
                 loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
               }`}
             />
           )}
 
           {/* play overlay */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="h-10 w-10 rounded-full bg-black/40 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            <div className="h-10 w-10 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-sm">
               <Play className="h-5 w-5 text-white" />
             </div>
           </div>
@@ -508,7 +520,10 @@ export default function StorageBrowser({
                       onClick={(e) => e.stopPropagation()}
                       className="rounded p-1 hover:bg-muted/10"
                     >
-                      <MoreHorizontal size={16} className="text-muted-foreground" />
+                      <MoreHorizontal
+                        size={16}
+                        className="text-muted-foreground"
+                      />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -519,10 +534,10 @@ export default function StorageBrowser({
                           if (!loading) onRenameFolder(d);
                         }}
                       >
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Düzenle
-                  </DropdownMenuItem>
-                ) : null}
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Düzenle
+                      </DropdownMenuItem>
+                    ) : null}
                     {!meta.encrypted && onConvertFolder ? (
                       <DropdownMenuItem
                         onClick={(e) => {
@@ -635,19 +650,19 @@ export default function StorageBrowser({
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!loading && c) setToEdit(c);
-                      }}
-                    >
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!loading && c && c.Path?.Key && onMoveClick)
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!loading && c) setToEdit(c);
+                          }}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!loading && c && c.Path?.Key && onMoveClick)
                               onMoveClick([c.Path.Key]);
                           }}
                         >
@@ -828,7 +843,9 @@ export default function StorageBrowser({
       const metaWidth = c?.Metadata?.Width ? Number(c.Metadata.Width) : null;
       const metaHeight = c?.Metadata?.Height ? Number(c.Metadata.Height) : null;
       const metadataAspect =
-        metaWidth && metaHeight && metaHeight > 0 ? metaWidth / metaHeight : null;
+        metaWidth && metaHeight && metaHeight > 0
+          ? metaWidth / metaHeight
+          : null;
       const aspect =
         aspectRatios[key] ??
         (metadataAspect && Number.isFinite(metadataAspect)
@@ -918,7 +935,9 @@ export default function StorageBrowser({
                         e.stopPropagation();
                         if (!loading && c && onDelete) onDelete(c);
                       }}
-                      disabled={loading || Boolean(deleting[c!.Path?.Key ?? ""])}
+                      disabled={
+                        loading || Boolean(deleting[c!.Path?.Key ?? ""])
+                      }
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
