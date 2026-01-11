@@ -45,6 +45,12 @@ const onError = (error: AxiosError<any>) => {
 
   // response available but we purposely handle its structured error later
 
+  // Don't transform 403 errors - let them pass through for encrypted folder handling
+  if (error.response?.status === 403) {
+    console.log("[403 Error]", error.response.data);
+    return Promise.reject(error);
+  }
+
   if (error.response && error.response.data) {
     console.log(error.response.data);
     return Promise.reject("Bir hata oluştu.");

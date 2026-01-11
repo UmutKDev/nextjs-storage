@@ -30,6 +30,7 @@ type EncryptedFoldersContextValue = {
     path: string;
     label?: string;
     onSuccess?: (token: string) => void;
+    force?: boolean;
   }) => void;
   clearSession: (path: string) => void;
   clearAllSessions: () => void;
@@ -261,15 +262,17 @@ export default function EncryptedFoldersProvider({
       path,
       label,
       onSuccess,
+      force,
     }: {
       path: string;
       label?: string;
       onSuccess?: (token: string) => void;
+      force?: boolean;
     }) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) return;
 
-      if (isFolderUnlocked(normalized)) {
+      if (!force && isFolderUnlocked(normalized)) {
         const token = getSessionToken(normalized);
         if (token) onSuccess?.(token);
         return;

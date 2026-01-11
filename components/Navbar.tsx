@@ -39,60 +39,45 @@ export function Navbar() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 px-4">
-      <nav
-        className={cn(
-          "relative flex items-center justify-between w-full max-w-5xl rounded-full border px-4 py-2 transition-all duration-300",
-          isScrolled
-            ? "bg-background/80 backdrop-blur-md shadow-lg border-border"
-            : "bg-transparent border-transparent"
-        )}
-      >
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 pl-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground">
-            <Cloud className="w-4 h-4" />
+        <Link
+          href="/"
+          className="flex items-center gap-2 transition-opacity hover:opacity-90"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Cloud className="h-5 w-5" />
           </div>
-          <span
-            className={cn(
-              "font-bold text-lg tracking-tight",
-              !isScrolled && "text-foreground"
-            )}
-          >
+          <span className="text-xl font-bold tracking-tight text-foreground">
             CloudStorage
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
-          <Link href="/">
-            <Button
-              variant="ghost"
-              className="rounded-full h-9 px-4 text-sm font-medium"
-            >
-              Anasayfa
-            </Button>
+        <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
+          <Link
+            href="/"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Anasayfa
           </Link>
-          <Link href="#features">
-            <Button
-              variant="ghost"
-              className="rounded-full h-9 px-4 text-sm font-medium"
-            >
-              Özellikler
-            </Button>
+          <Link
+            href="#features"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Özellikler
           </Link>
-          <Link href="#pricing">
-            <Button
-              variant="ghost"
-              className="rounded-full h-9 px-4 text-sm font-medium"
-            >
-              Fiyatlandırma
-            </Button>
+          <Link
+            href="#pricing"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Fiyatlandırma
           </Link>
-        </div>
+        </nav>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-2 pr-1">
+        <div className="flex items-center gap-4">
           {status === "loading" ? (
             <div className="flex items-center gap-2">
               <Button
@@ -201,11 +186,11 @@ export function Navbar() {
             )}
           </Button>
         </div>
-      </nav>
+      </div>
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="absolute top-20 left-4 right-4 p-4 bg-background/95 backdrop-blur-lg border rounded-3xl shadow-2xl flex flex-col gap-2 md:hidden animate-in fade-in slide-in-from-top-5">
+        <div className="absolute top-16 left-0 right-0 border-t bg-background/95 backdrop-blur-lg p-4 shadow-lg md:hidden animate-in fade-in slide-in-from-top-2">
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>
             <Button variant="ghost" className="w-full justify-start rounded-xl">
               Anasayfa
@@ -226,6 +211,6 @@ export function Navbar() {
           </Link>
         </div>
       )}
-    </div>
+    </header>
   );
 }

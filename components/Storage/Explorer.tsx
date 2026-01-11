@@ -145,6 +145,7 @@ export default function Explorer({
     null
   );
   const prevPath = React.useRef(currentPath);
+  const hasPromptedUnlock = React.useRef<Set<string>>(new Set());
   const folderLabel =
     currentPath.split("/").filter(Boolean).pop() || "bu klasör";
 
@@ -175,12 +176,49 @@ export default function Explorer({
     return { path };
   }, [directoriesQuery.error, objectsQuery.error, currentPath]);
 
-  // If we found an encrypted parent via 403, register it immediately
+  // If we found an encrypted parent via 403, register it immediately and prompt unlock
+  const accessDeniedPath = accessDeniedState?.path;
   React.useEffect(() => {
-    if (accessDeniedState?.path) {
-      registerEncryptedPath(accessDeniedState.path);
+    if (!accessDeniedPath) {
+      console.log('[Explorer] No access denied path');
+      return;
     }
-  }, [accessDeniedState, registerEncryptedPath]);
+    
+    console.log('[Explorer] Access denied for path:', accessDeniedPath);
+    registerEncryptedPath(accessDeniedPath);
+    
+    // Only prompt once per path during this session
+    if (hasPromptedUnlock.current.has(accessDeniedPath)) {
+      console.log('[Explorer] Already prompted for:', accessDeniedPath);
+      return;
+    }
+    
+    console.log('[Explorer] Prompting unlock for:', accessDeniedPath);
+    hasPromptedUnlock.current.add(accessDeniedPath);
+    
+    // Automatically prompt for unlock when we detect 403
+    const folderName = getFolderNameFromPrefix(accessDeniedPath) || 
+                      accessDeniedPath.split('/').filter(Boolean).pop() || 
+                      'şifreli klasör';
+    
+    // Use setTimeout to ensure prompt happens after render
+    const timer = setTimeout(() => {
+      console.log('[Explorer] Opening unlock modal for:', accessDeniedPath);
+      promptUnlock({
+        path: accessDeniedPath,
+        label: folderName,
+        force: true, // Force prompt even if we think it's unlocked
+        onSuccess: async () => {
+          console.log('[Explorer] Successfully unlocked:', accessDeniedPath);
+          // Refetch the data after successful unlock
+          await Promise.all([invalidateDirectories(), invalidateObjects()]);
+        },
+      });
+    }, 100);
+    
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessDeniedPath]); // Only depend on the path, other functions are stable
 
   const isAccessDenied = !!accessDeniedState;
   const lockPath = accessDeniedState?.path || currentPath;
@@ -361,6 +399,8 @@ export default function Explorer({
   // Clear selection when path changes
   React.useEffect(() => {
     setSelectedItems(new Set());
+    // Clear the prompted unlock set when path changes so user can be prompted again for new paths
+    hasPromptedUnlock.current.clear();
   }, [currentPath]);
 
   const handleMove = async (
@@ -1104,9 +1144,10 @@ export default function Explorer({
                   contents={filteredContents}
                   onPreview={(file) => setPreviewFile(file)}
                   loading={
-                    isNavigating ||
-                    objectsQuery.isLoading ||
-                    directoriesQuery.isLoading
+                    !isAccessDenied &&
+                    (isNavigating ||
+                      objectsQuery.isLoading ||
+                      directoriesQuery.isLoading)
                   }
                   viewMode={viewMode}
                   onViewModeChange={setViewMode}
