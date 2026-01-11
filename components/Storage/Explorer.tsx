@@ -26,6 +26,7 @@ import ConvertToEncryptedModal from "./ConvertToEncryptedModal";
 import MoveFileModal from "./MoveFileModal";
 import FileUploadModal from "./FileUploadModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import ConfirmMoveDragModal from "./ConfirmMoveDragModal";
 import RenameFolderModal from "./RenameFolderModal";
 import toast from "react-hot-toast";
 import {
@@ -51,10 +52,33 @@ import {
   useSensors,
   PointerSensor,
   KeyboardSensor,
-  closestCenter,
+  pointerWithin,
   DragEndEvent,
   DragStartEvent,
+  Modifier,
 } from "@dnd-kit/core";
+
+const snapToCursor: Modifier = ({
+  transform,
+  activatorEvent,
+  draggingNodeRect,
+}) => {
+  if (draggingNodeRect && activatorEvent) {
+    const activator = activatorEvent as unknown as MouseEvent;
+    if ("clientX" in activator) {
+      const offsetX = activator.clientX - draggingNodeRect.left;
+      const offsetY = activator.clientY - draggingNodeRect.top;
+
+      return {
+        ...transform,
+        x: transform.x + offsetX - draggingNodeRect.width / 2,
+        y: transform.y + offsetY - draggingNodeRect.height / 2,
+      };
+    }
+  }
+
+  return transform;
+};
 
 const normalizeFolderPath = (path?: string | null) => {
   if (!path) return "";
@@ -208,6 +232,12 @@ export default function Explorer({
 
   // DnD state
   const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [dragMoveData, setDragMoveData] = React.useState<{
+    sourceIds: string[];
+    targetKey: string;
+    sourceName?: string;
+    targetName?: string;
+  } | null>(null);
 
   const contents = React.useMemo(
     () => objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
@@ -240,7 +270,7 @@ export default function Explorer({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 15,
       },
     }),
     useSensor(KeyboardSensor)
@@ -426,7 +456,18 @@ export default function Explorer({
 
     const destinationKey = targetFolder === "" ? "/" : targetFolder;
 
-    handleMove([sourceId], destinationKey);
+    // handleMove([sourceId], destinationKey);
+    setDragMoveData({
+      sourceIds: [sourceId],
+      targetKey: destinationKey,
+      sourceName: isSourceFolder
+        ? getFolderNameFromPrefix(sourceId)
+        : sourceId.split("/").pop(),
+      targetName:
+        targetFolder === "" || targetFolder === "/"
+          ? "Ana Dizin"
+          : getFolderNameFromPrefix(targetFolder),
+    });
   };
 
   const handleDeleteSelected = async ({
@@ -956,7 +997,7 @@ export default function Explorer({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -1207,6 +1248,19 @@ export default function Explorer({
           onClose={() => setShowUpload(false)}
         />
 
+        <ConfirmMoveDragModal
+          open={!!dragMoveData}
+          onOpenChange={(open) => !open && setDragMoveData(null)}
+          title={`Taşı: ${dragMoveData?.sourceName}`}
+          description={`"${dragMoveData?.sourceName}" öğesini "${dragMoveData?.targetName}" klasörüne taşımak istediğinizden emin misiniz?`}
+          onConfirm={async () => {
+            if (dragMoveData) {
+              await handleMove(dragMoveData.sourceIds, dragMoveData.targetKey);
+              setDragMoveData(null);
+            }
+          }}
+        />
+
         <ConfirmDeleteModal
           open={!!toDelete}
           onOpenChange={(open) => {
@@ -1230,9 +1284,9 @@ export default function Explorer({
           }}
         />
 
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay dropAnimation={null} modifiers={[snapToCursor]}>
           {activeItem ? (
-            <div className="opacity-90 pointer-events-none w-64">
+            <div className="opacity-90 pointer-events-none w-64 cursor-grabbing">
               <div className="px-4 py-3 bg-card border rounded-md shadow-xl flex items-center gap-3">
                 {activeItem.type === "folder" ? (
                   <div className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500">
