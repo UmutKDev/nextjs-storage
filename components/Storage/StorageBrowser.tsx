@@ -474,25 +474,27 @@ export default function StorageBrowser({
             data={d}
           >
             <div
-              className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer"
+              className="flex items-center gap-2 md:gap-4 px-2 md:px-4 py-3 hover:bg-muted/10 cursor-pointer active:bg-muted/20"
               onClick={(e) => handleItemClick(d, "folder", e)}
             >
               <div
-                className="flex items-center justify-center"
+                className="flex items-center justify-center shrink-0"
                 onClick={(e) => e.stopPropagation()}
               >
                 <input
                   type="checkbox"
                   checked={selectedItems.has(key)}
                   onChange={() => handleSelect(key, true)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-5 w-5 md:h-4 md:w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
               </div>
-              <div className="w-8 h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500">
+              <div className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500 shrink-0">
                 <Folder size={18} fill="currentColor" className="opacity-80" />
               </div>
-              <div className="flex-1 min-w-0 font-medium text-sm">{name}</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="flex-1 min-w-0 font-medium text-sm truncate">
+                {name}
+              </div>
+              <div className="text-xs text-muted-foreground hidden sm:block">
                 {meta.encrypted ? (
                   <span
                     className={cn(
@@ -505,20 +507,22 @@ export default function StorageBrowser({
                     ) : (
                       <Lock className="h-3.5 w-3.5" />
                     )}
-                    {meta.unlocked ? "Kilitsiz" : "Şifreli"}
+                    <span className="hidden sm:inline">
+                      {meta.unlocked ? "Kilitsiz" : "Şifreli"}
+                    </span>
                   </span>
                 ) : (
-                  "Klasör"
+                  <span className="hidden sm:inline">Klasör</span>
                 )}
               </div>
 
-              {/* Folder Actions */}
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* Folder Actions - Visible on mobile via direct click, hover on desktop */}
+              <div className="flex items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
                       onClick={(e) => e.stopPropagation()}
-                      className="rounded p-1 hover:bg-muted/10"
+                      className="rounded p-2 md:p-1 hover:bg-muted/10 active:bg-muted/20"
                     >
                       <MoreHorizontal
                         size={16}
@@ -597,51 +601,53 @@ export default function StorageBrowser({
               data={c}
             >
               <div
-                className="flex items-center gap-4 px-4 py-3 hover:bg-muted/10 cursor-pointer"
+                className="flex items-center gap-2 md:gap-4 px-2 md:px-4 py-3 hover:bg-muted/10 cursor-pointer active:bg-muted/20"
                 onClick={(e) => handleItemClick(c!, "file", e)}
               >
                 <div
-                  className="flex items-center justify-center"
+                  className="flex items-center justify-center shrink-0"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <input
                     type="checkbox"
                     checked={selectedItems.has(key)}
                     onChange={() => handleSelect(key, true)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="h-5 w-5 md:h-4 md:w-4 rounded border-gray-300 text-primary focus:ring-primary"
                   />
                 </div>
-                <div className="w-8 h-8 flex items-center justify-center rounded-md bg-muted/20">
+                <div className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-muted/20 shrink-0">
                   <FileIcon extension={c!.Extension} />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 text-sm font-medium text-foreground truncate">
-                    {c!.Metadata?.Originalfilename || c!.Name}
-                    <span className="text-xs text-muted-foreground">
+                    <span className="truncate">
+                      {c!.Metadata?.Originalfilename || c!.Name}
+                    </span>
+                    <span className="text-xs text-muted-foreground shrink-0">
                       .{c!.Extension}
                     </span>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-muted-foreground mt-1 truncate">
                     {c!.MimeType ?? "—"}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 md:gap-4 text-sm text-muted-foreground shrink-0">
                   <div className="whitespace-nowrap hidden sm:block">
                     {humanFileSize(c!.Size)}
                   </div>
-                  <div className="whitespace-nowrap hidden md:block">
+                  <div className="whitespace-nowrap hidden lg:block">
                     {c?.LastModified
                       ? new Date(c!.LastModified).toLocaleString()
                       : "—"}
                   </div>
-                  <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
                           onClick={(e) => e.stopPropagation()}
-                          className="rounded p-1 hover:bg-muted/10"
+                          className="rounded p-2 md:p-1 hover:bg-muted/10 active:bg-muted/20"
                         >
                           <MoreHorizontal
                             size={16}
@@ -731,31 +737,31 @@ export default function StorageBrowser({
                 />
               </div>
 
-              <div className="h-full p-3 flex flex-col items-center justify-center gap-2">
-                <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-2">
+              <div className="h-full p-2 md:p-3 flex flex-col items-center justify-center gap-2">
+                <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-1 md:mb-2">
                   <Folder
-                    size={32}
+                    size={24}
                     fill="currentColor"
-                    className="opacity-80"
+                    className="opacity-80 md:w-8 md:h-8"
                   />
                 </div>
-                <div className="text-sm font-medium text-center truncate w-full px-2">
+                <div className="text-xs md:text-sm font-medium text-center truncate w-full px-1 md:px-2">
                   {name}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[10px] md:text-xs text-muted-foreground">
                   {meta.encrypted ? (
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium",
+                        "inline-flex items-center gap-1 px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-medium",
                         meta.unlocked
                           ? "bg-emerald-50 text-emerald-700"
                           : "bg-amber-50 text-amber-700"
                       )}
                     >
                       {meta.unlocked ? (
-                        <Unlock className="h-3.5 w-3.5" />
+                        <Unlock className="h-3 w-3 md:h-3.5 md:w-3.5" />
                       ) : (
-                        <Lock className="h-3.5 w-3.5" />
+                        <Lock className="h-3 w-3 md:h-3.5 md:w-3.5" />
                       )}
                       {meta.unlocked ? "Kilitsiz" : "Şifreli"}
                     </span>
@@ -764,7 +770,7 @@ export default function StorageBrowser({
                   )}
                 </div>
 
-                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-2 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
@@ -897,7 +903,7 @@ export default function StorageBrowser({
                 </div>
               </div>
 
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-2 right-2 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button

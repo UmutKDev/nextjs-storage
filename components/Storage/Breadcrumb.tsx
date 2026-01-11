@@ -9,18 +9,18 @@ import { useDroppable } from "@dnd-kit/core";
 
 type Crumb = { Name?: string; Path?: string; Type?: string };
 
-function DroppableCrumb({ 
-  item, 
-  isLast, 
-  isRoot, 
-  onClick 
-}: { 
-  item: Crumb; 
-  isLast: boolean; 
-  isRoot: boolean; 
-  onClick: () => void; 
+function DroppableCrumb({
+  item,
+  isLast,
+  isRoot,
+  onClick,
+}: {
+  item: Crumb;
+  isLast: boolean;
+  isRoot: boolean;
+  onClick: () => void;
 }) {
-  // Use the path as the droppable ID. 
+  // Use the path as the droppable ID.
   // If it's root, path is empty string.
   const { setNodeRef, isOver } = useDroppable({
     id: item.Path ?? "",
@@ -35,18 +35,16 @@ function DroppableCrumb({
         disabled={isLast}
         className={cn(
           "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200",
-          isLast 
-            ? "bg-primary/10 text-primary font-semibold cursor-default" 
+          isLast
+            ? "bg-primary/10 text-primary font-semibold cursor-default"
             : "text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer",
-          isOver && !isLast && "bg-primary/20 ring-2 ring-primary ring-inset text-primary"
+          isOver &&
+            !isLast &&
+            "bg-primary/20 ring-2 ring-primary ring-inset text-primary"
         )}
         aria-current={isLast ? "page" : undefined}
       >
-        {isRoot ? (
-          <Home className="w-4 h-4" />
-        ) : (
-          <span>{item.Name}</span>
-        )}
+        {isRoot ? <Home className="w-4 h-4" /> : <span>{item.Name}</span>}
       </button>
     </div>
   );
@@ -80,9 +78,9 @@ export default function Breadcrumb({ items }: { items?: Crumb[] }) {
   return (
     <nav
       aria-label="breadcrumb"
-      className="flex items-center px-1 py-1"
+      className="flex items-center px-1 py-1 overflow-x-auto no-scrollbar mask-gradient-right"
     >
-      <ol className="flex items-center flex-wrap gap-1.5 text-sm">
+      <ol className="flex items-center flex-nowrap whitespace-nowrap gap-1.5 text-sm">
         {useItems.map((it, idx) => {
           const isLast = idx === useItems.length - 1;
           const isRoot = it.Type === "ROOT" || idx === 0;
@@ -95,11 +93,11 @@ export default function Breadcrumb({ items }: { items?: Crumb[] }) {
               transition={{ duration: 0.2, delay: idx * 0.05 }}
               className="flex items-center gap-1.5"
             >
-              <DroppableCrumb 
-                item={it} 
-                isLast={isLast} 
-                isRoot={isRoot} 
-                onClick={() => setCurrentPath(it.Path ?? "")} 
+              <DroppableCrumb
+                item={it}
+                isLast={isLast}
+                isRoot={isRoot}
+                onClick={() => setCurrentPath(it.Path ?? "")}
               />
 
               {!isLast && (

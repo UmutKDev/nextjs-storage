@@ -99,6 +99,7 @@ export default function Explorer({
   setShowCreateFolder,
   showUpload,
   setShowUpload,
+  onOpenMobileSidebar,
 }: {
   queries: {
     breadcrumbQuery: UseQueryResult<CloudBreadCrumbListModelResult, Error>;
@@ -121,6 +122,7 @@ export default function Explorer({
   setShowCreateFolder: (show: boolean) => void;
   showUpload: boolean;
   setShowUpload: (show: boolean) => void;
+  onOpenMobileSidebar?: () => void;
 }) {
   // main data hook
   const { invalidateBreadcrumb, invalidateObjects, invalidateDirectories } =
@@ -1042,21 +1044,46 @@ export default function Explorer({
       onDragEnd={handleDragEnd}
     >
       <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between p-4 border-b bg-card/50 backdrop-blur-sm shrink-0 gap-4">
-          <div className="flex-1 min-w-0">
-            <Breadcrumb items={breadcrumbQuery.data?.items ?? []} />
+        <div className="flex flex-col md:flex-row md:items-center justify-between p-3 md:p-4 border-b bg-card/50 backdrop-blur-sm shrink-0 gap-3 md:gap-4 box-border">
+          <div className="flex items-center gap-2 w-full md:w-auto min-w-0">
+            {/* Mobile Sidebar Trigger */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="md:hidden shrink-0 h-8 w-8"
+              onClick={onOpenMobileSidebar}
+            >
+              <LayoutGrid size={16} />
+            </Button>
+            
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <Breadcrumb items={breadcrumbQuery.data?.items ?? []} />
+            </div>
+
+            {/* Mobile View Toggle */}
+            <div className="flex md:hidden items-center border-l pl-2 ml-1 shrink-0">
+              <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
+              >
+                {viewMode === "list" ? <List size={16} /> : <LayoutGrid size={16} />}
+              </Button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {selectedItems.size > 0 && (
-              <>
+          <div className="flex items-center gap-2 shrink-0 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar">
+            {selectedItems.size > 0 ? (
+              <div className="flex items-center gap-2 w-full md:w-auto">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleSelectAll}
-                  className="shrink-0"
+                  className="shrink-0 whitespace-nowrap"
                 >
-                  Select All
+                  <span className="md:hidden">Tümü</span>
+                  <span className="hidden md:inline">Tümünü Seç</span>
                 </Button>
                 <Button
                   size="sm"
@@ -1065,28 +1092,32 @@ export default function Explorer({
                     setMoveSourceKeys(Array.from(selectedItems));
                     setShowMoveModal(true);
                   }}
-                  className="shrink-0"
+                  className="shrink-0 whitespace-nowrap"
                 >
                   <FolderInput size={16} className="mr-2" />
                   <span className="hidden sm:inline">
-                    Move ({selectedItems.size})
+                    Taşı ({selectedItems.size})
                   </span>
+                  <span className="sm:hidden">Taşı</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   onClick={() => void handleDeleteSelected()}
-                  className="shrink-0"
+                  className="shrink-0 whitespace-nowrap"
                 >
                   <Trash2 size={16} className="mr-2" />
                   <span className="hidden sm:inline">
-                    Delete ({selectedItems.size})
+                    Sil ({selectedItems.size})
                   </span>
+                  <span className="sm:hidden">Sil</span>
                 </Button>
-              </>
+              </div>
+            ) : (
+              <div className="w-full md:w-auto">
+                <SearchBar value={search} onChange={setSearch} />
+              </div>
             )}
-
-            <SearchBar value={search} onChange={setSearch} />
 
             <div className="hidden sm:flex items-center gap-1 border-l pl-2 ml-2">
               <Button

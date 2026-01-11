@@ -137,7 +137,7 @@ export default function FilePreviewModal({
           className={`relative z-10 flex flex-col bg-card border border-border shadow-2xl overflow-hidden transition-all duration-200 ${
             isFullScreen
               ? "w-full h-full rounded-none"
-              : "w-full h-[92vh] sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl rounded-xl"
+              : "w-full sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl rounded-xl"
           }`}
         >
           <div className="flex items-center justify-between p-3 border-b border-border/40 shrink-0 gap-4 bg-muted/5">
