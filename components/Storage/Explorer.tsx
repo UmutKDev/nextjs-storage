@@ -14,11 +14,15 @@ import type {
 } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
 import {
+  useQueryClient,
   UseInfiniteQueryResult,
   UseQueryResult,
   type InfiniteData,
 } from "@tanstack/react-query";
-import {} from "@/hooks/useCloudList";
+import {
+  CLOUD_DIRECTORIES_QUERY_KEY,
+  CLOUD_OBJECTS_QUERY_KEY,
+} from "@/hooks/useCloudList";
 import { Button } from "@/components/ui/button";
 import CreateFolderModal from "./CreateFolderModal";
 import CreateEncryptedFolderModal from "./CreateEncryptedFolderModal";
@@ -124,6 +128,7 @@ export default function Explorer({
   setShowUpload: (show: boolean) => void;
   onOpenMobileSidebar?: () => void;
 }) {
+  const queryClient = useQueryClient();
   // main data hook
   const { invalidateBreadcrumb, invalidateObjects, invalidateDirectories } =
     invalidates;
@@ -182,42 +187,49 @@ export default function Explorer({
   const accessDeniedPath = accessDeniedState?.path;
   React.useEffect(() => {
     if (!accessDeniedPath) {
-      console.log('[Explorer] No access denied path');
+      console.log("[Explorer] No access denied path");
       return;
     }
-    
-    console.log('[Explorer] Access denied for path:', accessDeniedPath);
+
+    console.log("[Explorer] Access denied for path:", accessDeniedPath);
     registerEncryptedPath(accessDeniedPath);
-    
+
     // Only prompt once per path during this session
     if (hasPromptedUnlock.current.has(accessDeniedPath)) {
-      console.log('[Explorer] Already prompted for:', accessDeniedPath);
+      console.log("[Explorer] Already prompted for:", accessDeniedPath);
       return;
     }
-    
-    console.log('[Explorer] Prompting unlock for:', accessDeniedPath);
+
+    console.log("[Explorer] Prompting unlock for:", accessDeniedPath);
     hasPromptedUnlock.current.add(accessDeniedPath);
-    
+
     // Automatically prompt for unlock when we detect 403
-    const folderName = getFolderNameFromPrefix(accessDeniedPath) || 
-                      accessDeniedPath.split('/').filter(Boolean).pop() || 
-                      'şifreli klasör';
-    
+    const folderName =
+      getFolderNameFromPrefix(accessDeniedPath) ||
+      accessDeniedPath.split("/").filter(Boolean).pop() ||
+      "şifreli klasör";
+
     // Use setTimeout to ensure prompt happens after render
     const timer = setTimeout(() => {
-      console.log('[Explorer] Opening unlock modal for:', accessDeniedPath);
+      console.log("[Explorer] Opening unlock modal for:", accessDeniedPath);
       promptUnlock({
         path: accessDeniedPath,
         label: folderName,
         force: true, // Force prompt even if we think it's unlocked
         onSuccess: async () => {
-          console.log('[Explorer] Successfully unlocked:', accessDeniedPath);
-          // Refetch the data after successful unlock
+          console.log("[Explorer] Successfully unlocked:", accessDeniedPath);
+          // Manually reset errors to ensure UI updates immediately
+          // While invalidateQueries eventually works, resetting ensures "error" state is cleared faster
+          await Promise.all([
+            queryClient.resetQueries({ queryKey: CLOUD_DIRECTORIES_QUERY_KEY }),
+            queryClient.resetQueries({ queryKey: CLOUD_OBJECTS_QUERY_KEY }),
+          ]);
+          // Also strict invalidate to fetch fresh data
           await Promise.all([invalidateDirectories(), invalidateObjects()]);
         },
       });
     }, 100);
-    
+
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessDeniedPath]); // Only depend on the path, other functions are stable
@@ -1055,7 +1067,7 @@ export default function Explorer({
             >
               <LayoutGrid size={16} />
             </Button>
-            
+
             <div className="flex-1 min-w-0 overflow-hidden">
               <Breadcrumb items={breadcrumbQuery.data?.items ?? []} />
             </div>
@@ -1066,9 +1078,15 @@ export default function Explorer({
                 variant={viewMode === "list" ? "secondary" : "ghost"}
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setViewMode(viewMode === "list" ? "grid" : "list")}
+                onClick={() =>
+                  setViewMode(viewMode === "list" ? "grid" : "list")
+                }
               >
-                {viewMode === "list" ? <List size={16} /> : <LayoutGrid size={16} />}
+                {viewMode === "list" ? (
+                  <List size={16} />
+                ) : (
+                  <LayoutGrid size={16} />
+                )}
               </Button>
             </div>
           </div>

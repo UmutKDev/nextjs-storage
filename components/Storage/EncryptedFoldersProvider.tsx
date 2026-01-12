@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 
 import { cloudApiFactory } from "@/Service/Factories";
 import UnlockEncryptedFolderModal from "./UnlockEncryptedFolderModal";
+import { sessionManager } from "@/lib/SessionManager";
 
 type UnlockPrompt = {
   path: string;
@@ -73,21 +74,28 @@ export default function EncryptedFoldersProvider({
   const { status } = useSession();
 
   const [encryptedPaths, setEncryptedPaths] = useState<Set<string>>(new Set());
-  const [sessions, setSessions] = useState<
-    Record<string, { token: string; expiresAt: number }>
-  >({});
+  // Removed explicit session state tracking here, relying on SessionManager events or checking on render?
+  // Actually, keeping local state synced with SessionManager is good for reactivity.
+  const [sessionsValid, setSessionsValid] = useState<number>(0);
+  // We use this counter to force re-renders when sessions change.
+
   const [passphrases, setPassphrases] = useState<Record<string, string>>({});
   const [unlockPrompt, setUnlockPrompt] = useState<UnlockPrompt | null>(null);
 
-  // Restore sessions from sessionStorage on mount
+  // Sync from SessionManager
+  React.useEffect(() => {
+    const handleSessionChange = () => {
+      setSessionsValid((prev) => prev + 1);
+    };
+    sessionManager.on("change", handleSessionChange);
+    return () => {
+      sessionManager.off("change", handleSessionChange);
+    };
+  }, []);
+
+  // Restore encrypted paths and passphrases
   React.useEffect(() => {
     try {
-      const storedSessions = window.sessionStorage.getItem("folderSessions");
-      if (storedSessions) {
-        const parsed = JSON.parse(storedSessions);
-        setSessions(parsed);
-      }
-
       const storedKeys = window.sessionStorage.getItem("folderPassphrases");
       if (storedKeys) {
         setPassphrases(JSON.parse(storedKeys));
@@ -102,10 +110,7 @@ export default function EncryptedFoldersProvider({
     }
   }, []);
 
-  // Persist sessions
-  React.useEffect(() => {
-    window.sessionStorage.setItem("folderSessions", JSON.stringify(sessions));
-  }, [sessions]);
+  // removed direct session persistence here as it's handled by SessionManager
 
   // Persist passphrases
   React.useEffect(() => {
@@ -165,29 +170,31 @@ export default function EncryptedFoldersProvider({
     (path?: string | null) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) return null;
-      const encryptedPath = findEncryptedAncestor(normalized);
-      if (!encryptedPath) return null;
-
-      const session = sessions[encryptedPath];
-      if (!session) return null;
-
-      if (session.expiresAt * 1000 < Date.now() + 10000) {
-        return null;
-      }
-      return session.token;
+      // We rely on SessionManager's smart lookup which handles parents
+      return sessionManager.getSession(normalized);
     },
-    [findEncryptedAncestor, sessions]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sessionsValid]
   );
 
   const getFolderPassphrase = useCallback(
     (path?: string | null) => {
       const normalized = normalizeFolderPath(path);
       if (!normalized) return undefined;
-      const encryptedPath = findEncryptedAncestor(normalized);
-      if (!encryptedPath) return undefined;
-      return passphrases[encryptedPath];
+      // Also should check parent chain for passphrase if we want to be consistent
+      // But standard passphrases state is separate.
+      // Re-using findEncryptedAncestor logic from local state is safer here as passphrases aren't in SessionManager
+
+      if (passphrases[normalized]) return passphrases[normalized];
+
+      const segments = normalized.split("/").filter(Boolean);
+      for (let i = segments.length - 1; i > 0; i--) {
+        const parentPath = segments.slice(0, i).join("/");
+        if (passphrases[parentPath]) return passphrases[parentPath];
+      }
+      return undefined;
     },
-    [findEncryptedAncestor, passphrases]
+    [passphrases]
   );
 
   const isFolderUnlocked = useCallback(
@@ -200,11 +207,9 @@ export default function EncryptedFoldersProvider({
   const clearSession = useCallback((path: string) => {
     const normalized = normalizeFolderPath(path);
     if (!normalized) return;
-    setSessions((prev) => {
-      const next = { ...prev };
-      delete next[normalized];
-      return next;
-    });
+
+    sessionManager.clearSession(normalized);
+
     setPassphrases((prev) => {
       const next = { ...prev };
       delete next[normalized];
@@ -213,7 +218,7 @@ export default function EncryptedFoldersProvider({
   }, []);
 
   const clearAllSessions = useCallback(() => {
-    setSessions({});
+    sessionManager.clearAll();
     setPassphrases({});
     setEncryptedPaths(new Set());
   }, []);
@@ -223,6 +228,30 @@ export default function EncryptedFoldersProvider({
       clearAllSessions();
     }
   }, [status, clearAllSessions]);
+
+  // Session expiry check
+  React.useEffect(() => {
+    const checkExpiry = () => {
+      const now = Date.now() / 1000;
+      const allSessions = sessionManager.getAllSessions();
+
+      Object.entries(allSessions).forEach(([path, session]) => {
+        if (session.expiresAt < now) {
+          sessionManager.clearSession(path);
+
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("session-expired", { detail: { path } })
+            );
+          }
+          toast.error(`Session expired for ${path}`);
+        }
+      });
+    };
+
+    const interval = setInterval(checkExpiry, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const unlockFolder = useCallback(
     async (path: string, passphrase: string) => {
@@ -239,18 +268,19 @@ export default function EncryptedFoldersProvider({
       const result = response.data?.result;
       if (!result) throw new Error("No result returned from server.");
 
-      const { SessionToken, ExpiresAt } = result;
+      const { SessionToken, ExpiresAt, EncryptedFolderPath } = result;
       if (!SessionToken) throw new Error("No session token returned.");
 
-      setSessions((prev) => ({
-        ...prev,
-        [normalized]: {
-          token: SessionToken,
-          expiresAt: ExpiresAt ?? Date.now() / 1000 + 900,
-        },
-      }));
-      setPassphrases((prev) => ({ ...prev, [normalized]: passphrase }));
-      registerEncryptedPath(normalized);
+      const targetPath = EncryptedFolderPath || normalized;
+
+      sessionManager.setSession(
+        targetPath,
+        SessionToken,
+        ExpiresAt ?? Date.now() / 1000 + 900
+      );
+
+      setPassphrases((prev) => ({ ...prev, [targetPath]: passphrase }));
+      registerEncryptedPath(targetPath);
 
       return SessionToken;
     },

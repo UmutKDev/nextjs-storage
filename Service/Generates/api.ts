@@ -415,9 +415,13 @@ export interface DirectoryUnlockResponseBaseModel {
 }
 export interface DirectoryUnlockResponseModel {
     /**
-     * Directory path that was unlocked
+     * Directory path that was requested for unlock
      */
     'Path': string;
+    /**
+     * The root encrypted folder path (parent folder that is actually encrypted)
+     */
+    'EncryptedFolderPath': string;
     /**
      * Session token for subsequent requests. Pass via X-Folder-Session header.
      */
@@ -794,14 +798,6 @@ export const UserPutBodyRequestModelStatusEnum = {
 
 export type UserPutBodyRequestModelStatusEnum = typeof UserPutBodyRequestModelStatusEnum[keyof typeof UserPutBodyRequestModelStatusEnum];
 
-export interface UserSubscriptionResponseListBaseModel {
-    'result': UserSubscriptionResponseListModelResult;
-    'status': BaseStatusModel;
-}
-export interface UserSubscriptionResponseListModelResult {
-    'options': PaginationResponseModel;
-    'items': Array<UserSubscriptionResponseModel>;
-}
 export interface UserSubscriptionResponseModel {
     'id': string;
     'startAt': string;
@@ -4705,76 +4701,6 @@ export const SubscriptionApiAxiosParamCreator = function (configuration?: Config
         },
         /**
          * 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listForUser: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('listForUser', 'id', id)
-            const localVarPath = `/Api/Subscription/List/User/{userId}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listMy: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/Api/Subscription/My/List`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -4884,15 +4810,11 @@ export const SubscriptionApiAxiosParamCreator = function (configuration?: Config
         },
         /**
          * 
-         * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        unsubscribe_1: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'id' is not null or undefined
-            assertParamExists('unsubscribe_1', 'id', id)
-            const localVarPath = `/Api/Subscription/My/Unsubscribe/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+        unsubscribe_1: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Subscription/My/Unsubscribe`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5002,29 +4924,6 @@ export const SubscriptionApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {string} id 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listForUser(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserSubscriptionResponseListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listForUser(id, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SubscriptionApi.listForUser']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listMy(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listMy(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SubscriptionApi.listMy']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -5060,12 +4959,11 @@ export const SubscriptionApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async unsubscribe_1(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.unsubscribe_1(id, options);
+        async unsubscribe_1(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.unsubscribe_1(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SubscriptionApi.unsubscribe_1']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5134,23 +5032,6 @@ export const SubscriptionApiFactory = function (configuration?: Configuration, b
         },
         /**
          * 
-         * @param {SubscriptionApiListForUserRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listForUser(requestParameters: SubscriptionApiListForUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserSubscriptionResponseListBaseModel> {
-            return localVarFp.listForUser(requestParameters.id, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listMy(options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.listMy(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -5177,12 +5058,11 @@ export const SubscriptionApiFactory = function (configuration?: Configuration, b
         },
         /**
          * 
-         * @param {SubscriptionApiUnsubscribe0Request} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        unsubscribe_1(requestParameters: SubscriptionApiUnsubscribe0Request, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.unsubscribe_1(requestParameters.id, options).then((request) => request(axios, basePath));
+        unsubscribe_1(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.unsubscribe_1(options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -5225,13 +5105,6 @@ export interface SubscriptionApiFindRequest {
 }
 
 /**
- * Request parameters for listForUser operation in SubscriptionApi.
- */
-export interface SubscriptionApiListForUserRequest {
-    readonly id: string
-}
-
-/**
  * Request parameters for subscribe operation in SubscriptionApi.
  */
 export interface SubscriptionApiSubscribeRequest {
@@ -5242,13 +5115,6 @@ export interface SubscriptionApiSubscribeRequest {
  * Request parameters for unsubscribe operation in SubscriptionApi.
  */
 export interface SubscriptionApiUnsubscribeRequest {
-    readonly id: string
-}
-
-/**
- * Request parameters for unsubscribe_1 operation in SubscriptionApi.
- */
-export interface SubscriptionApiUnsubscribe0Request {
     readonly id: string
 }
 
@@ -5317,25 +5183,6 @@ export class SubscriptionApi extends BaseAPI {
 
     /**
      * 
-     * @param {SubscriptionApiListForUserRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public listForUser(requestParameters: SubscriptionApiListForUserRequest, options?: RawAxiosRequestConfig) {
-        return SubscriptionApiFp(this.configuration).listForUser(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public listMy(options?: RawAxiosRequestConfig) {
-        return SubscriptionApiFp(this.configuration).listMy(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -5365,12 +5212,11 @@ export class SubscriptionApi extends BaseAPI {
 
     /**
      * 
-     * @param {SubscriptionApiUnsubscribe0Request} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public unsubscribe_1(requestParameters: SubscriptionApiUnsubscribe0Request, options?: RawAxiosRequestConfig) {
-        return SubscriptionApiFp(this.configuration).unsubscribe_1(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    public unsubscribe_1(options?: RawAxiosRequestConfig) {
+        return SubscriptionApiFp(this.configuration).unsubscribe_1(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -1,4 +1,5 @@
 import { API_URL } from "@/Constants";
+import { getSessionTokenForPath } from "@/lib/encryption";
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 const Instance = axios.create({
@@ -63,6 +64,16 @@ Instance.interceptors.response.use(onSuccess, onError);
 
 Instance.interceptors.request.use(
   async (config) => {
+    // Cloud API endpoints check
+    if (config.url?.startsWith("/Cloud/")) {
+      const path = config.params?.Path || config.params?.Key;
+      if (path && typeof path === "string") {
+        const sessionToken = getSessionTokenForPath(path);
+        if (sessionToken && !config.headers["X-Folder-Session"]) {
+          config.headers["X-Folder-Session"] = sessionToken;
+        }
+      }
+    }
     return config;
   },
   (error) => {
