@@ -50,6 +50,8 @@ export const CLOUD_OBJECTS_QUERY_KEY = ["cloud", "objects"] as const;
 export const CLOUD_DIRECTORIES_QUERY_KEY = ["cloud", "directories"] as const;
 export const STALE_TIME = 60 * 1000; // 1 minute
 
+export const IS_METADATA_PROCESSING_ENABLED = true;
+
 /** "/" veya boş string'i normalize eder */
 const normalizePath = (path?: string): string => {
   if (!path || path === "/") return "";
@@ -60,7 +62,7 @@ const normalizePath = (path?: string): string => {
 export const createCloudListQueryKey = (
   path: string,
   delimiter = true,
-  isMetadataProcessing = false
+  isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED
 ) => [...CLOUD_LIST_QUERY_KEY, path, delimiter, isMetadataProcessing] as const;
 
 export const createCloudBreadcrumbQueryKey = (path: string, delimiter = true) =>
@@ -69,7 +71,7 @@ export const createCloudBreadcrumbQueryKey = (path: string, delimiter = true) =>
 export const createCloudObjectsQueryKey = (
   path: string,
   delimiter = true,
-  isMetadataProcessing = false,
+  isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED,
   skip = 0,
   take = 100,
   search: string | undefined = undefined
@@ -103,7 +105,7 @@ export const createCloudDirectoriesQueryKey = (
 export const createInfiniteObjectsQueryKey = (
   path: string,
   delimiter = true,
-  isMetadataProcessing = false,
+  isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED,
   take = 100,
   search: string | undefined = undefined
 ) =>
@@ -141,7 +143,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
   const { getSessionToken } = useEncryptedFolders();
   const {
     delimiter = true,
-    isMetadataProcessing = false,
+    isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED,
     refetchOnMount = "always",
     enabled = true,
     skip = 0,
@@ -330,7 +332,7 @@ export function useInfiniteCloudList(
   const { getSessionToken } = useEncryptedFolders();
   const {
     delimiter = true,
-    isMetadataProcessing = false,
+    isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED,
     refetchOnMount = "always",
     enabled = true,
     take = 100,

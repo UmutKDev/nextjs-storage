@@ -42,8 +42,19 @@ export function createQueryClient() {
     }),
     queryCache: new QueryCache({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onError: (error: any) =>
-        toast.error(error?.message || "Bir hata oluştu."),
+      onError: (error: any, query) => {
+        // Suppress 403 errors for objects and directories queries
+        if (error?.response?.status === 403) {
+          const queryKey = query.queryKey as string[];
+          if (
+            (queryKey.includes("cloud") && queryKey.includes("objects")) ||
+            (queryKey.includes("cloud") && queryKey.includes("directories"))
+          ) {
+            return;
+          }
+        }
+        toast.error(error?.message || "Bir hata oluştu.");
+      },
     }),
   });
 }

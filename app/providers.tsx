@@ -22,16 +22,28 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
       <Toaster
-        position="bottom-center"
+        position="top-right"
         toastOptions={{
           duration: 4000,
+          className: "text-sm font-medium",
           style: {
-            // color: "#fff",
-            // background: "rgba(0, 10, 10, 10)",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-            borderRadius: "8px",
+            background: "#fff",
+            color: "#0f172a", // slate-950
+            border: "1px solid #e2e8f0", // slate-200
             padding: "12px 16px",
-            zIndex: 9999,
+            boxShadow:
+              "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+            borderRadius: "6px",
+          },
+          error: {
+            style: {
+              borderLeft: "4px solid #ef4444", // red-500
+            },
+          },
+          success: {
+            style: {
+              borderLeft: "4px solid #22c55e", // green-500
+            },
           },
         }}
       />

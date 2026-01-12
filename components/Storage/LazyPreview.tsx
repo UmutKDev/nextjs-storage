@@ -173,7 +173,7 @@ export default function LazyPreview({
       return (
         <div
           className={`relative flex items-center justify-center bg-muted/5 rounded-lg overflow-hidden w-full ${
-            isFullScreen ? "h-full" : "h-auto"
+            isFullScreen ? "h-full" : "h-auto max-h-[70vh]"
           }`}
           style={{
             aspectRatio:
