@@ -164,7 +164,12 @@ export default function AccountPage() {
 
     return {
       name: plan?.name ?? "Özel Plan",
-      status: subscription.isActive ? "Aktif" : "Pasif",
+      status:
+        plan?.status === "ACTIVE"
+          ? "Aktif"
+          : plan?.status === "INACTIVE"
+          ? "Pasif"
+          : "Bilinmiyor",
       endAt: subscription.endAt,
       startAt: subscription.startAt,
       storageLimit: plan?.storageLimitBytes,
@@ -402,9 +407,12 @@ export default function AccountPage() {
                   <div className="flex flex-wrap gap-2">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-                        profile?.subscription?.isActive
+                        profile?.subscription?.subscription?.status === "ACTIVE"
                           ? "bg-emerald-500/10 text-emerald-500"
-                          : "bg-amber-500/10 text-amber-600"
+                          : profile?.subscription?.subscription?.status ===
+                            "INACTIVE"
+                          ? "bg-amber-500/10 text-amber-600"
+                          : "bg-muted/10 text-muted-foreground"
                       }`}
                     >
                       <BadgeCheck className="h-3.5 w-3.5" />

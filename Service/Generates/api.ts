@@ -491,7 +491,6 @@ export interface SubscriptionFindResponseModel {
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionFindResponseModelStatusEnum;
-    'isActive': boolean;
     'date': SubscriptionDateModel;
 }
 
@@ -536,7 +535,6 @@ export interface SubscriptionListResponseModel {
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionListResponseModelStatusEnum;
-    'isActive': boolean;
     'date': SubscriptionDateModel;
 }
 
@@ -576,7 +574,6 @@ export interface SubscriptionPostBodyRequestModel {
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionPostBodyRequestModelStatusEnum;
-    'isActive': boolean;
 }
 
 export const SubscriptionPostBodyRequestModelBillingCycleEnum = {
@@ -614,7 +611,6 @@ export interface SubscriptionPutBodyRequestModel {
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionPutBodyRequestModelStatusEnum;
-    'isActive': boolean;
 }
 
 export const SubscriptionPutBodyRequestModelBillingCycleEnum = {
@@ -650,7 +646,6 @@ export interface SubscriptionResponseModel {
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionResponseModelStatusEnum;
-    'isActive': boolean;
     'date': SubscriptionDateModel;
 }
 
@@ -802,7 +797,6 @@ export interface UserSubscriptionResponseModel {
     'id': string;
     'startAt': string;
     'endAt'?: string;
-    'isActive': boolean;
     'isTrial': boolean;
     /**
      * Price as cents
