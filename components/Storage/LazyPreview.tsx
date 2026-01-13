@@ -204,6 +204,7 @@ export default function LazyPreview({
             }`}
             style={{
               aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
+              display: imgLoaded ? "block" : "none",
             }}
             onLoad={() => setImgLoaded(true)}
             onError={() => setImgError(true)}

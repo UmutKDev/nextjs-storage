@@ -291,15 +291,29 @@ export default function Explorer({
     targetName?: string;
   } | null>(null);
 
-  const contents = React.useMemo(
-    () => objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
-    [objectsQuery.data]
-  );
-  const directories = React.useMemo(
-    () =>
-      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
-    [directoriesQuery.data]
-  );
+  const contents = React.useMemo(() => {
+    const all =
+      objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+    const seen = new Set<string>();
+    return all.filter((item) => {
+      const key = item.Path?.Key;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [objectsQuery.data]);
+
+  const directories = React.useMemo(() => {
+    const all =
+      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+    const seen = new Set<string>();
+    return all.filter((item) => {
+      const key = item.Prefix;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [directoriesQuery.data]);
 
   // Register encrypted paths
   React.useEffect(() => {
@@ -341,7 +355,7 @@ export default function Explorer({
   }, [directoriesQuery.data]);
 
   const loadedCount = contents.length + directories.length;
-  const totalItems = Math.max(totalFiles, totalDirs, loadedCount);
+  const totalItems = (totalFiles || 0) + (totalDirs || 0);
 
   const hasMoreObjects = objectsQuery.hasNextPage ?? false;
   const hasMoreDirectories = directoriesQuery.hasNextPage ?? false;

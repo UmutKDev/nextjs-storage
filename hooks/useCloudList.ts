@@ -415,7 +415,13 @@ export function useInfiniteCloudList(
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
       const total = lastPage.options?.count ?? 0;
-      const nextSkip = (lastPage.options?.skip ?? 0) + take;
+      const currentSkip = lastPage.options?.skip ?? 0;
+      const itemsCount = lastPage.items?.length ?? 0;
+
+      if (itemsCount === 0) return undefined;
+
+      const nextSkip = currentSkip + itemsCount;
+
       if (nextSkip >= total) return undefined;
       return nextSkip;
     },
@@ -455,7 +461,13 @@ export function useInfiniteCloudList(
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
       const total = lastPage.options?.count ?? 0;
-      const nextSkip = (lastPage.options?.skip ?? 0) + take;
+      const currentSkip = lastPage.options?.skip ?? 0;
+      const itemsCount = lastPage.items?.length ?? 0;
+
+      if (itemsCount === 0) return undefined;
+
+      const nextSkip = currentSkip + itemsCount;
+
       if (nextSkip >= total) return undefined;
       return nextSkip;
     },
@@ -470,16 +482,29 @@ export function useInfiniteCloudList(
     },
   });
 
-  const combinedObjects = useMemo(
-    () => objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
-    [objectsQuery.data]
-  );
+  const combinedObjects = useMemo(() => {
+    const all =
+      objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+    const seen = new Set<string>();
+    return all.filter((item) => {
+      const key = item.Path?.Key;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [objectsQuery.data]);
 
-  const combinedDirectories = useMemo(
-    () =>
-      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [],
-    [directoriesQuery.data]
-  );
+  const combinedDirectories = useMemo(() => {
+    const all =
+      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+    const seen = new Set<string>();
+    return all.filter((item) => {
+      const key = item.Prefix;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [directoriesQuery.data]);
 
   const invalidate = useCallback(
     () =>
