@@ -1,0 +1,16 @@
+[phases.setup]
+nixPkgs = ["nodejs", "bun", "openssl_3"]
+
+[phases.install]
+cmds = ["bun install"]
+
+[phases.build]
+cmds = [
+  "bun run build"
+]
+
+[start]
+cmd = "bun run start"
+
+[variables]
+NODE_VERSION = "24"
