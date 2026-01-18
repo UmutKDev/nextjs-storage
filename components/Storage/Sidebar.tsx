@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import StorageUsage from "./StorageUsage";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import { useStorage } from "./StorageProvider";
+import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +39,11 @@ export default function Sidebar({
   onUpload,
 }: SidebarProps) {
   const { userStorageUsageQuery } = useUserStorageUsage();
-  const { currentPath, setCurrentPath } = useStorage();
+  const { currentPath, setCurrentPath, isCurrentLocked } = useStorage();
+  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders();
+  const isUploadBlocked =
+    isCurrentLocked ||
+    (isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath));
 
   const navItems = [
     {
@@ -94,14 +99,16 @@ export default function Sidebar({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56 p-2 rounded-xl">
           <DropdownMenuItem
-            onClick={onUpload}
+            onClick={isUploadBlocked ? undefined : onUpload}
+            disabled={isUploadBlocked}
             className="gap-2 p-3 rounded-lg cursor-pointer"
           >
             <UploadCloud className="w-4 h-4 text-blue-500" />
             <span>Dosya Yükle</span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={onCreateFolder}
+            onClick={isUploadBlocked ? undefined : onCreateFolder}
+            disabled={isUploadBlocked}
             className="gap-2 p-3 rounded-lg cursor-pointer"
           >
             <FolderPlus className="w-4 h-4 text-yellow-500" />

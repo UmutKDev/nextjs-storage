@@ -1,12 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useCallback } from "react";
+import React, { createContext, useContext, useCallback, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 type StorageContextType = {
   currentPath: string; // path used as query param for cloudApiFactory.list
   setCurrentPath: (path: string) => void;
   reset: () => void;
+  isCurrentLocked: boolean;
+  setIsCurrentLocked: (locked: boolean) => void;
 };
 
 const StorageContext = createContext<StorageContextType | undefined>(undefined);
@@ -24,6 +26,7 @@ export default function StorageProvider({
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const [isCurrentLocked, setIsCurrentLocked] = useState(false);
 
   const currentPath = searchParams.get("path") || initialPath;
 
@@ -52,7 +55,15 @@ export default function StorageProvider({
   }, [searchParams, pathname, router]);
 
   return (
-    <StorageContext.Provider value={{ currentPath, setCurrentPath, reset }}>
+    <StorageContext.Provider
+      value={{
+        currentPath,
+        setCurrentPath,
+        reset,
+        isCurrentLocked,
+        setIsCurrentLocked,
+      }}
+    >
       {children}
     </StorageContext.Provider>
   );

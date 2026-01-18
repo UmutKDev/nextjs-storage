@@ -16,9 +16,13 @@ import {
   Loader2,
   AlertCircle,
   Ban,
+  HardDrive,
+  Files,
 } from "lucide-react";
 import { useStorage } from "./StorageProvider";
 import { useFileUpload, type UploadItem } from "@/hooks/useFileUpload";
+import toast from "react-hot-toast";
+import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 
 // Helper component for rendering a list of uploads
 function UploadList({
@@ -86,8 +90,8 @@ function UploadList({
                   {variant === "error"
                     ? "Failed"
                     : variant === "muted"
-                    ? "Cancelled"
-                    : `${file.progress}%`}
+                      ? "Cancelled"
+                      : `${file.progress}%`}
                 </span>
               </div>
               {showProgress && (
@@ -107,12 +111,16 @@ function UploadList({
 }
 
 export default function FileUpload() {
-  const { currentPath } = useStorage();
+  const { currentPath, isCurrentLocked } = useStorage();
   const { uploads, handleFiles, cancelUpload, removeUpload } =
     useFileUpload(currentPath);
   const filePickerRef = useRef<HTMLInputElement>(null);
   const { userStorageUsageQuery } = useUserStorageUsage();
   const maxUploadBytes = userStorageUsageQuery.data?.MaxUploadSizeBytes;
+  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders();
+  const isUploadBlocked =
+    isCurrentLocked ||
+    isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath);
   const [rejectedFiles, setRejectedFiles] = useState<
     { name: string; size: number; reason: string }[]
   >([]);
@@ -125,10 +133,19 @@ export default function FileUpload() {
   }
 
   const openFilePicker = () => {
+    if (isUploadBlocked) {
+      toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
+      return;
+    }
     filePickerRef.current?.click();
   };
 
   const onFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (isUploadBlocked) {
+      toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
+      if (filePickerRef.current) filePickerRef.current.value = "";
+      return;
+    }
     const selectedFiles = event.target.files;
     if (selectedFiles) {
       const files = Array.from(selectedFiles);
@@ -162,10 +179,18 @@ export default function FileUpload() {
 
   const onDragOver = (event: React.DragEvent) => {
     event.preventDefault();
+    if (isUploadBlocked) {
+      event.dataTransfer.dropEffect = "none";
+      return;
+    }
   };
 
   const onDropFiles = (event: React.DragEvent) => {
     event.preventDefault();
+    if (isUploadBlocked) {
+      toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
+      return;
+    }
     const droppedFiles = event.dataTransfer.files;
     if (droppedFiles) {
       const files = Array.from(droppedFiles);
@@ -201,7 +226,20 @@ export default function FileUpload() {
   const cancelledUploads = uploads.filter((f) => f.status === "cancelled");
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-y-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-y-6">
+      {isUploadBlocked && (
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive w-full">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="size-5 mt-0.5" />
+            <div className="flex-1">
+              <strong className="block">Dosya yukleme devre disi</strong>
+              <p className="mt-1 text-sm text-destructive/90">
+                Sifrelenmis klasor kilitli oldugu icin yukleme yapamazsiniz.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {rejectedFiles.length > 0 && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive w-full">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -235,94 +273,153 @@ export default function FileUpload() {
           </div>
         </div>
       )}
-      <Card
-        className="group flex max-h-[220px] w-full flex-col items-center justify-center gap-4 py-10 px-6 border-dashed text-sm cursor-pointer hover:bg-muted/50 transition-colors"
-        onDragOver={onDragOver}
-        onDrop={onDropFiles}
-        onClick={openFilePicker}
-      >
-        <div className="grid space-y-3">
-          <div className="flex items-center gap-x-2 text-muted-foreground">
-            <Upload className="size-5" />
-            <div>
-              Drop files here or{" "}
-              <Button
-                variant="link"
-                className="text-primary p-0 h-auto font-normal"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openFilePicker();
-                }}
-              >
-                browse files
-              </Button>{" "}
-              to add
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+        <div className="space-y-4">
+          <div className="rounded-2xl border bg-gradient-to-br from-muted/40 via-background to-muted/10 p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                  New upload
+                </div>
+                <div className="text-xl font-semibold text-foreground">
+                  Add files to your storage
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Drag and drop or browse. Any file type is supported.
+                </p>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 rounded-full border bg-background/70 px-3 py-1 text-xs text-muted-foreground whitespace-nowrap">
+                <Upload className="size-3 text-foreground" />
+                Multi-select
+              </div>
+            </div>
+
+            <Card
+              className={`group mt-5 flex min-h-[240px] w-full flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed bg-background/70 px-6 py-10 text-sm shadow-sm transition-all hover:border-foreground/30 hover:bg-background ${
+                isUploadBlocked ? "cursor-not-allowed opacity-60" : ""
+              }`}
+              onDragOver={onDragOver}
+              onDrop={onDropFiles}
+              onClick={openFilePicker}
+              aria-disabled={isUploadBlocked}
+            >
+              <div className="flex flex-col items-center gap-3 text-center">
+                <div className="grid size-14 place-items-center rounded-full bg-muted text-foreground">
+                  <Upload className="size-6" />
+                </div>
+                <div className="text-base font-semibold">Drop files here</div>
+                <div className="text-sm text-muted-foreground">
+                  or click to choose from your device
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-1"
+                  disabled={isUploadBlocked}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openFilePicker();
+                  }}
+                >
+                  Browse files
+                </Button>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
+                <span className="rounded-full border bg-muted/40 px-2.5 py-1">
+                  All file types
+                </span>
+                <span className="rounded-full border bg-muted/40 px-2.5 py-1">
+                  Up to{" "}
+                  {maxUploadBytes ? humanFileSize(maxUploadBytes) : "10 MB"}
+                </span>
+              </div>
+            </Card>
+            <input
+              ref={filePickerRef}
+              type="file"
+              className="hidden"
+              accept="*"
+              multiple
+              onChange={onFileInputChange}
+            />
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="flex items-center gap-2 rounded-lg border bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+                <HardDrive className="size-4 text-foreground" />
+                Max file size{" "}
+                {maxUploadBytes ? humanFileSize(maxUploadBytes) : "10 MB"}
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border bg-background/70 px-3 py-2 text-xs text-muted-foreground">
+                <Files className="size-4 text-foreground" />
+                All file formats supported
+              </div>
             </div>
           </div>
         </div>
-        <input
-          ref={filePickerRef}
-          type="file"
-          className="hidden"
-          accept="*"
-          multiple
-          onChange={onFileInputChange}
-        />
-        <span className="text-base/6 text-muted-foreground group-disabled:opacity-50 mt-2 block sm:text-xs">
-          Supported: JPG, PNG, GIF (max{" "}
-          {maxUploadBytes ? humanFileSize(maxUploadBytes) : "10 MB"})
-        </span>
-      </Card>
 
-      <div className="flex flex-col gap-y-4">
-        <UploadList
-          title="Uploading"
-          icon={Loader2}
-          items={activeUploads}
-          onAction={cancelUpload}
-          actionIcon={X}
-          showProgress={true}
-        />
+        <div className="rounded-2xl border bg-card p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="text-sm font-semibold">Upload queue</div>
+              <div className="text-xs text-muted-foreground">
+                Track progress and manage uploads
+              </div>
+            </div>
+          </div>
 
-        {activeUploads.length > 0 &&
-          (completedUploads.length > 0 ||
-            failedUploads.length > 0 ||
-            cancelledUploads.length > 0) && <Separator className="my-0" />}
+          <Separator className="my-4" />
 
-        <UploadList
-          title="Finished"
-          icon={CheckCircle}
-          items={completedUploads}
-          onAction={removeUpload}
-          actionIcon={X}
-        />
+          <div className="flex flex-col gap-y-4 max-h-[50vh] overflow-auto pr-1">
+            <UploadList
+              title="Uploading"
+              icon={Loader2}
+              items={activeUploads}
+              onAction={cancelUpload}
+              actionIcon={X}
+              showProgress={true}
+            />
 
-        {completedUploads.length > 0 &&
-          (failedUploads.length > 0 || cancelledUploads.length > 0) && (
-            <Separator className="my-0" />
-          )}
+            {activeUploads.length > 0 &&
+              (completedUploads.length > 0 ||
+                failedUploads.length > 0 ||
+                cancelledUploads.length > 0) && <Separator className="my-0" />}
 
-        <UploadList
-          title="Failed"
-          icon={AlertCircle}
-          items={failedUploads}
-          onAction={removeUpload}
-          actionIcon={X}
-          variant="error"
-        />
+            <UploadList
+              title="Finished"
+              icon={CheckCircle}
+              items={completedUploads}
+              onAction={removeUpload}
+              actionIcon={X}
+            />
 
-        {failedUploads.length > 0 && cancelledUploads.length > 0 && (
-          <Separator className="my-0" />
-        )}
+            {completedUploads.length > 0 &&
+              (failedUploads.length > 0 || cancelledUploads.length > 0) && (
+                <Separator className="my-0" />
+              )}
 
-        <UploadList
-          title="Cancelled"
-          icon={Ban}
-          items={cancelledUploads}
-          onAction={removeUpload}
-          actionIcon={X}
-          variant="muted"
-        />
+            <UploadList
+              title="Failed"
+              icon={AlertCircle}
+              items={failedUploads}
+              onAction={removeUpload}
+              actionIcon={X}
+              variant="error"
+            />
+
+            {failedUploads.length > 0 && cancelledUploads.length > 0 && (
+              <Separator className="my-0" />
+            )}
+
+            <UploadList
+              title="Cancelled"
+              icon={Ban}
+              items={cancelledUploads}
+              onAction={removeUpload}
+              actionIcon={X}
+              variant="muted"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

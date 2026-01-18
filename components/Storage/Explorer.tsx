@@ -49,6 +49,7 @@ import FilePreviewModal from "./FilePreviewModal";
 import FileIcon from "./FileIcon";
 import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 import { isAxiosError } from "axios";
+import { useStorage } from "./StorageProvider";
 
 import {
   DndContext,
@@ -129,6 +130,7 @@ export default function Explorer({
   setShowUpload: (show: boolean) => void;
   onOpenMobileSidebar?: () => void;
 }) {
+  const { setIsCurrentLocked } = useStorage();
   const queryClient = useQueryClient();
   // main data hook
   const { invalidateBreadcrumb, invalidateObjects, invalidateDirectories } =
@@ -245,6 +247,17 @@ export default function Explorer({
     isAccessDenied;
   const isCurrentLocked =
     isAccessDenied || (isCurrentEncrypted && !isFolderUnlocked(lockPath));
+
+  React.useEffect(() => {
+    setIsCurrentLocked(isCurrentLocked);
+  }, [isCurrentLocked, setIsCurrentLocked]);
+
+  React.useEffect(() => {
+    if (isCurrentLocked && showCreateFolder) {
+      setShowCreateFolder(false);
+      toast.error("Sifrelenmis klasor kilitli. Klasor olusturamazsiniz.");
+    }
+  }, [isCurrentLocked, showCreateFolder, setShowCreateFolder]);
 
   // create folder UI state
   const [newFolderName, setNewFolderName] = React.useState("");
@@ -979,6 +992,10 @@ export default function Explorer({
   }, [objectsQuery.isFetching, directoriesQuery.isFetching]);
 
   async function createFolder() {
+    if (isCurrentLocked) {
+      toast.error("Sifrelenmis klasor kilitli. Klasor olusturamazsiniz.");
+      return;
+    }
     const name = newFolderName.trim();
     if (!name) {
       toast.error("Folder name required");
@@ -1041,6 +1058,10 @@ export default function Explorer({
   }
 
   async function createEncryptedFolder() {
+    if (isCurrentLocked) {
+      toast.error("Sifrelenmis klasor kilitli. Klasor olusturamazsiniz.");
+      return;
+    }
     const name = encryptedFolderName.trim();
     if (!name) {
       toast.error("Klasör adı gerekli");
@@ -1442,6 +1463,7 @@ export default function Explorer({
                     promptUnlock({
                       path: lockPath,
                       label: getFolderNameFromPrefix(lockPath) || folderLabel,
+                      force: true,
                     })
                   }
                   size="sm"

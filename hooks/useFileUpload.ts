@@ -5,6 +5,7 @@ import type { AxiosProgressEvent } from "axios";
 import useCloudList from "./useCloudList";
 import useUserStorageUsage from "./useUserStorageUsage";
 import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
+import { useStorage } from "@/components/Storage/StorageProvider";
 
 export type UploadStatus = "uploading" | "completed" | "failed" | "cancelled";
 
@@ -18,11 +19,13 @@ export interface UploadItem {
 }
 
 export function useFileUpload(currentPath: string | null) {
+  const { isCurrentLocked } = useStorage();
   // We only need invalidation helpers here — don't run the list queries when
   // the upload modal/component mounts to avoid unnecessary network requests.
   const { invalidates } = useCloudList(currentPath || "", { enabled: false });
   const { invalidate: invalidatesUsage } = useUserStorageUsage(); // to ensure usage is up to date after upload
-  const { getSessionToken } = useEncryptedFolders();
+  const { getSessionToken, isFolderEncrypted, isFolderUnlocked } =
+    useEncryptedFolders();
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const controllersRef = useRef<Record<string, AbortController>>({});
   // query client is not required here; invalidation helpers from useCloudList
@@ -57,6 +60,13 @@ export function useFileUpload(currentPath: string | null) {
 
   const uploadFile = useCallback(
     async (file: File) => {
+      if (
+        isCurrentLocked ||
+        (isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath))
+      ) {
+        toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
+        return;
+      }
       const sessionToken = getSessionToken(currentPath || "");
       const headers = sessionToken
         ? { "X-Folder-Session": sessionToken }
@@ -202,14 +212,36 @@ export function useFileUpload(currentPath: string | null) {
         delete controllersRef.current[id];
       }
     },
-    [currentPath, updateUpload, invalidates, invalidatesUsage, getSessionToken]
+    [
+      currentPath,
+      updateUpload,
+      invalidates,
+      invalidatesUsage,
+      getSessionToken,
+      isFolderEncrypted,
+      isFolderUnlocked,
+      isCurrentLocked,
+    ]
   );
 
   const handleFiles = useCallback(
     (files: File[]) => {
+      if (
+        isCurrentLocked ||
+        (isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath))
+      ) {
+        toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
+        return;
+      }
       files.forEach(uploadFile);
     },
-    [uploadFile]
+    [
+      uploadFile,
+      currentPath,
+      isFolderEncrypted,
+      isFolderUnlocked,
+      isCurrentLocked,
+    ]
   );
 
   return {
