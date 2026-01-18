@@ -93,7 +93,9 @@ function GridThumbnail({
         const v = document.createElement("video");
         v.crossOrigin = "anonymous";
         v.preload = "metadata";
-        v.src = url;
+        const src = url;
+        if (!src) return;
+        v.src = src;
 
         await new Promise<void>((resolve, reject) => {
           const onLoaded = () => resolve();
@@ -147,7 +149,7 @@ function GridThumbnail({
       <div
         className={cn(
           "w-full h-full min-h-[160px] flex items-center justify-center rounded-md bg-muted/20",
-          className
+          className,
         )}
       >
         <FileIcon extension={file.Extension} />
@@ -185,7 +187,7 @@ function GridThumbnail({
     <div
       className={cn(
         "w-full relative rounded-md overflow-hidden bg-muted/5 flex items-center justify-center", // Removed fixed heights, added centering
-        className
+        className,
       )}
       style={{
         maxHeight: className?.includes("min-h-") ? undefined : "60vh", // Prevent excessively tall images
@@ -233,7 +235,7 @@ function GridThumbnail({
                 const img = e.currentTarget as HTMLImageElement;
                 handleVideoDims(
                   img.naturalWidth || img.width,
-                  img.naturalHeight || img.height
+                  img.naturalHeight || img.height,
                 );
               }}
               className={`w-full h-auto object-contain transition-all duration-300 ${
@@ -300,9 +302,7 @@ function formatExtractStatus(job: {
         ? progress.entriesProcessed
         : null;
     const totalEntries =
-      typeof progress?.totalEntries === "number"
-        ? progress.totalEntries
-        : null;
+      typeof progress?.totalEntries === "number" ? progress.totalEntries : null;
     const bytesRead =
       typeof progress?.bytesRead === "number" ? progress.bytesRead : null;
     const totalBytes =
@@ -313,14 +313,12 @@ function formatExtractStatus(job: {
 
     if (bytesRead !== null && totalBytes !== null && totalBytes > 0) {
       return `Cikariliyor ${humanFileSize(bytesRead)} / ${humanFileSize(
-        totalBytes
+        totalBytes,
       )}${entryInfo}`;
     }
     if (entries !== null) {
       const entryTotal =
-        totalEntries !== null && totalEntries > 0
-          ? ` / ${totalEntries}`
-          : "";
+        totalEntries !== null && totalEntries > 0 ? ` / ${totalEntries}` : "";
       return `Cikariliyor ${entries}${entryTotal}${entryInfo}`;
     }
     return `Cikariliyor${entryInfo}`;
@@ -377,7 +375,7 @@ function DraggableItem({
           type === "folder" &&
           "bg-primary/10 ring-2 ring-primary ring-inset rounded-md",
         selected && "bg-muted/20 ring-1 ring-border",
-        className
+        className,
       )}
       onClick={() => {
         if (onSelect) {
@@ -465,7 +463,7 @@ export default function StorageBrowser({
 
         return { ...prev, [key]: clamped };
       }),
-    []
+    [],
   );
 
   const getDirectoryMeta = React.useCallback(
@@ -477,12 +475,12 @@ export default function StorageBrowser({
         dir.Prefix ||
         "Klasör";
       const encrypted = Boolean(
-        dir.IsEncrypted || isFolderEncrypted(normalizedPath)
+        dir.IsEncrypted || isFolderEncrypted(normalizedPath),
       );
       const unlocked = encrypted ? isFolderUnlocked(normalizedPath) : true;
       return { normalizedPath, displayName, encrypted, unlocked };
     },
-    [isFolderEncrypted, isFolderUnlocked]
+    [isFolderEncrypted, isFolderUnlocked],
   );
 
   const isEmpty = !directories?.length && !contents?.length && !loading;
@@ -505,7 +503,7 @@ export default function StorageBrowser({
   const handleItemClick = (
     item: CloudObject | Directory,
     type: "file" | "folder",
-    e: React.MouseEvent
+    e: React.MouseEvent,
   ) => {
     const id =
       type === "file"
@@ -585,7 +583,7 @@ export default function StorageBrowser({
                   <span
                     className={cn(
                       "inline-flex items-center gap-1 font-medium",
-                      meta.unlocked ? "text-emerald-600" : "text-amber-600"
+                      meta.unlocked ? "text-emerald-600" : "text-amber-600",
                     )}
                   >
                     {meta.unlocked ? (
@@ -658,7 +656,7 @@ export default function StorageBrowser({
       })}
 
       {/* Files */}
-      {(loading ? Array.from({ length: 4 }) : contents ?? []).map(
+      {(loading ? Array.from({ length: 4 }) : (contents ?? [])).map(
         (item: unknown, idx) => {
           const c = loading ? undefined : (item as CloudObject);
           const key = c?.Path?.Key ?? `file-${idx}`;
@@ -811,7 +809,7 @@ export default function StorageBrowser({
               </div>
             </DraggableItem>
           );
-        }
+        },
       )}
     </div>
   );
@@ -875,7 +873,7 @@ export default function StorageBrowser({
                         "inline-flex items-center gap-1 px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-medium",
                         meta.unlocked
                           ? "bg-emerald-50 text-emerald-700"
-                          : "bg-amber-50 text-amber-700"
+                          : "bg-amber-50 text-amber-700",
                       )}
                     >
                       {meta.unlocked ? (
@@ -946,7 +944,7 @@ export default function StorageBrowser({
       });
     });
 
-    const fileItems = loading ? Array.from({ length: 12 }) : contents ?? [];
+    const fileItems = loading ? Array.from({ length: 12 }) : (contents ?? []);
 
     fileItems.forEach((item: unknown, idx) => {
       if (loading) {
