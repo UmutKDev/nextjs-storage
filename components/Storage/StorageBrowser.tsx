@@ -32,6 +32,7 @@ import type {
   CloudObjectModel,
   CloudDirectoryModel,
 } from "@/Service/Generates/api";
+import { getCloudObjectUrl, getImageCdnUrl, isImageFile } from "./imageCdn";
 
 type CloudObject = CloudObjectModel;
 type Directory = CloudDirectoryModel;
@@ -67,17 +68,16 @@ function GridThumbnail({
   const [error, setError] = React.useState(false);
   const lastAspectRef = React.useRef<number | null>(null);
 
-  const url = file?.Path?.Url ?? file?.Path?.Key;
+  const baseUrl = getCloudObjectUrl(file);
   const mime = (file?.MimeType ?? "").toLowerCase();
   const ext = (file.Extension || "").toLowerCase();
 
-  const isImage =
-    mime.startsWith("image") ||
-    ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"].includes(ext);
+  const isImage = isImageFile(file);
 
   const isVideo =
     mime.startsWith("video") ||
     ["mp4", "webm", "ogg", "mov", "mkv"].includes(ext);
+  const url = isImage ? getImageCdnUrl(file, { target: "thumb" }) : baseUrl;
 
   const [thumb, setThumb] = React.useState<string | null>(null);
   const [thumbLoading, setThumbLoading] = React.useState(false);
@@ -735,9 +735,6 @@ export default function StorageBrowser({
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4 text-sm text-muted-foreground shrink-0">
-                  <div className="whitespace-nowrap hidden sm:block">
-                    {humanFileSize(c!.Size)}
-                  </div>
                   <div className="whitespace-nowrap hidden lg:block">
                     {c?.LastModified
                       ? new Date(c!.LastModified).toLocaleString()
@@ -1029,9 +1026,6 @@ export default function StorageBrowser({
                 <div className="absolute left-0 right-0 bottom-0 px-3 py-2 bg-linear-to-t from-black/60 to-transparent text-white text-xs flex items-center justify-between gap-2">
                   <div className="truncate font-medium" title={c!.Name}>
                     {c!.Name}
-                  </div>
-                  <div className="whitespace-nowrap opacity-90 hidden sm:block">
-                    {humanFileSize(c!.Size)}
                   </div>
                 </div>
 

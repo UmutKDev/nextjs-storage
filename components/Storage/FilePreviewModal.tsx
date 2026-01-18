@@ -16,9 +16,54 @@ import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
 import ShareFileModal from "./ShareFileModal";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 
 import type { CloudObjectModel } from "@/Service/Generates/api";
+import {
+  getCloudObjectUrl,
+  getImageCdnUrl,
+  getScaledImageDimensions,
+  isImageFile,
+} from "./imageCdn";
+
+function humanFileSize(bytes?: number) {
+  if (!bytes || bytes === 0) return "0 B";
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i];
+}
+
+function formatOriginalSize(file: CloudObjectModel) {
+  const size = humanFileSize(file?.Size);
+  const rawWidth = file?.Metadata?.Width;
+  const rawHeight = file?.Metadata?.Height;
+  const width = rawWidth ? Number(rawWidth) : null;
+  const height = rawHeight ? Number(rawHeight) : null;
+  const hasDims =
+    width && height && Number.isFinite(width) && Number.isFinite(height);
+  const dims = hasDims
+    ? `${Math.round(width)}x${Math.round(height)}`
+    : null;
+  return `Orijinal boyut: ${size}${dims ? ` • ${dims}` : ""}`;
+}
+
+function formatScaledSize(
+  file: CloudObjectModel,
+  options?: { isFullScreen?: boolean }
+) {
+  if (!isImageFile(file)) return "Ölçekli boyut: —";
+  const scaled = getScaledImageDimensions(file, {
+    target: options?.isFullScreen ? "fullscreen" : "preview",
+  });
+  if (!scaled) return "Ölçekli boyut: —";
+  return `Ölçekli boyut: ${scaled.width}x${scaled.height}`;
+}
 
 export default function FilePreviewModal({
   file,
@@ -35,6 +80,17 @@ export default function FilePreviewModal({
 }) {
   const [isFullScreen, setIsFullScreen] = React.useState(false);
   const [showShareModal, setShowShareModal] = React.useState(false);
+  const downloadUrl = getCloudObjectUrl(file ?? undefined);
+  const scaledDownloadUrl = file
+    ? getImageCdnUrl(file, {
+        target: isFullScreen ? "fullscreen" : "preview",
+      })
+    : undefined;
+  const hasScaledDownload =
+    Boolean(downloadUrl) &&
+    Boolean(scaledDownloadUrl) &&
+    isImageFile(file ?? undefined) &&
+    scaledDownloadUrl !== downloadUrl;
 
   const isMedia = React.useCallback((f: CloudObjectModel) => {
     const ext = f.Extension?.toLowerCase();
@@ -153,39 +209,48 @@ export default function FilePreviewModal({
                   <span className="uppercase font-medium tracking-wide text-[10px] bg-muted px-1.5 rounded-sm">
                     {file.Extension}
                   </span>
-                  {file.Size && (
-                    <>
-                      <span className="text-muted-foreground/40">•</span>
-                      <span>{(file.Size / 1024).toFixed(1)} KB</span>
-                    </>
-                  )}
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              {file.Path?.Url || file.Path?.Host ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  title="İndir"
-                  asChild
-                >
-                  <a
-                    href={
-                      file.Path?.Url ??
-                      `${String(file.Path?.Host).replace(/\/$/, "")}/${
-                        file.Path?.Key
-                      }`
-                    }
-                    download={file.Name}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <DownloadCloud size={18} />
-                  </a>
-                </Button>
+              {downloadUrl ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      title="İndir"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DownloadCloud size={18} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <a
+                        href={downloadUrl}
+                        download={file.Name}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Orijinal
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild disabled={!hasScaledDownload}>
+                      <a
+                        href={scaledDownloadUrl ?? downloadUrl}
+                        download={file.Name}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Ölçekli
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : null}
 
               <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
@@ -270,11 +335,10 @@ export default function FilePreviewModal({
           </div>
 
           <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10 text-xs text-muted-foreground shrink-0">
+            <div>{formatOriginalSize(file)}</div>
+            <div>{formatScaledSize(file, { isFullScreen })}</div>
             <div>
-              Size: {file.Size ? `${(file.Size / 1024).toFixed(1)} KB` : "—"}
-            </div>
-            <div>
-              Modified:{" "}
+              Değiştirilme:{" "}
               {file.LastModified
                 ? new Date(file.LastModified).toLocaleString()
                 : "—"}

@@ -11,6 +11,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import type { CloudObjectModel } from "@/Service/Generates/api";
 import { Button } from "@/components/ui/button";
+import { getCloudObjectUrl, getImageCdnUrl, isImageFile } from "./imageCdn";
 
 function useInView<T extends HTMLElement>() {
   const ref = React.useRef<T | null>(null);
@@ -50,14 +51,17 @@ export default function LazyPreview({
   const [text, setText] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
-  const url = file?.Path?.Url ?? file?.Path?.Key ?? undefined;
+  const baseUrl = getCloudObjectUrl(file);
   const mime = (file?.MimeType ?? "").toLowerCase();
   const ext = (file.Extension || "").toLowerCase();
 
   // File Type Detection
-  const isImage =
-    mime.startsWith("image") ||
-    ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "ico"].includes(ext);
+  const isImage = isImageFile(file);
+  const imageUrl = isImage
+    ? getImageCdnUrl(file, {
+        target: isFullScreen ? "fullscreen" : "preview",
+      })
+    : baseUrl;
   const isVideo =
     (mime.startsWith("video") && ["mp4", "webm", "ogg"].includes(ext)) ||
     ["mp4", "webm", "ogg"].includes(ext);
@@ -113,11 +117,11 @@ export default function LazyPreview({
   React.useEffect(() => {
     setText(null);
     setError(null);
-    if (!inView || !url) return;
+    if (!inView || !baseUrl) return;
 
     if (isText && !isOffice && !isPdf) {
       setLoading(true);
-      fetch(url)
+      fetch(baseUrl)
         .then((r) => {
           if (!r.ok) throw new Error("Failed to load content");
           return r.text();
@@ -126,7 +130,7 @@ export default function LazyPreview({
         .catch(() => setError("Unable to load text preview"))
         .finally(() => setLoading(false));
     }
-  }, [inView, url, mime, isText, isOffice, isPdf]);
+  }, [inView, baseUrl, mime, isText, isOffice, isPdf]);
 
   // Image State
   const [imgLoaded, setImgLoaded] = React.useState(false);
@@ -135,12 +139,12 @@ export default function LazyPreview({
   React.useEffect(() => {
     setImgLoaded(false);
     setImgError(false);
-  }, [url]);
+  }, [imageUrl]);
 
   // Embed URL Logic
   const getEmbedUrl = () => {
-    if (!url) return "";
-    const encodedUrl = encodeURIComponent(url);
+    if (!baseUrl) return "";
+    const encodedUrl = encodeURIComponent(baseUrl);
 
     if (isOffice) {
       // Microsoft Office Online Viewer
@@ -191,7 +195,7 @@ export default function LazyPreview({
             </div>
           )}
           <motion.img
-            src={url}
+            src={imageUrl}
             alt={file.Name}
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{
@@ -233,7 +237,7 @@ export default function LazyPreview({
             }`}
             preload="metadata"
           >
-            <source src={url} type={file.MimeType} />
+            <source src={baseUrl} type={file.MimeType} />
             Your browser does not support the video tag.
           </video>
         </div>
@@ -254,7 +258,7 @@ export default function LazyPreview({
             to view.
           </p>
           <Button variant="outline" size="sm" asChild>
-            <a href={url} target="_blank" rel="noopener noreferrer">
+            <a href={baseUrl} target="_blank" rel="noopener noreferrer">
               <Download className="h-4 w-4 mr-2" />
               Download Video
             </a>
@@ -267,7 +271,7 @@ export default function LazyPreview({
       return (
         <div className="p-8 flex items-center justify-center bg-muted/10 rounded-lg border border-border/50">
           <audio controls className="w-full max-w-md">
-            <source src={url} type={file.MimeType} />
+            <source src={baseUrl} type={file.MimeType} />
           </audio>
         </div>
       );
@@ -280,7 +284,11 @@ export default function LazyPreview({
             isFullScreen ? "h-[calc(100vh-8rem)]" : "h-[70vh]"
           }`}
         >
-          <iframe src={url} className="w-full h-full" title={file.Name} />
+          <iframe
+            src={baseUrl}
+            className="w-full h-full"
+            title={file.Name}
+          />
         </div>
       );
     }
@@ -344,7 +352,7 @@ export default function LazyPreview({
           This file type cannot be previewed directly in the browser.
         </p>
         <Button variant="outline" size="sm" asChild>
-          <a href={url} target="_blank" rel="noopener noreferrer">
+          <a href={baseUrl} target="_blank" rel="noopener noreferrer">
             <Download className="h-4 w-4 mr-2" />
             Download File
           </a>
