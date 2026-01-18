@@ -41,6 +41,7 @@ import {
   FolderInput,
   Lock,
   Loader2,
+  Archive,
 } from "lucide-react";
 
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
@@ -278,6 +279,29 @@ export default function Explorer({
   const [toDelete, setToDelete] = React.useState<
     CloudObjectModel | CloudDirectoryModel | null
   >(null);
+  const [toExtract, setToExtract] = React.useState<CloudObjectModel | null>(
+    null
+  );
+  const [extractJobs, setExtractJobs] = React.useState<
+    Record<
+      string,
+      {
+        key: string;
+        jobId?: string;
+        state: string;
+        progress?: {
+          entriesProcessed?: number;
+          totalEntries?: number | null;
+          bytesRead?: number;
+          totalBytes?: number | null;
+          currentEntry?: string;
+        };
+        extractedPath?: string;
+        failedReason?: string;
+        updatedAt: number;
+      }
+    >
+  >({});
   const [selectedItems, setSelectedItems] = React.useState<Set<string>>(
     new Set()
   );
@@ -707,6 +731,224 @@ export default function Explorer({
     }
   }
 
+  const normalizePath = (path?: string | null) => {
+    if (!path) return "";
+    return path.replace(/^\/+|\/+$/g, "");
+  };
+
+  const getParentPath = (key: string) => {
+    const trimmed = key.replace(/^\/+/, "");
+    const lastSlash = trimmed.lastIndexOf("/");
+    if (lastSlash === -1) return "";
+    return trimmed.slice(0, lastSlash);
+  };
+
+  const invalidatePath = React.useCallback(
+    async (path: string) => {
+      const normalized = normalizePath(path);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: CLOUD_OBJECTS_QUERY_KEY,
+          predicate: (q) =>
+            Array.isArray(q.queryKey) &&
+            q.queryKey[0] === CLOUD_OBJECTS_QUERY_KEY[0] &&
+            q.queryKey[1] === CLOUD_OBJECTS_QUERY_KEY[1] &&
+            q.queryKey[2] === normalized,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: CLOUD_DIRECTORIES_QUERY_KEY,
+          predicate: (q) =>
+            Array.isArray(q.queryKey) &&
+            q.queryKey[0] === CLOUD_DIRECTORIES_QUERY_KEY[0] &&
+            q.queryKey[1] === CLOUD_DIRECTORIES_QUERY_KEY[1] &&
+            q.queryKey[2] === normalized,
+        }),
+      ]);
+    },
+    [queryClient]
+  );
+
+  const scheduleJobCleanup = React.useCallback((key: string) => {
+    setTimeout(() => {
+      setExtractJobs((prev) => {
+        if (!prev[key]) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }, 10000);
+  }, []);
+
+  const updateExtractJob = React.useCallback(
+    (
+      key: string,
+      update: Partial<{
+        jobId: string;
+        state: string;
+        progress: {
+          entriesProcessed?: number;
+          totalEntries?: number | null;
+          bytesRead?: number;
+          totalBytes?: number | null;
+          currentEntry?: string;
+        };
+        extractedPath?: string;
+        failedReason?: string;
+      }>
+    ) => {
+      setExtractJobs((prev) => {
+        const existing = prev[key];
+        if (!existing) {
+          return {
+            ...prev,
+            [key]: {
+              key,
+              state: update.state ?? "waiting",
+              jobId: update.jobId,
+              progress: update.progress,
+              extractedPath: update.extractedPath,
+              failedReason: update.failedReason,
+              updatedAt: Date.now(),
+            },
+          };
+        }
+        return {
+          ...prev,
+          [key]: {
+            ...existing,
+            ...update,
+            updatedAt: Date.now(),
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const pollExtractStatus = React.useCallback(
+    async (key: string, jobId: string) => {
+      try {
+        const response = await cloudApiFactory.extractZipStatus({ jobId });
+        const result = response.data?.result;
+        if (!result) return;
+
+        const progress = (result.Progress || {}) as {
+          entriesProcessed?: number;
+          totalEntries?: number | null;
+          bytesRead?: number;
+          totalBytes?: number | null;
+          currentEntry?: string;
+        };
+
+        updateExtractJob(key, {
+          state: result.State,
+          progress,
+          extractedPath: result.ExtractedPath,
+          failedReason: result.FailedReason,
+        });
+
+        if (result.State === "completed") {
+          const extractedPath = result.ExtractedPath;
+          const parentPath = getParentPath(key);
+          if (extractedPath) {
+            await Promise.all([
+              invalidatePath(parentPath),
+              invalidatePath(extractedPath),
+            ]);
+          } else {
+            await invalidatePath(parentPath);
+          }
+          scheduleJobCleanup(key);
+          toast.success("Zip çıkarma tamamlandı");
+        }
+
+        if (result.State === "failed") {
+          const reason = result.FailedReason || "Zip çıkarılamadı";
+          toast.error(reason);
+          scheduleJobCleanup(key);
+        }
+
+        if (result.State === "cancelled") {
+          toast.success("Zip çıkarma iptal edildi");
+          scheduleJobCleanup(key);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [invalidatePath, scheduleJobCleanup, updateExtractJob]
+  );
+
+  React.useEffect(() => {
+    const pollStates = new Set(["active", "waiting", "delayed", "starting"]);
+    const jobsToPoll = Object.values(extractJobs).filter(
+      (job) => job.jobId && pollStates.has(job.state)
+    );
+
+    if (jobsToPoll.length === 0) return;
+
+    jobsToPoll.forEach((job) => {
+      if (job.jobId) void pollExtractStatus(job.key, job.jobId);
+    });
+
+    const interval = setInterval(() => {
+      jobsToPoll.forEach((job) => {
+        if (job.jobId) void pollExtractStatus(job.key, job.jobId);
+      });
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [extractJobs, pollExtractStatus]);
+
+  async function handleExtractZip(file: CloudObjectModel) {
+    const key = file.Path?.Key;
+    if (!key) {
+      toast.error("Zip key missing");
+      return;
+    }
+
+    updateExtractJob(key, { state: "starting" });
+
+    try {
+      const response = await cloudApiFactory.extractZipStart({
+        cloudExtractZipStartRequestModel: { Key: key },
+      });
+      const jobId = response.data?.result?.JobId;
+      if (!jobId) {
+        toast.error("Extract jobId missing");
+        updateExtractJob(key, { state: "failed" });
+        scheduleJobCleanup(key);
+        return;
+      }
+      updateExtractJob(key, { jobId, state: "waiting" });
+      await pollExtractStatus(key, jobId);
+    } catch (e) {
+      console.error(e);
+      toast.error("Zip çıkarma başlatılamadı");
+      updateExtractJob(key, { state: "failed" });
+      scheduleJobCleanup(key);
+    }
+  }
+
+  async function handleCancelExtractZip(file: CloudObjectModel) {
+    const key = file.Path?.Key;
+    if (!key) return;
+    const job = extractJobs[key];
+    if (!job?.jobId) return;
+
+    try {
+      await cloudApiFactory.extractZipCancel({
+        cloudExtractZipCancelRequestModel: { JobId: job.jobId },
+      });
+      updateExtractJob(key, { state: "cancelled" });
+      scheduleJobCleanup(key);
+      toast.success("Zip çıkarma iptal edildi");
+    } catch (e) {
+      console.error(e);
+      toast.error("Zip çıkarma iptal edilemedi");
+    }
+  }
+
   function getItemName(item: CloudObjectModel | CloudDirectoryModel) {
     if ("Prefix" in item) {
       const prefix = item.Prefix ?? "";
@@ -714,6 +956,10 @@ export default function Explorer({
       return segments.length ? segments[segments.length - 1] : prefix;
     }
     return item.Name;
+  }
+
+  function getFileDisplayName(item: CloudObjectModel) {
+    return item.Metadata?.Originalfilename || item.Name || "dosya";
   }
 
   React.useEffect(() => {
@@ -1216,6 +1462,7 @@ export default function Explorer({
                   onViewModeChange={setViewMode}
                   onDelete={(item) => setToDelete(item)}
                   deleting={deleting}
+                  extractJobs={extractJobs}
                   selectedItems={selectedItems}
                   onSelect={(items) => setSelectedItems(items)}
                   onMove={(src, dest) => handleMove([src], dest)}
@@ -1225,6 +1472,8 @@ export default function Explorer({
                   }}
                   onRenameFolder={handleRenameRequest}
                   onConvertFolder={handleConvertRequest}
+                  onExtractZip={(file) => setToExtract(file)}
+                  onCancelExtractZip={(file) => void handleCancelExtractZip(file)}
                 />
 
                 {objectsQuery.isSuccess &&
@@ -1375,6 +1624,23 @@ export default function Explorer({
           }}
           title={`Delete ${toDelete ? getItemName(toDelete) : ""}?`}
           description="This action cannot be undone."
+        />
+
+        <ConfirmDeleteModal
+          open={!!toExtract}
+          onOpenChange={(open) => {
+            if (!open) setToExtract(null);
+          }}
+          onConfirm={async () => {
+            if (toExtract) await handleExtractZip(toExtract);
+          }}
+          title={`Zip cikarilsin mi: ${toExtract ? getFileDisplayName(toExtract) : ""}?`}
+          description="Bu islem zip dosyasindan yeni bir klasor olusturur."
+          headerLabel="Extract zip"
+          confirmLabel="Extract"
+          confirmVariant="primary"
+          icon={<Archive className="text-primary" />}
+          note={null}
         />
 
         <FilePreviewModal

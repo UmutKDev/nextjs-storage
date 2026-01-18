@@ -243,6 +243,37 @@ export interface CloudDirectoryModel {
      */
     'IsLocked': boolean;
 }
+export interface CloudExtractZipCancelRequestModel {
+    'JobId': string;
+}
+export interface CloudExtractZipCancelResponseBaseModel {
+    'result': CloudExtractZipCancelResponseModel;
+    'status': BaseStatusModel;
+}
+export interface CloudExtractZipCancelResponseModel {
+    'Cancelled': boolean;
+}
+export interface CloudExtractZipStartRequestModel {
+    'Key': string;
+}
+export interface CloudExtractZipStartResponseBaseModel {
+    'result': CloudExtractZipStartResponseModel;
+    'status': BaseStatusModel;
+}
+export interface CloudExtractZipStartResponseModel {
+    'JobId': string;
+}
+export interface CloudExtractZipStatusResponseBaseModel {
+    'result': CloudExtractZipStatusResponseModel;
+    'status': BaseStatusModel;
+}
+export interface CloudExtractZipStatusResponseModel {
+    'JobId': string;
+    'State': string;
+    'Progress'?: object;
+    'ExtractedPath'?: string;
+    'FailedReason'?: string;
+}
 export interface CloudGetMultipartPartUrlRequestModel {
     'Key': string;
     'UploadId': string;
@@ -487,7 +518,6 @@ export interface SubscriptionFindResponseModel {
      * Storage limit in bytes - 0 means unlimited
      */
     'storageLimitBytes': number;
-    'maxFileSizeBytes'?: number;
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionFindResponseModelStatusEnum;
@@ -531,7 +561,6 @@ export interface SubscriptionListResponseModel {
      * Storage limit in bytes - 0 means unlimited
      */
     'storageLimitBytes': number;
-    'maxFileSizeBytes'?: number;
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionListResponseModelStatusEnum;
@@ -570,7 +599,6 @@ export interface SubscriptionPostBodyRequestModel {
      * Storage limit in bytes - 0 means unlimited
      */
     'storageLimitBytes': number;
-    'maxFileSizeBytes'?: number;
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionPostBodyRequestModelStatusEnum;
@@ -607,7 +635,6 @@ export interface SubscriptionPutBodyRequestModel {
      * Storage limit in bytes - 0 means unlimited
      */
     'storageLimitBytes': number;
-    'maxFileSizeBytes'?: number;
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionPutBodyRequestModelStatusEnum;
@@ -642,7 +669,6 @@ export interface SubscriptionResponseModel {
      * Storage limit in bytes - 0 means unlimited
      */
     'storageLimitBytes': number;
-    'maxFileSizeBytes'?: number;
     'maxObjectCount'?: number;
     'features'?: object;
     'status': SubscriptionResponseModelStatusEnum;
@@ -2166,6 +2192,127 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Cancels a zip extraction job if it is pending or running.
+         * @summary Cancel zip extraction
+         * @param {CloudExtractZipCancelRequestModel} cloudExtractZipCancelRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        extractZipCancel: async (cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudExtractZipCancelRequestModel' is not null or undefined
+            assertParamExists('extractZipCancel', 'cloudExtractZipCancelRequestModel', cloudExtractZipCancelRequestModel)
+            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Cancel`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudExtractZipCancelRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Starts an async job to extract a previously uploaded .zip file.
+         * @summary Start zip extraction
+         * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        extractZipStart: async (cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudExtractZipStartRequestModel' is not null or undefined
+            assertParamExists('extractZipStart', 'cloudExtractZipStartRequestModel', cloudExtractZipStartRequestModel)
+            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudExtractZipStartRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns the current status/progress of a zip extraction job.
+         * @summary Get zip extraction status
+         * @param {string} jobId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        extractZipStatus: async (jobId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'jobId' is not null or undefined
+            assertParamExists('extractZipStatus', 'jobId', jobId)
+            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Status`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (jobId !== undefined) {
+                localVarQueryParameter['JobId'] = jobId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Find a single object by key (user scoped) and return its metadata.
          * @summary Get object metadata
          * @param {string} key 
@@ -2239,6 +2386,47 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
             if (expiresInSeconds !== undefined) {
                 localVarQueryParameter['ExpiresInSeconds'] = expiresInSeconds;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns a presigned URL for a specific object key to allow direct client access.
+         * @summary Get a presigned URL for upload/download
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPublicPresignedUrl: async (key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('getPublicPresignedUrl', 'key', key)
+            const localVarPath = `/Api/Cloud/Public/PresignedUrl`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (key !== undefined) {
+                localVarQueryParameter['key'] = key;
             }
 
 
@@ -2983,6 +3171,45 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Cancels a zip extraction job if it is pending or running.
+         * @summary Cancel zip extraction
+         * @param {CloudExtractZipCancelRequestModel} cloudExtractZipCancelRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async extractZipCancel(cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipCancelResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipCancel(cloudExtractZipCancelRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.extractZipCancel']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Starts an async job to extract a previously uploaded .zip file.
+         * @summary Start zip extraction
+         * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async extractZipStart(cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipStartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipStart(cloudExtractZipStartRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.extractZipStart']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns the current status/progress of a zip extraction job.
+         * @summary Get zip extraction status
+         * @param {string} jobId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async extractZipStatus(jobId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipStatus(jobId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.extractZipStatus']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Find a single object by key (user scoped) and return its metadata.
          * @summary Get object metadata
          * @param {string} key 
@@ -3007,6 +3234,19 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getPresignedUrl(key, expiresInSeconds, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.getPresignedUrl']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns a presigned URL for a specific object key to allow direct client access.
+         * @summary Get a presigned URL for upload/download
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getPublicPresignedUrl(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StringResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPublicPresignedUrl(key, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.getPublicPresignedUrl']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -3288,6 +3528,36 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.download(requestParameters.key, options).then((request) => request(axios, basePath));
         },
         /**
+         * Cancels a zip extraction job if it is pending or running.
+         * @summary Cancel zip extraction
+         * @param {CloudApiExtractZipCancelRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        extractZipCancel(requestParameters: CloudApiExtractZipCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipCancelResponseBaseModel> {
+            return localVarFp.extractZipCancel(requestParameters.cloudExtractZipCancelRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Starts an async job to extract a previously uploaded .zip file.
+         * @summary Start zip extraction
+         * @param {CloudApiExtractZipStartRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        extractZipStart(requestParameters: CloudApiExtractZipStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStartResponseBaseModel> {
+            return localVarFp.extractZipStart(requestParameters.cloudExtractZipStartRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns the current status/progress of a zip extraction job.
+         * @summary Get zip extraction status
+         * @param {CloudApiExtractZipStatusRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        extractZipStatus(requestParameters: CloudApiExtractZipStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStatusResponseBaseModel> {
+            return localVarFp.extractZipStatus(requestParameters.jobId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Find a single object by key (user scoped) and return its metadata.
          * @summary Get object metadata
          * @param {CloudApiFindRequest} requestParameters Request parameters.
@@ -3306,6 +3576,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<StringResponseModel> {
             return localVarFp.getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns a presigned URL for a specific object key to allow direct client access.
+         * @summary Get a presigned URL for upload/download
+         * @param {CloudApiGetPublicPresignedUrlRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPublicPresignedUrl(requestParameters: CloudApiGetPublicPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<StringResponseModel> {
+            return localVarFp.getPublicPresignedUrl(requestParameters.key, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
@@ -3526,6 +3806,27 @@ export interface CloudApiDownloadRequest {
 }
 
 /**
+ * Request parameters for extractZipCancel operation in CloudApi.
+ */
+export interface CloudApiExtractZipCancelRequest {
+    readonly cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel
+}
+
+/**
+ * Request parameters for extractZipStart operation in CloudApi.
+ */
+export interface CloudApiExtractZipStartRequest {
+    readonly cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel
+}
+
+/**
+ * Request parameters for extractZipStatus operation in CloudApi.
+ */
+export interface CloudApiExtractZipStatusRequest {
+    readonly jobId: string
+}
+
+/**
  * Request parameters for find operation in CloudApi.
  */
 export interface CloudApiFindRequest {
@@ -3539,6 +3840,13 @@ export interface CloudApiGetPresignedUrlRequest {
     readonly key: string
 
     readonly expiresInSeconds?: number
+}
+
+/**
+ * Request parameters for getPublicPresignedUrl operation in CloudApi.
+ */
+export interface CloudApiGetPublicPresignedUrlRequest {
+    readonly key: string
 }
 
 /**
@@ -3779,6 +4087,39 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
+     * Cancels a zip extraction job if it is pending or running.
+     * @summary Cancel zip extraction
+     * @param {CloudApiExtractZipCancelRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public extractZipCancel(requestParameters: CloudApiExtractZipCancelRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).extractZipCancel(requestParameters.cloudExtractZipCancelRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Starts an async job to extract a previously uploaded .zip file.
+     * @summary Start zip extraction
+     * @param {CloudApiExtractZipStartRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public extractZipStart(requestParameters: CloudApiExtractZipStartRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).extractZipStart(requestParameters.cloudExtractZipStartRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns the current status/progress of a zip extraction job.
+     * @summary Get zip extraction status
+     * @param {CloudApiExtractZipStatusRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public extractZipStatus(requestParameters: CloudApiExtractZipStatusRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).extractZipStatus(requestParameters.jobId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Find a single object by key (user scoped) and return its metadata.
      * @summary Get object metadata
      * @param {CloudApiFindRequest} requestParameters Request parameters.
@@ -3798,6 +4139,17 @@ export class CloudApi extends BaseAPI {
      */
     public getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns a presigned URL for a specific object key to allow direct client access.
+     * @summary Get a presigned URL for upload/download
+     * @param {CloudApiGetPublicPresignedUrlRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getPublicPresignedUrl(requestParameters: CloudApiGetPublicPresignedUrlRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).getPublicPresignedUrl(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

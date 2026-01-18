@@ -11,14 +11,29 @@ export default function ConfirmDeleteModal({
   title,
   description,
   onConfirm,
+  headerLabel = "Delete item",
+  confirmLabel = "Delete",
+  confirmVariant = "destructive",
+  icon,
+  note,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
   description?: string;
   onConfirm: () => Promise<void> | void;
+  headerLabel?: string;
+  confirmLabel?: string;
+  confirmVariant?: "destructive" | "primary";
+  icon?: React.ReactNode;
+  note?: string | null;
 }) {
   const [loading, setLoading] = React.useState(false);
+  const confirmClassName =
+    confirmVariant === "primary"
+      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+      : "bg-destructive text-white hover:bg-destructive/90";
+  const noteText = note === undefined ? "This action cannot be undone." : note;
 
   const handleClose = useCallback(() => onOpenChange(false), [onOpenChange]);
 
@@ -78,8 +93,8 @@ export default function ConfirmDeleteModal({
         >
           <div className="flex items-center justify-between p-4 border-b border-muted/10">
             <div className="flex items-center gap-2">
-              <Trash2 className="text-destructive" />
-              <div className="text-sm font-semibold">Delete item</div>
+              {icon ?? <Trash2 className="text-destructive" />}
+              <div className="text-sm font-semibold">{headerLabel}</div>
             </div>
             <button
               onClick={handleClose}
@@ -94,9 +109,11 @@ export default function ConfirmDeleteModal({
               {title ?? "Are you sure?"}
             </div>
             {description ? <div className="mt-1">{description}</div> : null}
-            <div className="mt-3 text-xs text-muted-foreground">
-              This action cannot be undone.
-            </div>
+            {noteText ? (
+              <div className="mt-3 text-xs text-muted-foreground">
+                {noteText}
+              </div>
+            ) : null}
           </div>
 
           <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10">
@@ -120,12 +137,12 @@ export default function ConfirmDeleteModal({
                 }
               }}
               disabled={loading}
-              className="rounded-md px-3 py-1 text-sm bg-destructive text-white hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className={`rounded-md px-3 py-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${confirmClassName}`}
             >
               {loading ? (
                 <div className="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
               ) : null}
-              Delete
+              {confirmLabel}
             </button>
           </div>
         </motion.div>

@@ -9,6 +9,7 @@ import {
   Lock,
   Unlock,
   Pencil,
+  Archive,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,6 +41,15 @@ export type ViewMode = "list" | "grid";
 const normalizeDirectoryPath = (prefix?: string | null) => {
   if (!prefix) return "";
   return prefix.replace(/^\/+|\/+$/g, "");
+};
+
+const isZipFile = (file?: CloudObject) => {
+  if (!file) return false;
+  const extFromField = (file.Extension || "").toLowerCase();
+  if (extFromField) return extFromField === "zip";
+  const name = file.Metadata?.Originalfilename || file.Name || "";
+  const extFromName = name.split(".").pop()?.toLowerCase() ?? "";
+  return extFromName === "zip";
 };
 
 // --- Helper Components ---
@@ -268,6 +278,59 @@ function humanFileSize(bytes?: number) {
   return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i];
 }
 
+function formatExtractStatus(job: {
+  state: string;
+  progress?: {
+    entriesProcessed?: number;
+    totalEntries?: number | null;
+    bytesRead?: number;
+    totalBytes?: number | null;
+    currentEntry?: string;
+  };
+  failedReason?: string;
+}) {
+  const state = job.state.toLowerCase();
+  if (state === "waiting" || state === "delayed" || state === "starting") {
+    return "Cikarma beklemede";
+  }
+  if (state === "active") {
+    const progress = job.progress;
+    const entries =
+      typeof progress?.entriesProcessed === "number"
+        ? progress.entriesProcessed
+        : null;
+    const totalEntries =
+      typeof progress?.totalEntries === "number"
+        ? progress.totalEntries
+        : null;
+    const bytesRead =
+      typeof progress?.bytesRead === "number" ? progress.bytesRead : null;
+    const totalBytes =
+      typeof progress?.totalBytes === "number" ? progress.totalBytes : null;
+    const entryInfo = progress?.currentEntry
+      ? ` - ${progress.currentEntry}`
+      : "";
+
+    if (bytesRead !== null && totalBytes !== null && totalBytes > 0) {
+      return `Cikariliyor ${humanFileSize(bytesRead)} / ${humanFileSize(
+        totalBytes
+      )}${entryInfo}`;
+    }
+    if (entries !== null) {
+      const entryTotal =
+        totalEntries !== null && totalEntries > 0
+          ? ` / ${totalEntries}`
+          : "";
+      return `Cikariliyor ${entries}${entryTotal}${entryInfo}`;
+    }
+    return `Cikariliyor${entryInfo}`;
+  }
+  if (state === "completed") return "Cikarma tamamlandi";
+  if (state === "failed") return job.failedReason || "Cikarma basarisiz";
+  if (state === "cancelled") return "Cikarma iptal edildi";
+  return "Cikarma durumu bilinmiyor";
+}
+
 // --- Draggable Item Wrapper ---
 function DraggableItem({
   id,
@@ -336,7 +399,27 @@ interface StorageBrowserProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onDelete?: (item: CloudObject | Directory) => void;
+  onExtractZip?: (file: CloudObject) => void;
+  onCancelExtractZip?: (file: CloudObject) => void;
   deleting?: Record<string, boolean>;
+  extractJobs?: Record<
+    string,
+    {
+      key: string;
+      jobId?: string;
+      state: string;
+      progress?: {
+        entriesProcessed?: number;
+        totalEntries?: number | null;
+        bytesRead?: number;
+        totalBytes?: number | null;
+        currentEntry?: string;
+      };
+      extractedPath?: string;
+      failedReason?: string;
+      updatedAt: number;
+    }
+  >;
   selectedItems: Set<string>;
   onSelect?: (items: Set<string>) => void;
   onMove?: (sourceKey: string, destinationKey: string) => void;
@@ -352,7 +435,10 @@ export default function StorageBrowser({
   loading,
   viewMode,
   onDelete,
+  onExtractZip,
+  onCancelExtractZip,
   deleting = {},
+  extractJobs = {},
   selectedItems,
   onSelect,
   onMoveClick,
@@ -576,6 +662,16 @@ export default function StorageBrowser({
         (item: unknown, idx) => {
           const c = loading ? undefined : (item as CloudObject);
           const key = c?.Path?.Key ?? `file-${idx}`;
+          const job = extractJobs[key];
+          const canExtract =
+            !loading && isZipFile(c) && Boolean(onExtractZip) && !job;
+          const canCancel =
+            !loading &&
+            Boolean(onCancelExtractZip) &&
+            job &&
+            (job.state === "active" ||
+              job.state === "waiting" ||
+              job.state === "delayed");
 
           if (loading) {
             return (
@@ -631,6 +727,11 @@ export default function StorageBrowser({
                   <div className="text-xs text-muted-foreground mt-1 truncate">
                     {c!.MimeType ?? "—"}
                   </div>
+                  {job ? (
+                    <div className="text-[11px] text-muted-foreground mt-1 truncate">
+                      {formatExtractStatus(job)}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4 text-sm text-muted-foreground shrink-0">
@@ -684,6 +785,28 @@ export default function StorageBrowser({
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
+                        {canExtract ? (
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (c && onExtractZip) onExtractZip(c);
+                            }}
+                          >
+                            <Archive className="mr-2 h-4 w-4" />
+                            Extract zip
+                          </DropdownMenuItem>
+                        ) : null}
+                        {canCancel && c ? (
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCancelExtractZip?.(c);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Cancel extract
+                          </DropdownMenuItem>
+                        ) : null}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -846,6 +969,16 @@ export default function StorageBrowser({
 
       const c = item as CloudObject;
       const key = c?.Path?.Key ?? `file-${idx}`;
+      const job = extractJobs[key];
+      const canExtract =
+        !loading && isZipFile(c) && Boolean(onExtractZip) && !job;
+      const canCancel =
+        !loading &&
+        Boolean(onCancelExtractZip) &&
+        job &&
+        (job.state === "active" ||
+          job.state === "waiting" ||
+          job.state === "delayed");
       const metaWidth = c?.Metadata?.Width ? Number(c.Metadata.Width) : null;
       const metaHeight = c?.Metadata?.Height ? Number(c.Metadata.Height) : null;
       const metadataAspect =
@@ -901,6 +1034,12 @@ export default function StorageBrowser({
                     {humanFileSize(c!.Size)}
                   </div>
                 </div>
+
+                {job ? (
+                  <div className="absolute left-2 bottom-2 right-2 text-[10px] text-white/90 bg-black/50 rounded-md px-2 py-1 truncate">
+                    {formatExtractStatus(job)}
+                  </div>
+                ) : null}
               </div>
 
               <div className="absolute top-2 right-2 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
@@ -948,6 +1087,28 @@ export default function StorageBrowser({
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
+                    {canExtract ? (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (c && onExtractZip) onExtractZip(c);
+                        }}
+                      >
+                        <Archive className="mr-2 h-4 w-4" />
+                        Extract zip
+                      </DropdownMenuItem>
+                    ) : null}
+                    {canCancel && c ? (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCancelExtractZip?.(c);
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Cancel extract
+                      </DropdownMenuItem>
+                    ) : null}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
