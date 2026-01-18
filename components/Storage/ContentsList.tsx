@@ -15,7 +15,6 @@ import { cloudApiFactory } from "@/Service/Factories";
 import toast from "react-hot-toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import EditFileModal from "./EditFileModal";
-import ShareFileModal from "./ShareFileModal";
 import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
 import { useEncryptedFolders } from "./EncryptedFoldersProvider";
@@ -27,6 +26,7 @@ import type {
 import { createCloudObjectsQueryKey, useCloudList } from "@/hooks/useCloudList";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import { AxiosResponse } from "axios";
+import { createIdempotencyKey } from "@/lib/idempotency";
 
 // use the generated CloudObjectModel for accurate typing
 type CloudObject = CloudObjectModel;
@@ -60,7 +60,6 @@ export default function ContentsList({
   const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
   const [toDelete, setToDelete] = React.useState<CloudObject | null>(null);
   const [toEdit, setToEdit] = React.useState<CloudObject | null>(null);
-  const [toShare, setToShare] = React.useState<CloudObject | null>(null);
 
   if ((!contents || contents.length === 0) && !loading) return null;
 
@@ -110,9 +109,13 @@ export default function ContentsList({
       );
 
       // call server to remove file
-      await cloudApiFactory._delete({
-        cloudDeleteRequestModel: { Items: [{ Key: key, IsDirectory: false }] },
-      }, sessionOptions);
+      await cloudApiFactory._delete(
+        {
+          idempotencyKey: createIdempotencyKey(),
+          cloudDeleteRequestModel: { Items: [{ Key: key, IsDirectory: false }] },
+        },
+        sessionOptions
+      );
 
       // success — keep optimistic state and refresh other queries that may be affected
       toast.success("Deleted");
@@ -337,14 +340,6 @@ export default function ContentsList({
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!loading && c) setToShare(c);
-                        }}
-                      >
-                        Share
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
                           if (!loading && c) setToEdit(c);
                         }}
                       >
@@ -380,11 +375,6 @@ export default function ContentsList({
           await performUpdate(toEdit, { name, metadata });
           setToEdit(null);
         }}
-      />
-      <ShareFileModal
-        open={Boolean(toShare)}
-        onClose={() => setToShare(null)}
-        file={toShare}
       />
     </div>
   );

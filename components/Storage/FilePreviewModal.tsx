@@ -10,11 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
-  Share2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
-import ShareFileModal from "./ShareFileModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
+import toast from "react-hot-toast";
 
 import type { CloudObjectModel } from "@/Service/Generates/api";
 import {
@@ -31,6 +29,7 @@ import {
   getScaledImageDimensions,
   isImageFile,
 } from "./imageCdn";
+import { downloadWithRetry } from "@/lib/download";
 
 function humanFileSize(bytes?: number) {
   if (!bytes || bytes === 0) return "0 B";
@@ -79,8 +78,9 @@ export default function FilePreviewModal({
   onDelete?: (file: CloudObjectModel) => void;
 }) {
   const [isFullScreen, setIsFullScreen] = React.useState(false);
-  const [showShareModal, setShowShareModal] = React.useState(false);
   const downloadUrl = getCloudObjectUrl(file ?? undefined);
+  const downloadFileName =
+    file?.Metadata?.Originalfilename || file?.Name || "download";
   const scaledDownloadUrl = file
     ? getImageCdnUrl(file, {
         target: isFullScreen ? "fullscreen" : "preview",
@@ -130,6 +130,19 @@ export default function FilePreviewModal({
     if (!hasPrev) return;
     onChange?.(mediaFiles[currentIndex - 1]);
   }, [hasPrev, currentIndex, mediaFiles, onChange]);
+
+  const handleDownload = React.useCallback(
+    async (url?: string) => {
+      if (!url) return;
+      try {
+        await downloadWithRetry({ url, filename: downloadFileName });
+      } catch (error) {
+        console.error(error);
+        toast.error("Download failed");
+      }
+    },
+    [downloadFileName]
+  );
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -227,43 +240,28 @@ export default function FilePreviewModal({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <a
-                        href={downloadUrl}
-                        download={file.Name}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Orijinal
-                      </a>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleDownload(downloadUrl);
+                      }}
+                    >
+                      Orijinal
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild disabled={!hasScaledDownload}>
-                      <a
-                        href={scaledDownloadUrl ?? downloadUrl}
-                        download={file.Name}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Ölçekli
-                      </a>
+                    <DropdownMenuItem
+                      disabled={!hasScaledDownload}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleDownload(scaledDownloadUrl ?? downloadUrl);
+                      }}
+                    >
+                      Ölçekli
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : null}
 
               <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                onClick={() => setShowShareModal(true)}
-                title="Paylaş"
-              >
-                <Share2 size={18} />
-              </Button>
 
               <Button
                 variant="ghost"
@@ -346,12 +344,6 @@ export default function FilePreviewModal({
           </div>
         </motion.div>
       </motion.div>
-      <ShareFileModal
-        key="share-file-modal"
-        open={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        file={file}
-      />
     </AnimatePresence>
   );
 

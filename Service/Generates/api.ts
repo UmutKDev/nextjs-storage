@@ -336,6 +336,16 @@ export interface CloudPathModel {
     'Key': string;
     'Url': string;
 }
+export interface CloudScanStatusResponseBaseModel {
+    'result': CloudScanStatusResponseModel;
+    'status': BaseStatusModel;
+}
+export interface CloudScanStatusResponseModel {
+    'Status': string;
+    'Reason'?: string;
+    'Signature'?: string;
+    'ScannedAt'?: string;
+}
 export interface CloudUpdateRequestModel {
     'Key': string;
     'Name'?: string;
@@ -1803,11 +1813,14 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Deletes one or more objects (or directories) belonging to the authenticated user.
          * @summary Delete objects
+         * @param {string} idempotencyKey 
          * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        _delete: async (cloudDeleteRequestModel: CloudDeleteRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        _delete: async (idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'idempotencyKey' is not null or undefined
+            assertParamExists('_delete', 'idempotencyKey', idempotencyKey)
             // verify required parameter 'cloudDeleteRequestModel' is not null or undefined
             assertParamExists('_delete', 'cloudDeleteRequestModel', cloudDeleteRequestModel)
             const localVarPath = `/Api/Cloud/Delete`;
@@ -1830,6 +1843,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (idempotencyKey != null) {
+                localVarHeaderParameter['idempotency-key'] = String(idempotencyKey);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -2255,10 +2271,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Starts an async job to extract a previously uploaded .zip file.
          * @summary Start zip extraction
          * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        extractZipStart: async (cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        extractZipStart: async (cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudExtractZipStartRequestModel' is not null or undefined
             assertParamExists('extractZipStart', 'cloudExtractZipStartRequestModel', cloudExtractZipStartRequestModel)
             const localVarPath = `/Api/Cloud/Upload/ExtractZip/Start`;
@@ -2281,6 +2298,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -2406,47 +2426,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
             if (expiresInSeconds !== undefined) {
                 localVarQueryParameter['ExpiresInSeconds'] = expiresInSeconds;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Returns a presigned URL for a specific object key to allow direct client access.
-         * @summary Get a presigned URL for upload/download
-         * @param {string} key 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getPublicPresignedUrl: async (key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'key' is not null or undefined
-            assertParamExists('getPublicPresignedUrl', 'key', key)
-            const localVarPath = `/Api/Cloud/Public/PresignedUrl`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-            if (key !== undefined) {
-                localVarQueryParameter['key'] = key;
             }
 
 
@@ -2721,11 +2700,14 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Move an object from SourceKey to DestinationKey within the user scope.
          * @summary Move/rename an object
+         * @param {string} idempotencyKey 
          * @param {CloudMoveRequestModel} cloudMoveRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        move: async (cloudMoveRequestModel: CloudMoveRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        move: async (idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'idempotencyKey' is not null or undefined
+            assertParamExists('move', 'idempotencyKey', idempotencyKey)
             // verify required parameter 'cloudMoveRequestModel' is not null or undefined
             assertParamExists('move', 'cloudMoveRequestModel', cloudMoveRequestModel)
             const localVarPath = `/Api/Cloud/Move`;
@@ -2748,10 +2730,54 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (idempotencyKey != null) {
+                localVarHeaderParameter['idempotency-key'] = String(idempotencyKey);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(cloudMoveRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns the latest antivirus scan status for the given object key.
+         * @summary Get antivirus scan status for a file
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        scanStatus: async (key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('scanStatus', 'key', key)
+            const localVarPath = `/Api/Cloud/Scan/Status`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2841,12 +2867,15 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Completes a multipart upload by providing the list of parts and finalizes the object.
          * @summary Complete multipart upload
+         * @param {string} idempotencyKey 
          * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCompleteMultipartUpload: async (cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadCompleteMultipartUpload: async (idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'idempotencyKey' is not null or undefined
+            assertParamExists('uploadCompleteMultipartUpload', 'idempotencyKey', idempotencyKey)
             // verify required parameter 'cloudCompleteMultipartUploadRequestModel' is not null or undefined
             assertParamExists('uploadCompleteMultipartUpload', 'cloudCompleteMultipartUploadRequestModel', cloudCompleteMultipartUploadRequestModel)
             const localVarPath = `/Api/Cloud/Upload/CompleteMultipartUpload`;
@@ -2871,6 +2900,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            if (idempotencyKey != null) {
+                localVarHeaderParameter['idempotency-key'] = String(idempotencyKey);
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -2973,6 +3005,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
          * @summary Upload a multipart part
+         * @param {string} contentMd5 
          * @param {string} key 
          * @param {string} uploadId 
          * @param {number} partNumber 
@@ -2981,7 +3014,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadPart: async (key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadPart: async (contentMd5: string, key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'contentMd5' is not null or undefined
+            assertParamExists('uploadPart', 'contentMd5', contentMd5)
             // verify required parameter 'key' is not null or undefined
             assertParamExists('uploadPart', 'key', key)
             // verify required parameter 'uploadId' is not null or undefined
@@ -3027,6 +3062,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
     
+            if (contentMd5 != null) {
+                localVarHeaderParameter['content-md5'] = String(contentMd5);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -3086,12 +3124,13 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Deletes one or more objects (or directories) belonging to the authenticated user.
          * @summary Delete objects
+         * @param {string} idempotencyKey 
          * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async _delete(cloudDeleteRequestModel: CloudDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator._delete(cloudDeleteRequestModel, options);
+        async _delete(idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator._delete(idempotencyKey, cloudDeleteRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi._delete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3228,11 +3267,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Starts an async job to extract a previously uploaded .zip file.
          * @summary Start zip extraction
          * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async extractZipStart(cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipStartResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipStart(cloudExtractZipStartRequestModel, options);
+        async extractZipStart(cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipStartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipStart(cloudExtractZipStartRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.extractZipStart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3275,19 +3315,6 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getPresignedUrl(key, expiresInSeconds, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.getPresignedUrl']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns a presigned URL for a specific object key to allow direct client access.
-         * @summary Get a presigned URL for upload/download
-         * @param {string} key 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getPublicPresignedUrl(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StringResponseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getPublicPresignedUrl(key, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.getPublicPresignedUrl']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -3366,14 +3393,28 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Move an object from SourceKey to DestinationKey within the user scope.
          * @summary Move/rename an object
+         * @param {string} idempotencyKey 
          * @param {CloudMoveRequestModel} cloudMoveRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async move(cloudMoveRequestModel: CloudMoveRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.move(cloudMoveRequestModel, options);
+        async move(idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.move(idempotencyKey, cloudMoveRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns the latest antivirus scan status for the given object key.
+         * @summary Get antivirus scan status for a file
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async scanStatus(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudScanStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.scanStatus(key, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.scanStatus']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -3405,13 +3446,14 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Completes a multipart upload by providing the list of parts and finalizes the object.
          * @summary Complete multipart upload
+         * @param {string} idempotencyKey 
          * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel, xFolderSession, options);
+        async uploadCompleteMultipartUpload(idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCompleteMultipartUpload(idempotencyKey, cloudCompleteMultipartUploadRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadCompleteMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3447,6 +3489,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
          * @summary Upload a multipart part
+         * @param {string} contentMd5 
          * @param {string} key 
          * @param {string} uploadId 
          * @param {number} partNumber 
@@ -3455,8 +3498,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadPart(key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(key, uploadId, partNumber, file, xFolderSession, options);
+        async uploadPart(contentMd5: string, key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(contentMd5, key, uploadId, partNumber, file, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadPart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3490,7 +3533,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp._delete(requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
@@ -3590,7 +3633,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         extractZipStart(requestParameters: CloudApiExtractZipStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStartResponseBaseModel> {
-            return localVarFp.extractZipStart(requestParameters.cloudExtractZipStartRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.extractZipStart(requestParameters.cloudExtractZipStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns the current status/progress of a zip extraction job.
@@ -3621,16 +3664,6 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<StringResponseModel> {
             return localVarFp.getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns a presigned URL for a specific object key to allow direct client access.
-         * @summary Get a presigned URL for upload/download
-         * @param {CloudApiGetPublicPresignedUrlRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getPublicPresignedUrl(requestParameters: CloudApiGetPublicPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<StringResponseModel> {
-            return localVarFp.getPublicPresignedUrl(requestParameters.key, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
@@ -3680,7 +3713,17 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.move(requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns the latest antivirus scan status for the given object key.
+         * @summary Get antivirus scan status for a file
+         * @param {CloudApiScanStatusRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudScanStatusResponseBaseModel> {
+            return localVarFp.scanStatus(requestParameters.key, options).then((request) => request(axios, basePath));
         },
         /**
          * Update an existing object by changing metadata or renaming the file (name only).
@@ -3710,7 +3753,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         uploadCompleteMultipartUpload(requestParameters: CloudApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel> {
-            return localVarFp.uploadCompleteMultipartUpload(requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates an UploadId and starts a multipart upload flow.
@@ -3740,7 +3783,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         uploadPart(requestParameters: CloudApiUploadPartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseBaseModel> {
-            return localVarFp.uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns the authenticated user storage usage and limits.
@@ -3758,6 +3801,8 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
  * Request parameters for _delete operation in CloudApi.
  */
 export interface CloudApiDeleteRequest {
+    readonly idempotencyKey: string
+
     readonly cloudDeleteRequestModel: CloudDeleteRequestModel
 }
 
@@ -3887,6 +3932,11 @@ export interface CloudApiExtractZipCancelRequest {
  */
 export interface CloudApiExtractZipStartRequest {
     readonly cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3910,13 +3960,6 @@ export interface CloudApiGetPresignedUrlRequest {
     readonly key: string
 
     readonly expiresInSeconds?: number
-}
-
-/**
- * Request parameters for getPublicPresignedUrl operation in CloudApi.
- */
-export interface CloudApiGetPublicPresignedUrlRequest {
-    readonly key: string
 }
 
 /**
@@ -4002,7 +4045,16 @@ export interface CloudApiListObjectsRequest {
  * Request parameters for move operation in CloudApi.
  */
 export interface CloudApiMoveRequest {
+    readonly idempotencyKey: string
+
     readonly cloudMoveRequestModel: CloudMoveRequestModel
+}
+
+/**
+ * Request parameters for scanStatus operation in CloudApi.
+ */
+export interface CloudApiScanStatusRequest {
+    readonly key: string
 }
 
 /**
@@ -4023,6 +4075,8 @@ export interface CloudApiUploadAbortMultipartUploadRequest {
  * Request parameters for uploadCompleteMultipartUpload operation in CloudApi.
  */
 export interface CloudApiUploadCompleteMultipartUploadRequest {
+    readonly idempotencyKey: string
+
     readonly cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel
 
     /**
@@ -4059,6 +4113,8 @@ export interface CloudApiUploadGetMultipartPartUrlRequest {
  * Request parameters for uploadPart operation in CloudApi.
  */
 export interface CloudApiUploadPartRequest {
+    readonly contentMd5: string
+
     readonly key: string
 
     readonly uploadId: string
@@ -4085,7 +4141,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration)._delete(requestParameters.cloudDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration)._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4195,7 +4251,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public extractZipStart(requestParameters: CloudApiExtractZipStartRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).extractZipStart(requestParameters.cloudExtractZipStartRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).extractZipStart(requestParameters.cloudExtractZipStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4229,17 +4285,6 @@ export class CloudApi extends BaseAPI {
      */
     public getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns a presigned URL for a specific object key to allow direct client access.
-     * @summary Get a presigned URL for upload/download
-     * @param {CloudApiGetPublicPresignedUrlRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public getPublicPresignedUrl(requestParameters: CloudApiGetPublicPresignedUrlRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).getPublicPresignedUrl(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4294,7 +4339,18 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).move(requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns the latest antivirus scan status for the given object key.
+     * @summary Get antivirus scan status for a file
+     * @param {CloudApiScanStatusRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).scanStatus(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4327,7 +4383,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadCompleteMultipartUpload(requestParameters: CloudApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadCompleteMultipartUpload(requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4360,7 +4416,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadPart(requestParameters: CloudApiUploadPartRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -65,12 +65,23 @@ Instance.interceptors.response.use(onSuccess, onError);
 Instance.interceptors.request.use(
   async (config) => {
     // Cloud API endpoints check
-    if (config.url?.startsWith("/Cloud/")) {
-      const path = config.params?.Path || config.params?.Key;
+    const url = config.url || "";
+    if (url.includes("/Api/Cloud/")) {
+      let path = config.params?.Path || config.params?.Key;
+
+      if (!path && url.includes("?")) {
+        const query = url.split("?")[1];
+        const params = new URLSearchParams(query);
+        path = params.get("Path") || params.get("Key") || undefined;
+      }
+
       if (path && typeof path === "string") {
         const sessionToken = getSessionTokenForPath(path);
-        if (sessionToken && !config.headers["X-Folder-Session"]) {
-          config.headers["X-Folder-Session"] = sessionToken;
+        if (sessionToken) {
+          config.headers = config.headers || {};
+          if (!config.headers["X-Folder-Session"]) {
+            config.headers["X-Folder-Session"] = sessionToken;
+          }
         }
       }
     }

@@ -2,10 +2,14 @@ import { useState, useRef, useCallback } from "react";
 import { cloudApiFactory } from "@/Service/Factories";
 import toast from "react-hot-toast";
 import type { AxiosProgressEvent } from "axios";
+import { isAxiosError } from "axios";
 import useCloudList from "./useCloudList";
 import useUserStorageUsage from "./useUserStorageUsage";
 import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
 import { useStorage } from "@/components/Storage/StorageProvider";
+import { md5Base64 } from "@/lib/md5";
+import { retryWithBackoff } from "@/lib/retry";
+import { createIdempotencyKey } from "@/lib/idempotency";
 
 export type UploadStatus = "uploading" | "completed" | "failed" | "cancelled";
 
@@ -96,24 +100,35 @@ export function useFileUpload(currentPath: string | null) {
         const key = `${prefix}${file.name}`;
 
         // 1. Create Multipart Upload
-        const createResp = await cloudApiFactory.uploadCreateMultipartUpload(
-          {
-            cloudCreateMultipartUploadRequestModel: {
-              Key: key,
-              ContentType: file.type || undefined,
-              TotalSize: file.size,
-              Metadata: {
-                originalFileName: file.name,
+        const createResp = await retryWithBackoff(
+          () =>
+            cloudApiFactory.uploadCreateMultipartUpload(
+              {
+                cloudCreateMultipartUploadRequestModel: {
+                  Key: key,
+                  ContentType: file.type || undefined,
+                  TotalSize: file.size,
+                  Metadata: {
+                    originalFileName: file.name,
+                  },
+                },
+                xFolderSession: sessionToken || undefined,
               },
-            },
-          },
-          { headers }
+              { headers }
+            ),
+          {
+            shouldRetry: (err) =>
+              isAxiosError(err) && err.response?.status === 429,
+          }
         );
 
         uploadId = createResp.data?.result?.UploadId;
         finalKey = createResp.data?.result?.Key ?? key;
 
         if (!uploadId) throw new Error("Missing uploadId");
+        if (!finalKey) throw new Error("Missing upload key");
+        const ensuredUploadId = uploadId;
+        const ensuredKey = finalKey;
 
         // 2. Upload Parts
         const CHUNK_SIZE = 5 * 1024 * 1024;
@@ -133,17 +148,34 @@ export function useFileUpload(currentPath: string | null) {
             type: file.type || "application/octet-stream",
           });
 
-          const partResp = await cloudApiFactory.uploadPart(
-            { key: finalKey, uploadId, partNumber, file: chunkFile },
+          const contentMd5 = await md5Base64(chunk);
+
+          const partResp = await retryWithBackoff(
+            () =>
+              cloudApiFactory.uploadPart(
+                {
+                  contentMd5,
+                  key: ensuredKey,
+                  uploadId: ensuredUploadId,
+                  partNumber,
+                  file: chunkFile,
+                  xFolderSession: sessionToken || undefined,
+                },
+                {
+                  headers,
+                  signal: controller.signal,
+                  onUploadProgress: (e: AxiosProgressEvent) => {
+                    const loaded = e.loaded ?? 0;
+                    const overallLoaded = uploadedBytesSoFar + loaded;
+                    const p = Math.round((overallLoaded / totalSize) * 100);
+                    updateUpload(id, { progress: Math.min(100, p) });
+                  },
+                }
+              ),
             {
-              headers,
+              shouldRetry: (err) =>
+                isAxiosError(err) && err.response?.status === 429,
               signal: controller.signal,
-              onUploadProgress: (e: AxiosProgressEvent) => {
-                const loaded = e.loaded ?? 0;
-                const overallLoaded = uploadedBytesSoFar + loaded;
-                const p = Math.round((overallLoaded / totalSize) * 100);
-                updateUpload(id, { progress: Math.min(100, p) });
-              },
             }
           );
 
@@ -154,15 +186,25 @@ export function useFileUpload(currentPath: string | null) {
         }
 
         // 3. Complete Multipart Upload
-        await cloudApiFactory.uploadCompleteMultipartUpload(
+        const idempotencyKey = createIdempotencyKey();
+        await retryWithBackoff(
+          () =>
+            cloudApiFactory.uploadCompleteMultipartUpload(
+              {
+                idempotencyKey,
+                cloudCompleteMultipartUploadRequestModel: {
+                  Key: ensuredKey,
+                  UploadId: ensuredUploadId,
+                  Parts: parts,
+                },
+                xFolderSession: sessionToken || undefined,
+              },
+              { headers }
+            ),
           {
-            cloudCompleteMultipartUploadRequestModel: {
-              Key: finalKey,
-              UploadId: uploadId,
-              Parts: parts,
-            },
-          },
-          { headers }
+            shouldRetry: (err) =>
+              isAxiosError(err) && err.response?.status === 429,
+          }
         );
 
         updateUpload(id, { progress: 100, status: "completed" });
@@ -178,14 +220,21 @@ export function useFileUpload(currentPath: string | null) {
         // Cleanup on server if possible
         if (uploadId && finalKey) {
           try {
-            await cloudApiFactory.uploadAbortMultipartUpload(
+            await retryWithBackoff(
+              () =>
+                cloudApiFactory.uploadAbortMultipartUpload(
+                  {
+                    cloudAbortMultipartUploadRequestModel: {
+                      Key: finalKey!,
+                      UploadId: uploadId!,
+                    },
+                  },
+                  { headers }
+                ),
               {
-                cloudAbortMultipartUploadRequestModel: {
-                  Key: finalKey!,
-                  UploadId: uploadId!,
-                },
-              },
-              { headers }
+                shouldRetry: (err) =>
+                  isAxiosError(err) && err.response?.status === 429,
+              }
             );
           } catch (e) {
             console.warn("Abort failed", e);

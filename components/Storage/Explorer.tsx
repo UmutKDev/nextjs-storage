@@ -50,6 +50,7 @@ import FileIcon from "./FileIcon";
 import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 import { isAxiosError } from "axios";
 import { useStorage } from "./StorageProvider";
+import { createIdempotencyKey } from "@/lib/idempotency";
 
 import {
   DndContext,
@@ -518,12 +519,16 @@ export default function Explorer({
         ? { headers: { "x-folder-session": moveSessionToken } }
         : undefined;
 
-      await cloudApiFactory.move({
-        cloudMoveRequestModel: {
-          SourceKeys: sourceKeys,
-          DestinationKey: destinationKey === "" ? "/" : destinationKey,
+      await cloudApiFactory.move(
+        {
+          idempotencyKey: createIdempotencyKey(),
+          cloudMoveRequestModel: {
+            SourceKeys: sourceKeys,
+            DestinationKey: destinationKey === "" ? "/" : destinationKey,
+          },
         },
-      }, moveOptions);
+        moveOptions
+      );
       toast.success("Moved successfully");
       setSelectedItems(new Set());
       await Promise.all([invalidateObjects(), invalidateDirectories()]);
@@ -649,20 +654,24 @@ export default function Explorer({
         const bulkDeleteOptions = bulkDeleteSession
           ? { headers: { "x-folder-session": bulkDeleteSession } }
           : undefined;
-        await cloudApiFactory._delete({
-          cloudDeleteRequestModel: {
-            Items: [
-              ...selectedFiles.map((f) => ({
-                Key: f.Path!.Key!,
-                IsDirectory: false,
-              })),
-              ...regularDirs.map((d) => ({
-                Key: d.Prefix!,
-                IsDirectory: true,
-              })),
-            ],
+        await cloudApiFactory._delete(
+          {
+            idempotencyKey: createIdempotencyKey(),
+            cloudDeleteRequestModel: {
+              Items: [
+                ...selectedFiles.map((f) => ({
+                  Key: f.Path!.Key!,
+                  IsDirectory: false,
+                })),
+                ...regularDirs.map((d) => ({
+                  Key: d.Prefix!,
+                  IsDirectory: true,
+                })),
+              ],
+            },
           },
-        }, bulkDeleteOptions);
+          bulkDeleteOptions
+        );
       }
 
       if (encryptedDirs.length > 0) {
@@ -740,18 +749,26 @@ export default function Explorer({
             xFolderSession: getSessionToken(normalizedPath) || undefined,
           });
         } else {
-          await cloudApiFactory._delete({
-            cloudDeleteRequestModel: {
-              Items: [{ Key: key, IsDirectory: true }],
+          await cloudApiFactory._delete(
+            {
+              idempotencyKey: createIdempotencyKey(),
+              cloudDeleteRequestModel: {
+                Items: [{ Key: key, IsDirectory: true }],
+              },
             },
-          }, deleteOptions);
+            deleteOptions
+          );
         }
       } else {
-        await cloudApiFactory._delete({
-          cloudDeleteRequestModel: {
-            Items: [{ Key: key, IsDirectory: isDirectory }],
+        await cloudApiFactory._delete(
+          {
+            idempotencyKey: createIdempotencyKey(),
+            cloudDeleteRequestModel: {
+              Items: [{ Key: key, IsDirectory: isDirectory }],
+            },
           },
-        }, deleteOptions);
+          deleteOptions
+        );
       }
       toast.success("Deleted successfully");
       await Promise.all([

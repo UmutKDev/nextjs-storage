@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { CloudObjectModel } from "@/Service/Generates/api";
 import { Button } from "@/components/ui/button";
 import { getCloudObjectUrl, getImageCdnUrl, isImageFile } from "./imageCdn";
+import { downloadWithRetry } from "@/lib/download";
+import { retryWithBackoff } from "@/lib/retry";
 
 function useInView<T extends HTMLElement>() {
   const ref = React.useRef<T | null>(null);
@@ -114,6 +116,36 @@ export default function LazyPreview({
       "env",
     ].includes(ext);
 
+  class RetryableResponseError extends Error {
+    response: Response;
+
+    constructor(response: Response) {
+      super(`Retryable response: ${response.status}`);
+      this.response = response;
+    }
+  }
+
+  const fetchTextWithRetry = React.useCallback(async (url: string) => {
+    const response = await retryWithBackoff(
+      async () => {
+        const res = await fetch(url);
+        if (res.status === 429) {
+          throw new RetryableResponseError(res);
+        }
+        if (!res.ok) {
+          throw new Error(`Failed to load content (${res.status})`);
+        }
+        return res;
+      },
+      {
+        shouldRetry: (err) =>
+          err instanceof RetryableResponseError &&
+          err.response.status === 429,
+      }
+    );
+    return response.text();
+  }, []);
+
   React.useEffect(() => {
     setText(null);
     setError(null);
@@ -121,16 +153,12 @@ export default function LazyPreview({
 
     if (isText && !isOffice && !isPdf) {
       setLoading(true);
-      fetch(baseUrl)
-        .then((r) => {
-          if (!r.ok) throw new Error("Failed to load content");
-          return r.text();
-        })
+      fetchTextWithRetry(baseUrl)
         .then((t) => setText(t))
         .catch(() => setError("Unable to load text preview"))
         .finally(() => setLoading(false));
     }
-  }, [inView, baseUrl, mime, isText, isOffice, isPdf]);
+  }, [inView, baseUrl, mime, isText, isOffice, isPdf, fetchTextWithRetry]);
 
   // Image State
   const [imgLoaded, setImgLoaded] = React.useState(false);
@@ -141,19 +169,15 @@ export default function LazyPreview({
     setImgError(false);
   }, [imageUrl]);
 
-  // Embed URL Logic
-  const getEmbedUrl = () => {
-    if (!baseUrl) return "";
-    const encodedUrl = encodeURIComponent(baseUrl);
-
-    if (isOffice) {
-      // Microsoft Office Online Viewer
-      return `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
+  const handleDownload = React.useCallback(async () => {
+    if (!baseUrl) return;
+    const filename = file?.Metadata?.Originalfilename || file.Name || "download";
+    try {
+      await downloadWithRetry({ url: baseUrl, filename });
+    } catch {
+      setError("Download failed");
     }
-
-    // Google Docs Viewer (Fallback for PDF if needed, or other types)
-    return `https://docs.google.com/gview?url=${encodedUrl}&embedded=true`;
-  };
+  }, [baseUrl, file]);
 
   const renderContent = () => {
     if (!inView) {
@@ -257,11 +281,9 @@ export default function LazyPreview({
             This video format cannot be played in the browser. Please download
             to view.
           </p>
-          <Button variant="outline" size="sm" asChild>
-            <a href={baseUrl} target="_blank" rel="noopener noreferrer">
-              <Download className="h-4 w-4 mr-2" />
-              Download Video
-            </a>
+          <Button variant="outline" size="sm" onClick={handleDownload}>
+            <Download className="h-4 w-4 mr-2" />
+            Download Video
           </Button>
         </div>
       );
@@ -295,20 +317,18 @@ export default function LazyPreview({
 
     if (isOffice || isGoogleDoc) {
       return (
-        <div
-          className={`w-full bg-muted/10 rounded-lg border border-border/50 overflow-hidden relative group ${
-            isFullScreen ? "h-[calc(100vh-8rem)]" : "h-[70vh]"
-          }`}
-        >
-          <div className="absolute inset-0 flex items-center justify-center -z-10">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground/30" />
+        <div className="flex flex-col items-center justify-center p-12 bg-muted/5 rounded-lg border border-dashed border-border h-full">
+          <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+            <FileText className="h-8 w-8 text-muted-foreground" />
           </div>
-          <iframe
-            src={getEmbedUrl()}
-            className="w-full h-full"
-            title="Document Preview"
-            frameBorder="0"
-          />
+          <h3 className="text-sm font-medium mb-1">Preview not available</h3>
+          <p className="text-xs text-muted-foreground mb-4 text-center max-w-[200px]">
+            Office previews need public access. Download to view this file.
+          </p>
+          <Button variant="outline" size="sm" onClick={handleDownload}>
+            <Download className="h-4 w-4 mr-2" />
+            Download File
+          </Button>
         </div>
       );
     }
@@ -351,11 +371,9 @@ export default function LazyPreview({
         <p className="text-xs text-muted-foreground mb-4 text-center max-w-[200px]">
           This file type cannot be previewed directly in the browser.
         </p>
-        <Button variant="outline" size="sm" asChild>
-          <a href={baseUrl} target="_blank" rel="noopener noreferrer">
-            <Download className="h-4 w-4 mr-2" />
-            Download File
-          </a>
+        <Button variant="outline" size="sm" onClick={handleDownload}>
+          <Download className="h-4 w-4 mr-2" />
+          Download File
         </Button>
       </div>
     );

@@ -1,4 +1,5 @@
 import type { CloudObjectModel } from "@/Service/Generates/api";
+import { getSessionTokenForPath } from "@/lib/encryption";
 
 const IMAGE_EXTENSIONS = new Set([
   "jpg",
@@ -42,14 +43,19 @@ export const isImageFile = (file?: CloudObjectModel) => {
   return IMAGE_EXTENSIONS.has(getFileExtension(file));
 };
 
-export const getCloudObjectUrl = (file?: CloudObjectModel) => {
-  if (!file) return undefined;
-  if (file.Path?.Url) return file.Path.Url;
-  if (file.Path?.Host && file.Path?.Key) {
-    const host = String(file.Path.Host).replace(/\/$/, "");
-    return `${host}/${file.Path.Key}`;
+const buildDownloadUrl = (key: string, sessionToken?: string | null) => {
+  const params = new URLSearchParams();
+  params.set("Key", key);
+  if (sessionToken) {
+    params.set("folderSession", sessionToken);
   }
-  return file.Path?.Key ?? undefined;
+  return `/api/Api/Cloud/Download?${params.toString()}`;
+};
+
+export const getCloudObjectUrl = (file?: CloudObjectModel) => {
+  if (!file?.Path?.Key) return undefined;
+  const sessionToken = getSessionTokenForPath(file.Path.Key);
+  return buildDownloadUrl(file.Path.Key, sessionToken);
 };
 
 const appendQueryParams = (
