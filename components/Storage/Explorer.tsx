@@ -136,6 +136,7 @@ export default function Explorer({
   const { invalidate: invalidateUsage } = useUserStorageUsage();
   const {
     isFolderEncrypted,
+    isFolderEncryptedExact,
     isFolderUnlocked,
     promptUnlock,
     getFolderPassphrase,
@@ -268,7 +269,7 @@ export default function Explorer({
   const renameIsEncrypted = Boolean(
     renameTarget &&
       renameNormalizedPath &&
-      (isFolderEncrypted(renameNormalizedPath) || renameTarget.IsEncrypted)
+      (isFolderEncryptedExact(renameNormalizedPath) || renameTarget.IsEncrypted)
   );
   const renameCurrentName = renameTarget
     ? getFolderNameFromPrefix(renameTarget.Prefix)
@@ -1177,7 +1178,8 @@ export default function Explorer({
       const folderDisplayName =
         getFolderNameFromPrefix(prefix) || dir.Name || "bu klasör";
       const isEncryptedTarget = Boolean(
-        normalizedPath && (isFolderEncrypted(normalizedPath) || dir.IsEncrypted)
+        normalizedPath &&
+          (isFolderEncryptedExact(normalizedPath) || dir.IsEncrypted)
       );
 
       const executeRename = async (passphrase?: string) => {
@@ -1271,6 +1273,7 @@ export default function Explorer({
       invalidateDirectories,
       invalidateObjects,
       isFolderEncrypted,
+      isFolderEncryptedExact,
       promptUnlock,
       refetchManifest,
     ]

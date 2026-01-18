@@ -23,6 +23,7 @@ type UnlockPrompt = {
 
 type EncryptedFoldersContextValue = {
   isFolderEncrypted: (path?: string | null) => boolean;
+  isFolderEncryptedExact: (path?: string | null) => boolean;
   isFolderUnlocked: (path?: string | null) => boolean;
   getSessionToken: (path?: string | null) => string | null;
   getFolderPassphrase: (path?: string | null) => string | undefined;
@@ -153,6 +154,15 @@ export default function EncryptedFoldersProvider({
       return Boolean(findEncryptedAncestor(normalized));
     },
     [findEncryptedAncestor]
+  );
+
+  const isFolderEncryptedExact = useCallback(
+    (path?: string | null) => {
+      const normalized = normalizeFolderPath(path);
+      if (!normalized) return false;
+      return encryptedPaths.has(normalized);
+    },
+    [encryptedPaths]
   );
 
   const registerEncryptedPath = useCallback((path: string) => {
@@ -339,6 +349,7 @@ export default function EncryptedFoldersProvider({
   const value = useMemo<EncryptedFoldersContextValue>(
     () => ({
       isFolderEncrypted,
+      isFolderEncryptedExact,
       isFolderUnlocked,
       getSessionToken,
       getFolderPassphrase,
@@ -350,6 +361,7 @@ export default function EncryptedFoldersProvider({
     }),
     [
       isFolderEncrypted,
+      isFolderEncryptedExact,
       isFolderUnlocked,
       getSessionToken,
       getFolderPassphrase,
