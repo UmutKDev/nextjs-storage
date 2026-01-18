@@ -141,6 +141,7 @@ export default function Explorer({
     isFolderEncryptedExact,
     isFolderUnlocked,
     promptUnlock,
+    getSessionToken,
     getFolderPassphrase,
     registerEncryptedPath,
     refetchManifest,
@@ -506,12 +507,23 @@ export default function Explorer({
     }
 
     try {
+      let moveSessionToken = getSessionToken(destinationKey);
+      if (!moveSessionToken) {
+        for (const key of sourceKeys) {
+          moveSessionToken = getSessionToken(key);
+          if (moveSessionToken) break;
+        }
+      }
+      const moveOptions = moveSessionToken
+        ? { headers: { "x-folder-session": moveSessionToken } }
+        : undefined;
+
       await cloudApiFactory.move({
         cloudMoveRequestModel: {
           SourceKeys: sourceKeys,
           DestinationKey: destinationKey === "" ? "/" : destinationKey,
         },
-      });
+      }, moveOptions);
       toast.success("Moved successfully");
       setSelectedItems(new Set());
       await Promise.all([invalidateObjects(), invalidateDirectories()]);
@@ -633,6 +645,10 @@ export default function Explorer({
       }
 
       if (selectedFiles.length > 0 || regularDirs.length > 0) {
+        const bulkDeleteSession = getSessionToken(currentPath);
+        const bulkDeleteOptions = bulkDeleteSession
+          ? { headers: { "x-folder-session": bulkDeleteSession } }
+          : undefined;
         await cloudApiFactory._delete({
           cloudDeleteRequestModel: {
             Items: [
@@ -646,7 +662,7 @@ export default function Explorer({
               })),
             ],
           },
-        });
+        }, bulkDeleteOptions);
       }
 
       if (encryptedDirs.length > 0) {
@@ -655,11 +671,13 @@ export default function Explorer({
             const normalizedPath = normalizeFolderPath(dir.Prefix);
             if (!normalizedPath) return;
             const passphrase = getFolderPassphrase(normalizedPath);
+            const sessionToken = getSessionToken(normalizedPath);
             await cloudApiFactory.directoryDelete({
               directoryDeleteRequestModel: {
                 Path: normalizedPath,
               },
               xFolderPassphrase: passphrase,
+              xFolderSession: sessionToken || undefined,
             });
           })
         );
@@ -688,6 +706,10 @@ export default function Explorer({
 
     setDeleting((prev) => ({ ...prev, [key]: true }));
     try {
+      const deleteSessionToken = getSessionToken(key);
+      const deleteOptions = deleteSessionToken
+        ? { headers: { "x-folder-session": deleteSessionToken } }
+        : undefined;
       if (isDirectory) {
         const dir = item as CloudDirectoryModel;
         const normalizedPath = normalizeFolderPath(dir.Prefix);
@@ -715,20 +737,21 @@ export default function Explorer({
               Path: normalizedPath,
             },
             xFolderPassphrase: passphrase,
+            xFolderSession: getSessionToken(normalizedPath) || undefined,
           });
         } else {
           await cloudApiFactory._delete({
             cloudDeleteRequestModel: {
               Items: [{ Key: key, IsDirectory: true }],
             },
-          });
+          }, deleteOptions);
         }
       } else {
         await cloudApiFactory._delete({
           cloudDeleteRequestModel: {
             Items: [{ Key: key, IsDirectory: isDirectory }],
           },
-        });
+        }, deleteOptions);
       }
       toast.success("Deleted successfully");
       await Promise.all([
@@ -924,9 +947,13 @@ export default function Explorer({
     updateExtractJob(key, { state: "starting" });
 
     try {
+      const sessionToken = getSessionToken(key);
+      const sessionOptions = sessionToken
+        ? { headers: { "x-folder-session": sessionToken } }
+        : undefined;
       const response = await cloudApiFactory.extractZipStart({
         cloudExtractZipStartRequestModel: { Key: key },
-      });
+      }, sessionOptions);
       const jobId = response.data?.result?.JobId;
       if (!jobId) {
         toast.error("Extract jobId missing");
@@ -1020,12 +1047,14 @@ export default function Explorer({
           ? currentPath
           : `${currentPath}/`
         : "";
+      const sessionToken = getSessionToken(currentPath);
 
       if (newFolderEncrypted) {
         const path = `${prefix}${name}`.replace(/\/+/g, "/").replace(/\/$/, "");
         await cloudApiFactory.directoryCreate({
           directoryCreateRequestModel: { Path: path, IsEncrypted: true },
           xFolderPassphrase: newFolderPassphrase,
+          xFolderSession: sessionToken || undefined,
         });
         await refetchManifest();
       } else {
@@ -1033,6 +1062,7 @@ export default function Explorer({
         // Updated to use directoryCreate
         await cloudApiFactory.directoryCreate({
           directoryCreateRequestModel: { Path: key, IsEncrypted: false },
+          xFolderSession: sessionToken || undefined,
         });
       }
 
@@ -1082,6 +1112,7 @@ export default function Explorer({
     try {
       const prefix = currentPath ? `${currentPath}/` : "";
       const path = `${prefix}${name}`.replace(/\/+/g, "/").replace(/\/$/, "");
+      const sessionToken = getSessionToken(currentPath);
 
       // Updated to use directoryCreate with passphrase
       await cloudApiFactory.directoryCreate({
@@ -1090,6 +1121,7 @@ export default function Explorer({
           IsEncrypted: true,
         },
         xFolderPassphrase: passphrase,
+        xFolderSession: sessionToken || undefined,
       });
 
       toast.success("Şifreli klasör oluşturuldu");
@@ -1151,6 +1183,7 @@ export default function Explorer({
           Path: normalizedPath,
         },
         xFolderPassphrase: passphrase,
+        xFolderSession: getSessionToken(normalizedPath) || undefined,
       });
       toast.success("Klasör şifreli hale getirildi");
       closeConvertModal();
@@ -1220,6 +1253,7 @@ export default function Explorer({
                 Name: newName,
               },
               xFolderPassphrase: passphrase,
+              xFolderSession: getSessionToken(normalizedPath) || undefined,
             });
             await refetchManifest();
           } else {
@@ -1238,6 +1272,7 @@ export default function Explorer({
                 Path: normalizedPath,
                 Name: newName,
               },
+              xFolderSession: getSessionToken(normalizedPath) || undefined,
             });
           }
 

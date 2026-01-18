@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { cloudApiFactory } from "@/Service/Factories";
 import type { CloudObjectModel } from "@/Service/Generates/api";
+import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 
 export default function ShareFileModal({
   open,
@@ -58,6 +59,7 @@ export default function ShareFileModal({
   const [unit, setUnit] = React.useState("minutes");
   const [generatedUrl, setGeneratedUrl] = React.useState("");
   const [copied, setCopied] = React.useState(false);
+  const { getSessionToken } = useEncryptedFolders();
 
   // Reset state when modal opens
   React.useEffect(() => {
@@ -84,10 +86,15 @@ export default function ShareFileModal({
       else if (unit === "days") expiresInSeconds *= 24 * 60 * 60;
       else expiresInSeconds *= 60; // minutes
 
+      const sessionToken = getSessionToken(file.Path.Key);
+      const sessionOptions = sessionToken
+        ? { headers: { "x-folder-session": sessionToken } }
+        : undefined;
+
       const response = await cloudApiFactory.getPresignedUrl({
         key: file.Path.Key,
         expiresInSeconds: expiresInSeconds,
-      });
+      }, sessionOptions);
 
       // Assuming the response data is the URL string
       if (response.data && typeof response.data === "string") {

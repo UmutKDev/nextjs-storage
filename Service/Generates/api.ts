@@ -1845,10 +1845,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @summary Convert a directory to encrypted
          * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
          * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryConvertToEncrypted: async (xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryConvertToEncrypted: async (xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'xFolderPassphrase' is not null or undefined
             assertParamExists('directoryConvertToEncrypted', 'xFolderPassphrase', xFolderPassphrase)
             // verify required parameter 'directoryConvertToEncryptedRequestModel' is not null or undefined
@@ -1876,6 +1877,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -1891,10 +1895,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @summary Create a directory
          * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryCreate: async (directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryCreate: async (directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'directoryCreateRequestModel' is not null or undefined
             assertParamExists('directoryCreate', 'directoryCreateRequestModel', directoryCreateRequestModel)
             const localVarPath = `/Api/Cloud/Directories`;
@@ -1920,6 +1925,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -1935,10 +1943,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @summary Remove encryption from a directory
          * @param {string} xFolderPassphrase Passphrase for decryption
          * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryDecrypt: async (xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryDecrypt: async (xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'xFolderPassphrase' is not null or undefined
             assertParamExists('directoryDecrypt', 'xFolderPassphrase', xFolderPassphrase)
             // verify required parameter 'directoryDecryptRequestModel' is not null or undefined
@@ -1966,6 +1975,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -1981,10 +1993,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @summary Delete a directory
          * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryDelete: async (directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryDelete: async (directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'directoryDeleteRequestModel' is not null or undefined
             assertParamExists('directoryDelete', 'directoryDeleteRequestModel', directoryDeleteRequestModel)
             const localVarPath = `/Api/Cloud/Directories`;
@@ -2009,6 +2022,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -2065,10 +2081,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @summary Rename a directory
          * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryRename: async (directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryRename: async (directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'directoryRenameRequestModel' is not null or undefined
             assertParamExists('directoryRename', 'directoryRenameRequestModel', directoryRenameRequestModel)
             const localVarPath = `/Api/Cloud/Directories/Rename`;
@@ -2093,6 +2110,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -2822,10 +2842,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Completes a multipart upload by providing the list of parts and finalizes the object.
          * @summary Complete multipart upload
          * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCompleteMultipartUpload: async (cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadCompleteMultipartUpload: async (cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudCompleteMultipartUploadRequestModel' is not null or undefined
             assertParamExists('uploadCompleteMultipartUpload', 'cloudCompleteMultipartUploadRequestModel', cloudCompleteMultipartUploadRequestModel)
             const localVarPath = `/Api/Cloud/Upload/CompleteMultipartUpload`;
@@ -2848,6 +2869,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -2862,10 +2886,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Creates an UploadId and starts a multipart upload flow.
          * @summary Create a multipart upload session
          * @param {CloudCreateMultipartUploadRequestModel} cloudCreateMultipartUploadRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCreateMultipartUpload: async (cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadCreateMultipartUpload: async (cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudCreateMultipartUploadRequestModel' is not null or undefined
             assertParamExists('uploadCreateMultipartUpload', 'cloudCreateMultipartUploadRequestModel', cloudCreateMultipartUploadRequestModel)
             const localVarPath = `/Api/Cloud/Upload/CreateMultipartUpload`;
@@ -2888,6 +2913,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -2902,10 +2930,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
          * @summary Get a multipart upload part URL
          * @param {CloudGetMultipartPartUrlRequestModel} cloudGetMultipartPartUrlRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadGetMultipartPartUrl: async (cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadGetMultipartPartUrl: async (cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudGetMultipartPartUrlRequestModel' is not null or undefined
             assertParamExists('uploadGetMultipartPartUrl', 'cloudGetMultipartPartUrlRequestModel', cloudGetMultipartPartUrlRequestModel)
             const localVarPath = `/Api/Cloud/Upload/GetMultipartPartUrl`;
@@ -2928,6 +2957,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -2945,10 +2977,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {string} uploadId 
          * @param {number} partNumber 
          * @param {File} file 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadPart: async (key: string, uploadId: string, partNumber: number, file: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadPart: async (key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'key' is not null or undefined
             assertParamExists('uploadPart', 'key', key)
             // verify required parameter 'uploadId' is not null or undefined
@@ -2994,6 +3027,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
     
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -3065,11 +3101,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @summary Convert a directory to encrypted
          * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
          * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryConvertToEncrypted(xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConvertToEncrypted(xFolderPassphrase, directoryConvertToEncryptedRequestModel, options);
+        async directoryConvertToEncrypted(xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConvertToEncrypted(xFolderPassphrase, directoryConvertToEncryptedRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryConvertToEncrypted']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3079,11 +3116,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @summary Create a directory
          * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryCreate(directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryCreate(directoryCreateRequestModel, xFolderPassphrase, options);
+        async directoryCreate(directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryCreate(directoryCreateRequestModel, xFolderPassphrase, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryCreate']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3093,11 +3131,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @summary Remove encryption from a directory
          * @param {string} xFolderPassphrase Passphrase for decryption
          * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryDecrypt(xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDecrypt(xFolderPassphrase, directoryDecryptRequestModel, options);
+        async directoryDecrypt(xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDecrypt(xFolderPassphrase, directoryDecryptRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryDecrypt']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3107,11 +3146,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @summary Delete a directory
          * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryDelete(directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDelete(directoryDeleteRequestModel, xFolderPassphrase, options);
+        async directoryDelete(directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDelete(directoryDeleteRequestModel, xFolderPassphrase, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryDelete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3134,11 +3174,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @summary Rename a directory
          * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryRename(directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryRename(directoryRenameRequestModel, xFolderPassphrase, options);
+        async directoryRename(directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryRename(directoryRenameRequestModel, xFolderPassphrase, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryRename']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3365,11 +3406,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Completes a multipart upload by providing the list of parts and finalizes the object.
          * @summary Complete multipart upload
          * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel, options);
+        async uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCompleteMultipartUpload(cloudCompleteMultipartUploadRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadCompleteMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3378,11 +3420,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Creates an UploadId and starts a multipart upload flow.
          * @summary Create a multipart upload session
          * @param {CloudCreateMultipartUploadRequestModel} cloudCreateMultipartUploadRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCreateMultipartUploadResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel, options);
+        async uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCreateMultipartUploadResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadCreateMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3391,11 +3434,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
          * @summary Get a multipart upload part URL
          * @param {CloudGetMultipartPartUrlRequestModel} cloudGetMultipartPartUrlRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel, options);
+        async uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadGetMultipartPartUrl']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3407,11 +3451,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {string} uploadId 
          * @param {number} partNumber 
          * @param {File} file 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadPart(key: string, uploadId: string, partNumber: number, file: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(key, uploadId, partNumber, file, options);
+        async uploadPart(key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(key, uploadId, partNumber, file, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadPart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -3455,7 +3500,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         directoryConvertToEncrypted(requestParameters: CloudApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
@@ -3465,7 +3510,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         directoryCreate(requestParameters: CloudApiDirectoryCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
@@ -3475,7 +3520,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         directoryDecrypt(requestParameters: CloudApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
@@ -3485,7 +3530,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         directoryDelete(requestParameters: CloudApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Invalidates the session token for an encrypted directory.
@@ -3505,7 +3550,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         directoryRename(requestParameters: CloudApiDirectoryRenameRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
@@ -3665,7 +3710,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         uploadCompleteMultipartUpload(requestParameters: CloudApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel> {
-            return localVarFp.uploadCompleteMultipartUpload(requestParameters.cloudCompleteMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadCompleteMultipartUpload(requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates an UploadId and starts a multipart upload flow.
@@ -3675,7 +3720,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         uploadCreateMultipartUpload(requestParameters: CloudApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCreateMultipartUploadResponseBaseModel> {
-            return localVarFp.uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
@@ -3685,7 +3730,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         uploadGetMultipartPartUrl(requestParameters: CloudApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel> {
-            return localVarFp.uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
@@ -3695,7 +3740,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         uploadPart(requestParameters: CloudApiUploadPartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseBaseModel> {
-            return localVarFp.uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns the authenticated user storage usage and limits.
@@ -3726,6 +3771,11 @@ export interface CloudApiDirectoryConvertToEncryptedRequest {
     readonly xFolderPassphrase: string
 
     readonly directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3738,6 +3788,11 @@ export interface CloudApiDirectoryCreateRequest {
      * Passphrase for encrypted directory (min 8 chars)
      */
     readonly xFolderPassphrase?: string
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3750,6 +3805,11 @@ export interface CloudApiDirectoryDecryptRequest {
     readonly xFolderPassphrase: string
 
     readonly directoryDecryptRequestModel: DirectoryDecryptRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3762,6 +3822,11 @@ export interface CloudApiDirectoryDeleteRequest {
      * Passphrase for encrypted directory
      */
     readonly xFolderPassphrase?: string
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3781,6 +3846,11 @@ export interface CloudApiDirectoryRenameRequest {
      * Passphrase for encrypted directory
      */
     readonly xFolderPassphrase?: string
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3954,6 +4024,11 @@ export interface CloudApiUploadAbortMultipartUploadRequest {
  */
 export interface CloudApiUploadCompleteMultipartUploadRequest {
     readonly cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3961,6 +4036,11 @@ export interface CloudApiUploadCompleteMultipartUploadRequest {
  */
 export interface CloudApiUploadCreateMultipartUploadRequest {
     readonly cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3968,6 +4048,11 @@ export interface CloudApiUploadCreateMultipartUploadRequest {
  */
 export interface CloudApiUploadGetMultipartPartUrlRequest {
     readonly cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -3981,6 +4066,11 @@ export interface CloudApiUploadPartRequest {
     readonly partNumber: number
 
     readonly file: File
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
 }
 
 /**
@@ -4006,7 +4096,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryConvertToEncrypted(requestParameters: CloudApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4017,7 +4107,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryCreate(requestParameters: CloudApiDirectoryCreateRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4028,7 +4118,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryDecrypt(requestParameters: CloudApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4039,7 +4129,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryDelete(requestParameters: CloudApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4061,7 +4151,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryRename(requestParameters: CloudApiDirectoryRenameRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4237,7 +4327,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadCompleteMultipartUpload(requestParameters: CloudApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadCompleteMultipartUpload(requestParameters.cloudCompleteMultipartUploadRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).uploadCompleteMultipartUpload(requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4248,7 +4338,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadCreateMultipartUpload(requestParameters: CloudApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4259,7 +4349,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadGetMultipartPartUrl(requestParameters: CloudApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4270,7 +4360,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadPart(requestParameters: CloudApiUploadPartRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).uploadPart(requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

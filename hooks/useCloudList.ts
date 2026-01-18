@@ -158,6 +158,9 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
   const queryClient = useQueryClient();
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
   const sessionToken = getSessionToken(normalizedPath);
+  const sessionHeaders = sessionToken
+    ? { "x-folder-session": sessionToken }
+    : undefined;
 
   const breadcrumbQueryKey = useMemo(
     () => createCloudBreadcrumbQueryKey(normalizedPath, delimiter),
@@ -195,7 +198,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     queryFn: async ({ signal }) =>
       await cloudApiFactory.listBreadcrumb(
         { path: normalizedPath, delimiter },
-        { signal }
+        sessionHeaders ? { signal, headers: sessionHeaders } : { signal }
       ),
     select: (res) => res.data?.result,
     staleTime: STALE_TIME,
@@ -346,6 +349,9 @@ export function useInfiniteCloudList(
   const queryClient = useQueryClient();
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
   const sessionToken = getSessionToken(normalizedPath);
+  const sessionHeaders = sessionToken
+    ? { "x-folder-session": sessionToken }
+    : undefined;
 
   const breadcrumbQueryKey = useMemo(
     () => createCloudBreadcrumbQueryKey(normalizedPath, delimiter),
@@ -380,7 +386,7 @@ export function useInfiniteCloudList(
     queryFn: async ({ signal }) =>
       await cloudApiFactory.listBreadcrumb(
         { path: normalizedPath, delimiter },
-        { signal }
+        sessionHeaders ? { signal, headers: sessionHeaders } : { signal }
       ),
     select: (res) => res.data?.result,
     staleTime: STALE_TIME,

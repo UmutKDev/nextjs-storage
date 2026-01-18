@@ -18,6 +18,7 @@ import EditFileModal from "./EditFileModal";
 import ShareFileModal from "./ShareFileModal";
 import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
+import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 
 import type {
   CloudObjectListBaseModel,
@@ -51,6 +52,7 @@ export default function ContentsList({
   const qc = useQueryClient();
   const { currentPath } = useStorage();
   const { invalidate: invalidateUsage } = useUserStorageUsage();
+  const { getSessionToken } = useEncryptedFolders();
   // only need invalidation helpers here — don't run the list queries to avoid duplicate requests
   const { invalidates: invalidatesObjects } = useCloudList(currentPath, {
     enabled: false,
@@ -69,6 +71,10 @@ export default function ContentsList({
   async function performDelete(file: CloudObject) {
     const key = file?.Path?.Key;
     if (!key) return toast.error("Unable to delete: missing key");
+    const sessionToken = getSessionToken(key || currentPath);
+    const sessionOptions = sessionToken
+      ? { headers: { "x-folder-session": sessionToken } }
+      : undefined;
 
     setDeleting((s) => ({ ...s, [key]: true }));
 
@@ -106,7 +112,7 @@ export default function ContentsList({
       // call server to remove file
       await cloudApiFactory._delete({
         cloudDeleteRequestModel: { Items: [{ Key: key, IsDirectory: false }] },
-      });
+      }, sessionOptions);
 
       // success — keep optimistic state and refresh other queries that may be affected
       toast.success("Deleted");
@@ -133,6 +139,10 @@ export default function ContentsList({
   ) {
     const key = file?.Path?.Key;
     if (!key) return toast.error("Unable to update: missing key");
+    const sessionToken = getSessionToken(key || currentPath);
+    const sessionOptions = sessionToken
+      ? { headers: { "x-folder-session": sessionToken } }
+      : undefined;
 
     // mark updating (UI state handled in modal)
 
@@ -204,7 +214,7 @@ export default function ContentsList({
           Name: nameToSend,
           Metadata: mergedMetadata,
         },
-      });
+      }, sessionOptions);
 
       toast.success("Updated");
       await invalidateUsage();
