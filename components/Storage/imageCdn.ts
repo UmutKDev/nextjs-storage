@@ -25,8 +25,7 @@ type ImageCdnTarget = keyof typeof MAX_DIM_BY_TARGET;
 const getFileExtension = (file?: CloudObjectModel) => {
   const direct = (file?.Extension || "").toLowerCase();
   if (direct) return direct;
-  const fromName =
-    file?.Metadata?.Originalfilename || file?.Name || "";
+  const fromName = file?.Metadata?.Originalfilename || file?.Name || "";
   return fromName.split(".").pop()?.toLowerCase() || "";
 };
 
@@ -43,24 +42,24 @@ export const isImageFile = (file?: CloudObjectModel) => {
   return IMAGE_EXTENSIONS.has(getFileExtension(file));
 };
 
-const buildDownloadUrl = (key: string, sessionToken?: string | null) => {
-  const params = new URLSearchParams();
-  params.set("Key", key);
-  if (sessionToken) {
-    params.set("folderSession", sessionToken);
-  }
-  return `/api/Api/Cloud/Download?${params.toString()}`;
-};
+// const buildDownloadUrl = (key: string, sessionToken?: string | null) => {
+//   const params = new URLSearchParams();
+//   params.set("Key", key);
+//   if (sessionToken) {
+//     params.set("folderSession", sessionToken);
+//   }
+//   return `/api/Api/Cloud/Download?${params.toString()}`;
+// };
 
 export const getCloudObjectUrl = (file?: CloudObjectModel) => {
   if (!file?.Path?.Key) return undefined;
-  const sessionToken = getSessionTokenForPath(file.Path.Key);
-  return buildDownloadUrl(file.Path.Key, sessionToken);
+  // const sessionToken = getSessionTokenForPath(file.Path.Key);
+  return file.Path.Url;
 };
 
 const appendQueryParams = (
   url: string,
-  params: Record<string, string | number | undefined>
+  params: Record<string, string | number | undefined>,
 ) => {
   const [base, query] = url.split("?");
   const search = new URLSearchParams(query || "");
@@ -79,7 +78,7 @@ export const getImageCdnUrl = (
   options?: {
     target?: ImageCdnTarget;
     maxDim?: number;
-  }
+  },
 ) => {
   const baseUrl = getCloudObjectUrl(file);
   if (!file || !baseUrl || !isImageFile(file)) return baseUrl;
@@ -106,7 +105,7 @@ export const getScaledImageDimensions = (
   options?: {
     target?: ImageCdnTarget;
     maxDim?: number;
-  }
+  },
 ) => {
   if (!file || !isImageFile(file)) return null;
   const mime = (file.MimeType || "").toLowerCase();
