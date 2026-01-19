@@ -15,7 +15,7 @@ const IMAGE_EXTENSIONS = new Set([
 const VECTOR_EXTENSIONS = new Set(["svg", "ico"]);
 
 const MAX_DIM_BY_TARGET = {
-  thumb: 640,
+  thumb: 480,
   preview: 1600,
   fullscreen: 2400,
 } as const;

@@ -242,6 +242,7 @@ export interface CloudDirectoryModel {
      * True if encrypted folder is locked (no valid session)
      */
     'IsLocked': boolean;
+    'Thumbnails'?: Array<CloudObjectModel>;
 }
 export interface CloudExtractZipCancelRequestModel {
     'JobId': string;

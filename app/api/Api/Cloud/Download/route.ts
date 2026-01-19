@@ -20,9 +20,15 @@ export async function GET(req: NextRequest) {
     searchParams.get("x-folder-session") ||
     searchParams.get("X-Folder-Session");
 
-  const upstreamUrl = `${API_URL}/Api/Cloud/Download?Key=${encodeURIComponent(
-    key
-  )}`;
+  const upstreamParams = new URLSearchParams(searchParams);
+  upstreamParams.set("Key", key);
+  upstreamParams.delete("folderSession");
+  upstreamParams.delete("x-folder-session");
+  upstreamParams.delete("X-Folder-Session");
+  upstreamParams.delete("w");
+  upstreamParams.delete("h");
+
+  const upstreamUrl = `${API_URL}/Api/Cloud/Download?${upstreamParams.toString()}`;
 
   const headers: HeadersInit = {
     Authorization: `Bearer ${token.accessToken}`,

@@ -68,7 +68,37 @@ function GridThumbnail({
   const [error, setError] = React.useState(false);
   const lastAspectRef = React.useRef<number | null>(null);
 
+  const key = file.Path?.Key || file.Name || "thumb";
   const baseUrl = getCloudObjectUrl(file);
+  const latestBaseUrlRef = React.useRef<string | undefined>(baseUrl);
+  const stableKeyRef = React.useRef<string>(key);
+  const [stableBaseUrl, setStableBaseUrl] = React.useState(baseUrl);
+
+  React.useEffect(() => {
+    latestBaseUrlRef.current = baseUrl;
+  }, [baseUrl]);
+
+  React.useEffect(() => {
+    if (stableKeyRef.current !== key) {
+      stableKeyRef.current = key;
+      setStableBaseUrl(baseUrl);
+      setLoaded(false);
+      setError(false);
+      return;
+    }
+    if (!stableBaseUrl && baseUrl) {
+      setStableBaseUrl(baseUrl);
+    }
+  }, [baseUrl, key, stableBaseUrl]);
+
+  const stableFile = React.useMemo(() => {
+    if (!stableBaseUrl || file.Path?.Url === stableBaseUrl) return file;
+    return {
+      ...file,
+      Path: { ...file.Path, Url: stableBaseUrl },
+    };
+  }, [file, stableBaseUrl]);
+
   const mime = (file?.MimeType ?? "").toLowerCase();
   const ext = (file.Extension || "").toLowerCase();
 
@@ -77,7 +107,9 @@ function GridThumbnail({
   const isVideo =
     mime.startsWith("video") ||
     ["mp4", "webm", "ogg", "mov", "mkv"].includes(ext);
-  const url = isImage ? getImageCdnUrl(file, { target: "thumb" }) : baseUrl;
+  const url = isImage
+    ? getImageCdnUrl(stableFile, { target: "thumb" })
+    : stableBaseUrl;
 
   const [thumb, setThumb] = React.useState<string | null>(null);
   const [thumbLoading, setThumbLoading] = React.useState(false);
@@ -217,7 +249,15 @@ function GridThumbnail({
             loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
           onLoad={() => setLoaded(true)}
-          onError={() => setError(true)}
+          onError={() => {
+            const latest = latestBaseUrlRef.current;
+            if (latest && latest !== stableBaseUrl) {
+              setStableBaseUrl(latest);
+              setLoaded(false);
+              return;
+            }
+            setError(true);
+          }}
           loading="lazy"
         />
       )}
@@ -269,6 +309,205 @@ function GridThumbnail({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function FolderThumbnail({
+  dir,
+  className,
+}: {
+  dir: Directory;
+  className?: string;
+}) {
+  const thumbs = (dir.Thumbnails ?? []).slice(0, 4);
+  const [failedKeys, setFailedKeys] = React.useState<Record<string, boolean>>(
+    {},
+  );
+  const [loadedKeys, setLoadedKeys] = React.useState<Record<string, boolean>>(
+    {},
+  );
+  const stableUrlRef = React.useRef<Map<string, string>>(new Map());
+  const latestUrlRef = React.useRef<Map<string, string>>(new Map());
+
+  const buildThumbData = React.useCallback((item: CloudObject) => {
+    const key = item.Path?.Key || item.Name || "thumb";
+    const baseUrl = getCloudObjectUrl(item);
+    if (!baseUrl) return { url: undefined as string | undefined };
+
+    latestUrlRef.current.set(key, baseUrl);
+    if (!stableUrlRef.current.has(key)) {
+      stableUrlRef.current.set(key, baseUrl);
+    }
+    const stableBaseUrl = stableUrlRef.current.get(key) || baseUrl;
+
+    const maxDim = 480;
+    const width = Number(item.Metadata?.Width);
+    const height = Number(item.Metadata?.Height);
+    const hasDims = Number.isFinite(width) && Number.isFinite(height);
+    const maxSide = hasDims ? Math.max(width, height) : maxDim;
+    const scale = Math.min(1, maxDim / maxSide);
+    const w = Math.max(1, Math.round((hasDims ? width : maxDim) * scale));
+    const h = Math.max(1, Math.round((hasDims ? height : maxDim) * scale));
+
+    const [base, query] = stableBaseUrl.split("?");
+    const search = new URLSearchParams(query || "");
+    search.set("w", String(w));
+    search.set("h", String(h));
+    const next = search.toString();
+    return {
+      url: next ? `${base}?${next}` : base,
+      width: w,
+      height: h,
+    };
+  }, []);
+
+  const markFailed = React.useCallback((key: string) => {
+    const latest = latestUrlRef.current.get(key);
+    const stable = stableUrlRef.current.get(key);
+    if (latest && latest !== stable) {
+      stableUrlRef.current.set(key, latest);
+      setLoadedKeys((prev) => ({ ...prev, [key]: false }));
+      setFailedKeys((prev) => {
+        if (!prev[key]) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      return;
+    }
+    setFailedKeys((prev) => (prev[key] ? prev : { ...prev, [key]: true }));
+  }, []);
+
+  const markLoaded = React.useCallback((key: string) => {
+    setLoadedKeys((prev) => (prev[key] ? prev : { ...prev, [key]: true }));
+  }, []);
+
+  if (!thumbs.length) {
+    return (
+      <div
+        className={cn(
+          "w-56 h-56 md:w-72 md:h-72 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500",
+          className,
+        )}
+      >
+        <Folder
+          size={84}
+          fill="currentColor"
+          className="opacity-80 md:w-24 md:h-24"
+        />
+      </div>
+    );
+  }
+
+  const renderThumb = (item: CloudObject, idx: number) => {
+    const key = item.Path?.Key || item.Name || `thumb-${idx}`;
+    const { url, width, height } = buildThumbData(item);
+
+    if (!url || failedKeys[key]) {
+      return (
+        <div
+          key={key}
+          className="w-full h-full flex items-center justify-center rounded-sm bg-muted/20"
+        >
+          <div className="scale-75">
+            <FileIcon extension={item.Extension} />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={key} className="relative w-full h-full">
+        {!loadedKeys[key] && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/70" />
+          </div>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={url}
+          alt={item.Name}
+          className="w-full h-full object-cover rounded-sm"
+          loading="lazy"
+          decoding="async"
+          width={width}
+          height={height}
+          onLoad={() => markLoaded(key)}
+          onError={() => markFailed(key)}
+        />
+      </div>
+    );
+  };
+
+  if (thumbs.length === 1) {
+    const item = thumbs[0];
+    const key = item.Path?.Key || item.Name || "thumb-single";
+    const { url, width, height } = buildThumbData(item);
+
+    return (
+      <div
+        className={cn(
+          "relative w-56 h-56 md:w-72 md:h-72 rounded-2xl overflow-hidden bg-muted/10",
+          className,
+        )}
+      >
+        {url && !failedKeys[key] ? (
+          <div className="relative w-full h-full">
+            {!loadedKeys[key] && (
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground/70" />
+              </div>
+            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt={item.Name}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+              width={width}
+              height={height}
+              onLoad={() => markLoaded(key)}
+              onError={() => markFailed(key)}
+            />
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-muted/20">
+            <div className="scale-75">
+              <FileIcon extension={item.Extension} />
+            </div>
+          </div>
+        )}
+        <div className="absolute bottom-0.5 right-0.5 rounded-full bg-background/80 border p-0.5 shadow-sm">
+          <Folder size={12} className="text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  const filled = thumbs.length;
+  const placeholders = Array.from({ length: Math.max(0, 4 - filled) });
+
+  return (
+    <div
+      className={cn(
+        "relative w-56 h-56 md:w-72 md:h-72 rounded-2xl overflow-hidden bg-muted/10 p-0.5",
+        className,
+      )}
+    >
+      <div className="grid grid-cols-2 grid-rows-2 gap-0.5 w-full h-full">
+        {thumbs.map((item, idx) => renderThumb(item, idx))}
+        {placeholders.map((_, idx) => (
+          <div
+            key={`placeholder-${idx}`}
+            className="w-full h-full rounded-sm bg-muted/10"
+          />
+        ))}
+      </div>
+      <div className="absolute bottom-0.5 right-0.5 rounded-full bg-background/80 border p-0.5 shadow-sm">
+        <Folder size={12} className="text-muted-foreground" />
+      </div>
     </div>
   );
 }
@@ -873,13 +1112,7 @@ export default function StorageBrowser({
               </div>
 
               <div className="h-full p-2 md:p-3 flex flex-col items-center justify-center gap-2">
-                <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500 mb-1 md:mb-2">
-                  <Folder
-                    size={24}
-                    fill="currentColor"
-                    className="opacity-80 md:w-8 md:h-8"
-                  />
-                </div>
+                <FolderThumbnail dir={d} className="mb-1 md:mb-2" />
                 <div className="text-xs md:text-sm font-medium text-center truncate w-full px-1 md:px-2">
                   {name}
                 </div>
