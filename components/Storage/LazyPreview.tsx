@@ -317,7 +317,31 @@ export default function LazyPreview({
       );
     }
 
-    if (isOffice || isGoogleDoc) {
+    if (isOffice) {
+      const officeViewerUrl = baseUrl
+        ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+            baseUrl
+          )}`
+        : "";
+      if (officeViewerUrl) {
+        return (
+          <div
+            className={`w-full overflow-hidden relative sm:bg-muted/10 sm:rounded-lg sm:border sm:border-border/50 ${
+              isFullScreen ? "h-[calc(100vh-8rem)]" : "h-full sm:h-[70vh]"
+            }`}
+          >
+            <iframe
+              src={officeViewerUrl}
+              className="w-full h-full"
+              title={file.Name}
+              allowFullScreen
+            />
+          </div>
+        );
+      }
+    }
+
+    if (isGoogleDoc) {
       return (
         <div className="flex flex-col items-center justify-center p-6 sm:p-12 sm:bg-muted/5 sm:rounded-lg sm:border sm:border-dashed sm:border-border h-full">
           <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
