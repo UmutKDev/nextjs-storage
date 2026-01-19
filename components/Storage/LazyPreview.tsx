@@ -200,8 +200,10 @@ export default function LazyPreview({
 
       return (
         <div
-          className={`relative flex items-center justify-center bg-muted/5 rounded-lg overflow-hidden w-full ${
-            isFullScreen ? "h-full" : "h-auto max-h-[70vh]"
+          className={`relative flex items-center justify-center w-full min-h-0 sm:bg-muted/5 sm:rounded-lg sm:overflow-hidden ${
+            isFullScreen
+              ? "h-full"
+              : "h-full min-h-[60vh] sm:min-h-0 sm:h-auto sm:max-h-[70vh]"
           }`}
           style={{
             aspectRatio:
@@ -227,8 +229,8 @@ export default function LazyPreview({
               scale: imgLoaded ? 1 : 0.98,
             }}
             transition={{ duration: 0.3 }}
-            className={`w-auto max-w-full object-contain shadow-sm ${
-              isFullScreen ? "max-h-[90vh]" : "max-h-[70vh]"
+            className={`h-full w-full max-h-full max-w-full object-contain sm:h-auto sm:w-auto sm:shadow-sm ${
+              isFullScreen ? "sm:max-h-[90vh]" : "sm:max-h-[70vh]"
             }`}
             style={{
               aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
@@ -250,7 +252,7 @@ export default function LazyPreview({
 
     if (isVideo) {
       return (
-        <div className="rounded-lg overflow-hidden bg-black shadow-md h-full flex items-center justify-center">
+        <div className="bg-black h-full flex items-center justify-center sm:rounded-lg sm:overflow-hidden sm:shadow-md">
           <video
             autoPlay
             controls
@@ -270,7 +272,7 @@ export default function LazyPreview({
 
     if (isUnsupportedVideo) {
       return (
-        <div className="flex flex-col items-center justify-center p-12 bg-muted/5 rounded-lg border border-dashed border-border h-full">
+        <div className="flex flex-col items-center justify-center p-6 sm:p-12 sm:bg-muted/5 sm:rounded-lg sm:border sm:border-dashed sm:border-border h-full">
           <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <VideoOff className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -291,7 +293,7 @@ export default function LazyPreview({
 
     if (isAudio) {
       return (
-        <div className="p-8 flex items-center justify-center bg-muted/10 rounded-lg border border-border/50">
+        <div className="p-4 sm:p-8 flex items-center justify-center sm:bg-muted/10 sm:rounded-lg sm:border sm:border-border/50">
           <audio controls className="w-full max-w-md">
             <source src={baseUrl} type={file.MimeType} />
           </audio>
@@ -302,8 +304,8 @@ export default function LazyPreview({
     if (isPdf) {
       return (
         <div
-          className={`w-full bg-muted/10 rounded-lg border border-border/50 overflow-hidden relative ${
-            isFullScreen ? "h-[calc(100vh-8rem)]" : "h-[70vh]"
+          className={`w-full overflow-hidden relative sm:bg-muted/10 sm:rounded-lg sm:border sm:border-border/50 ${
+            isFullScreen ? "h-[calc(100vh-8rem)]" : "h-full sm:h-[70vh]"
           }`}
         >
           <iframe
@@ -317,7 +319,7 @@ export default function LazyPreview({
 
     if (isOffice || isGoogleDoc) {
       return (
-        <div className="flex flex-col items-center justify-center p-12 bg-muted/5 rounded-lg border border-dashed border-border h-full">
+        <div className="flex flex-col items-center justify-center p-6 sm:p-12 sm:bg-muted/5 sm:rounded-lg sm:border sm:border-dashed sm:border-border h-full">
           <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <FileText className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -335,7 +337,7 @@ export default function LazyPreview({
 
     if (isText) {
       return (
-        <div className="relative rounded-lg border border-border/50 bg-muted/5 overflow-hidden h-full">
+        <div className="relative overflow-hidden h-full sm:rounded-lg sm:border sm:border-border/50 sm:bg-muted/5">
           <div
             className={`${
               isFullScreen ? "h-[calc(100vh-8rem)]" : "max-h-[60vh]"
@@ -363,7 +365,7 @@ export default function LazyPreview({
 
     // Fallback for unknown types
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-muted/5 rounded-lg border border-dashed border-border h-full">
+      <div className="flex flex-col items-center justify-center p-6 sm:p-12 sm:bg-muted/5 sm:rounded-lg sm:border sm:border-dashed sm:border-border h-full">
         <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <FileText className="h-8 w-8 text-muted-foreground" />
         </div>

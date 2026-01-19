@@ -575,8 +575,25 @@ export default function StorageBrowser({
               <div className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500 shrink-0">
                 <Folder size={18} fill="currentColor" className="opacity-80" />
               </div>
-              <div className="flex-1 min-w-0 font-medium text-sm truncate">
-                {name}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm truncate">{name}</div>
+                {meta.encrypted ? (
+                  <div
+                    className={cn(
+                      "mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium sm:hidden",
+                      meta.unlocked
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-amber-50 text-amber-700",
+                    )}
+                  >
+                    {meta.unlocked ? (
+                      <Unlock className="h-3 w-3" />
+                    ) : (
+                      <Lock className="h-3 w-3" />
+                    )}
+                    {meta.unlocked ? "Kilitsiz" : "Şifreli"}
+                  </div>
+                ) : null}
               </div>
               <div className="text-xs text-muted-foreground hidden sm:block">
                 {meta.encrypted ? (

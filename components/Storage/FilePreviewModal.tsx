@@ -175,6 +175,20 @@ export default function FilePreviewModal({
 
   if (!file) return null;
 
+  const isMediaPreview = isMedia(file);
+  const displayName = file.Metadata?.Originalfilename ?? file.Name;
+  const mobileMeta = (() => {
+    const size = humanFileSize(file?.Size);
+    const rawWidth = file?.Metadata?.Width;
+    const rawHeight = file?.Metadata?.Height;
+    const width = rawWidth ? Number(rawWidth) : null;
+    const height = rawHeight ? Number(rawHeight) : null;
+    const hasDims =
+      width && height && Number.isFinite(width) && Number.isFinite(height);
+    const dims = hasDims ? `${Math.round(width)}x${Math.round(height)}` : null;
+    return `${size}${dims ? ` • ${dims}` : ""}`;
+  })();
+
   const modal = (
     <AnimatePresence>
       <motion.div
@@ -203,20 +217,22 @@ export default function FilePreviewModal({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 12, scale: 0.95 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className={`relative z-10 flex flex-col bg-card border border-border shadow-2xl overflow-hidden transition-all duration-200 ${
+          className={`relative z-10 flex flex-col overflow-hidden transition-all duration-200 w-full h-full ${
+            isMediaPreview ? "bg-black text-white" : "bg-background text-foreground"
+          } sm:bg-card sm:text-foreground sm:border sm:border-border sm:shadow-2xl ${
             isFullScreen
-              ? "w-full h-full rounded-none"
-              : "w-full sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl rounded-xl"
+              ? "sm:rounded-none"
+              : "sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl sm:rounded-xl"
           }`}
         >
-          <div className="flex items-center justify-between p-3 border-b border-border/40 shrink-0 gap-4 bg-muted/5">
+          <div className="flex items-center justify-between p-3 border-b border-border/40 shrink-0 gap-4 bg-muted/5 hidden sm:flex">
             <div className="flex items-center gap-3 min-w-0 overflow-hidden">
               <div className="flex flex-col min-w-0">
                 <div
                   className="text-sm font-semibold truncate text-foreground"
                   title={file.Metadata?.Originalfilename ?? file.Name}
                 >
-                  {file.Metadata?.Originalfilename ?? file.Name}
+                  {displayName}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="uppercase font-medium tracking-wide text-[10px] bg-muted px-1.5 rounded-sm">
@@ -300,6 +316,38 @@ export default function FilePreviewModal({
             </div>
           </div>
 
+          <div
+            className={`absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 p-3 sm:hidden ${
+              isMediaPreview ? "text-white" : "text-foreground"
+            }`}
+          >
+            <div className="min-w-0">
+              <div className="text-sm font-medium truncate" title={displayName}>
+                {displayName}
+              </div>
+              <div
+                className={`text-xs ${
+                  isMediaPreview ? "text-white/70" : "text-muted-foreground"
+                }`}
+              >
+                {mobileMeta}
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-9 w-9 ${
+                isMediaPreview
+                  ? "text-white hover:text-white hover:bg-white/10"
+                  : "text-foreground hover:text-foreground hover:bg-muted"
+              }`}
+              onClick={onClose}
+              title="Kapat"
+            >
+              <X size={20} />
+            </Button>
+          </div>
+
           <div className="relative flex-1 min-h-0 flex flex-col group">
             {hasPrev && (
               <button
@@ -307,10 +355,10 @@ export default function FilePreviewModal({
                   e.stopPropagation();
                   handlePrev();
                 }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/20 text-white hover:bg-black/50 transition-colors"
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
                 title="Previous"
               >
-                <ChevronLeft size={32} />
+                <ChevronLeft size={28} />
               </button>
             )}
 
@@ -320,19 +368,19 @@ export default function FilePreviewModal({
                   e.stopPropagation();
                   handleNext();
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/20 text-white hover:bg-black/50 transition-colors"
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
                 title="Next"
               >
-                <ChevronRight size={32} />
+                <ChevronRight size={28} />
               </button>
             )}
 
-            <div className="p-4 overflow-auto flex-1 flex flex-col">
+            <div className="p-0 pt-14 sm:pt-4 sm:p-4 overflow-hidden sm:overflow-auto flex-1 flex flex-col">
               <LazyPreview file={file} isFullScreen={isFullScreen} />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10 text-xs text-muted-foreground shrink-0">
+          <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10 text-xs text-muted-foreground shrink-0 hidden sm:flex">
             <div>{formatOriginalSize(file)}</div>
             <div>{formatScaledSize(file, { isFullScreen })}</div>
             <div>
