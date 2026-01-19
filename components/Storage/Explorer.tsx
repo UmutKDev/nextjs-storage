@@ -42,6 +42,7 @@ import {
   Lock,
   Loader2,
   Archive,
+  UploadCloud,
 } from "lucide-react";
 
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
@@ -51,6 +52,8 @@ import { useEncryptedFolders } from "./EncryptedFoldersProvider";
 import { isAxiosError } from "axios";
 import { useStorage } from "./StorageProvider";
 import { createIdempotencyKey } from "@/lib/idempotency";
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { Progress } from "@/components/ui/progress";
 
 import {
   DndContext,
@@ -136,7 +139,8 @@ export default function Explorer({
   // main data hook
   const { invalidateBreadcrumb, invalidateObjects, invalidateDirectories } =
     invalidates;
-  const { invalidate: invalidateUsage } = useUserStorageUsage();
+  const { invalidate: invalidateUsage, userStorageUsageQuery } =
+    useUserStorageUsage();
   const {
     isFolderEncrypted,
     isFolderEncryptedExact,
@@ -157,6 +161,10 @@ export default function Explorer({
   const [previewFile, setPreviewFile] = React.useState<CloudObjectModel | null>(
     null
   );
+  const { handleFiles, uploads } = useFileUpload(currentPath);
+  const maxUploadBytes = userStorageUsageQuery.data?.MaxUploadSizeBytes;
+  const [isFileDragging, setIsFileDragging] = React.useState(false);
+  const fileDragDepth = React.useRef(0);
   const prevPath = React.useRef(currentPath);
   const hasPromptedUnlock = React.useRef<Set<string>>(new Set());
   const folderLabel =
@@ -445,6 +453,83 @@ export default function Explorer({
     observer.observe(node);
     return () => observer.disconnect();
   }, [loadMore]);
+
+  const humanFileSize = React.useCallback((bytes?: number) => {
+    if (!bytes || bytes === 0) return "0 B";
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
+    return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i];
+  }, []);
+
+  const isFileDragEvent = (event: React.DragEvent) =>
+    Array.from(event.dataTransfer.types || []).includes("Files");
+
+  const handleFileDragEnter = (event: React.DragEvent) => {
+    if (!isFileDragEvent(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    fileDragDepth.current += 1;
+    setIsFileDragging(true);
+  };
+
+  const handleFileDragLeave = (event: React.DragEvent) => {
+    if (!isFileDragEvent(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    fileDragDepth.current -= 1;
+    if (fileDragDepth.current <= 0) {
+      fileDragDepth.current = 0;
+      setIsFileDragging(false);
+    }
+  };
+
+  const handleFileDragOver = (event: React.DragEvent) => {
+    if (!isFileDragEvent(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleFileDrop = (event: React.DragEvent) => {
+    if (!isFileDragEvent(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    fileDragDepth.current = 0;
+    setIsFileDragging(false);
+
+    const droppedFiles = event.dataTransfer.files;
+    if (!droppedFiles || droppedFiles.length === 0) return;
+    const files = Array.from(droppedFiles);
+    if (typeof maxUploadBytes === "number") {
+      const allowed: File[] = [];
+      const rejected: File[] = [];
+      files.forEach((f) => {
+        if (f.size <= maxUploadBytes) allowed.push(f);
+        else rejected.push(f);
+      });
+      if (rejected.length > 0) {
+        toast.error(
+          `${rejected.length} dosya çok büyük. Maksimum ${humanFileSize(
+            maxUploadBytes
+          )}.`
+        );
+      }
+      if (allowed.length > 0) handleFiles(allowed);
+    } else {
+      handleFiles(files);
+    }
+  };
+
+  const activeUploads = React.useMemo(
+    () => uploads.filter((u) => u.status === "uploading"),
+    [uploads]
+  );
+
+  const activeUploadProgress = React.useMemo(() => {
+    if (activeUploads.length === 0) return 0;
+    const total = activeUploads.reduce((sum, item) => sum + item.progress, 0);
+    return Math.round(total / activeUploads.length);
+  }, [activeUploads]);
 
   // Filter logic
   const filteredContents = React.useMemo(() => {
@@ -1494,7 +1579,76 @@ export default function Explorer({
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden relative">
+        <div
+          className="flex-1 overflow-hidden relative"
+          onDragEnter={handleFileDragEnter}
+          onDragLeave={handleFileDragLeave}
+          onDragOver={handleFileDragOver}
+          onDrop={handleFileDrop}
+        >
+          {isFileDragging ? (
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-br from-background/75 via-background/60 to-background/80 backdrop-blur-md" />
+              <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px]" />
+              <div className="relative z-10 h-full flex items-center justify-center">
+                <div className="relative mx-6 w-full max-w-[520px]">
+                  <div className="absolute -inset-3 rounded-[28px] bg-gradient-to-r from-foreground/12 via-transparent to-foreground/12 blur-2xl" />
+                  <div className="relative overflow-hidden rounded-[28px] border border-foreground/10 bg-card/80 shadow-2xl backdrop-blur-xl">
+                    <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-foreground/5 to-transparent" />
+                    <div className="relative px-8 py-10 text-center">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-foreground/10 bg-background/70 shadow-sm">
+                        <UploadCloud className="h-6 w-6 text-foreground" />
+                      </div>
+                      <div className="mt-5 text-base font-semibold tracking-wide text-foreground">
+                        Dosyaları buraya bırakın
+                      </div>
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        Yükleme otomatik olarak başlar
+                      </div>
+                      <div className="mt-6 h-px w-full bg-gradient-to-r from-transparent via-foreground/15 to-transparent" />
+                      <div className="mt-4 flex items-center justify-center gap-2 text-[11px] uppercase tracking-[0.22em] text-muted-foreground/80">
+                        Hazır
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {activeUploads.length > 0 ? (
+            <div className="absolute left-1/2 top-4 z-30 w-[min(92vw,440px)] -translate-x-1/2 rounded-2xl border border-border/70 bg-card/95 px-4 py-3 shadow-xl backdrop-blur">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/60">
+                    <UploadCloud className="h-4 w-4 text-foreground" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-foreground">
+                      Yukleme devam ediyor
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {activeUploads.length} dosya
+                    </span>
+                  </div>
+                </div>
+                <span className="rounded-full border border-border/70 bg-background/60 px-2.5 py-1 text-xs font-medium tabular-nums text-foreground">
+                  {activeUploadProgress}%
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <span>Toplam ilerleme</span>
+                  <span>{activeUploadProgress}%</span>
+                </div>
+                <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-muted/70">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-foreground/30 via-foreground/70 to-foreground/30 transition-[width] duration-200"
+                    style={{ width: `${activeUploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
           <div className="absolute inset-0 overflow-y-auto p-4">
             {isCurrentLocked ? (
               <div className="h-full flex flex-col items-center justify-center text-center gap-5 px-4 py-10">
