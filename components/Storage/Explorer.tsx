@@ -326,6 +326,7 @@ export default function Explorer({
       }
     >
   >({});
+  const extractToastStateRef = React.useRef<Record<string, string>>({});
   const [selectedItems, setSelectedItems] = React.useState<Set<string>>(
     new Set()
   );
@@ -915,6 +916,7 @@ export default function Explorer({
         delete next[key];
         return next;
       });
+      delete extractToastStateRef.current[key];
     }, 10000);
   }, []);
 
@@ -986,7 +988,10 @@ export default function Explorer({
           failedReason: result.FailedReason,
         });
 
-        if (result.State === "completed") {
+        if (
+          result.State === "completed" &&
+          extractToastStateRef.current[key] !== "completed"
+        ) {
           const extractedPath = result.ExtractedPath;
           const parentPath = getParentPath(key);
           if (extractedPath) {
@@ -999,17 +1004,26 @@ export default function Explorer({
           }
           scheduleJobCleanup(key);
           toast.success("Zip çıkarma tamamlandı");
+          extractToastStateRef.current[key] = "completed";
         }
 
-        if (result.State === "failed") {
+        if (
+          result.State === "failed" &&
+          extractToastStateRef.current[key] !== "failed"
+        ) {
           const reason = result.FailedReason || "Zip çıkarılamadı";
           toast.error(reason);
           scheduleJobCleanup(key);
+          extractToastStateRef.current[key] = "failed";
         }
 
-        if (result.State === "cancelled") {
+        if (
+          result.State === "cancelled" &&
+          extractToastStateRef.current[key] !== "cancelled"
+        ) {
           toast.success("Zip çıkarma iptal edildi");
           scheduleJobCleanup(key);
+          extractToastStateRef.current[key] = "cancelled";
         }
       } catch (e) {
         console.error(e);
@@ -1046,6 +1060,7 @@ export default function Explorer({
       return;
     }
 
+    delete extractToastStateRef.current[key];
     updateExtractJob(key, { state: "starting" });
 
     try {
@@ -1061,6 +1076,7 @@ export default function Explorer({
         toast.error("Extract jobId missing");
         updateExtractJob(key, { state: "failed" });
         scheduleJobCleanup(key);
+        extractToastStateRef.current[key] = "failed";
         return;
       }
       updateExtractJob(key, { jobId, state: "waiting" });
@@ -1070,6 +1086,7 @@ export default function Explorer({
       toast.error("Zip çıkarma başlatılamadı");
       updateExtractJob(key, { state: "failed" });
       scheduleJobCleanup(key);
+      extractToastStateRef.current[key] = "failed";
     }
   }
 
@@ -1086,6 +1103,7 @@ export default function Explorer({
       updateExtractJob(key, { state: "cancelled" });
       scheduleJobCleanup(key);
       toast.success("Zip çıkarma iptal edildi");
+      extractToastStateRef.current[key] = "cancelled";
     } catch (e) {
       console.error(e);
       toast.error("Zip çıkarma iptal edilemedi");
