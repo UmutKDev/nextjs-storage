@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -12,17 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  BadgeCheck,
-  Copy,
-  Loader2,
-  Mail,
-  Phone,
-  RefreshCw,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-} from "lucide-react";
+import { BadgeCheck, Loader2, Mail, Phone, Shield } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import useAccountProfile from "@/hooks/useAccountProfile";
 import { accountApiFactory } from "@/Service/Factories";
@@ -30,9 +20,7 @@ import type {
   AccountChangePasswordRequestModel,
   AccountProfileResponseModel,
   AccountPutBodyRequestModel,
-  AuthenticationTwoFactorGenerateResponseModel,
 } from "@/Service/Generates/api";
-import { toast } from "react-hot-toast";
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Yönetici",
@@ -71,7 +59,7 @@ const formatBytes = (bytes?: number) => {
   const units = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.min(
     units.length - 1,
-    Math.floor(Math.log(bytes) / Math.log(1024))
+    Math.floor(Math.log(bytes) / Math.log(1024)),
   );
   const value = bytes / Math.pow(1024, i);
   return `${value.toFixed(1)} ${units[i]}`;
@@ -92,17 +80,13 @@ export default function AccountPage() {
       new_password_confirmation: "",
     });
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [twoFactorSetup, setTwoFactorSetup] =
-    useState<AuthenticationTwoFactorGenerateResponseModel | null>(null);
-  const [twoFactorCode, setTwoFactorCode] = useState("");
-  const [disableTwoFactorCode, setDisableTwoFactorCode] = useState("");
 
   const initialProfileValues = useMemo(
     () => ({
       fullName: profile?.fullName ?? "",
       phoneNumber: profile?.phoneNumber ?? "",
     }),
-    [profile?.fullName, profile?.phoneNumber]
+    [profile?.fullName, profile?.phoneNumber],
   );
 
   const profileForm = profileFormDraft ?? initialProfileValues;
@@ -168,20 +152,20 @@ export default function AccountPage() {
         plan?.status === "ACTIVE"
           ? "Aktif"
           : plan?.status === "INACTIVE"
-          ? "Pasif"
-          : "Bilinmiyor",
+            ? "Pasif"
+            : "Bilinmiyor",
       endAt: subscription.endAt,
       startAt: subscription.startAt,
       storageLimit: plan?.storageLimitBytes,
       billingCycle: plan?.billingCycle
-        ? BILLING_LABELS[plan.billingCycle] ?? plan.billingCycle
+        ? (BILLING_LABELS[plan.billingCycle] ?? plan.billingCycle)
         : undefined,
     };
   }, [profile?.subscription]);
 
   const handleProfileFieldChange = (
     field: keyof AccountPutBodyRequestModel,
-    value: string
+    value: string,
   ) => {
     setProfileFormDraft((prev) => ({
       ...(prev ?? initialProfileValues),
@@ -257,99 +241,6 @@ export default function AccountPage() {
     );
   };
 
-  const handleCopy = useCallback((value: string, label?: string) => {
-    if (!value) return;
-    if (typeof navigator === "undefined" || !navigator.clipboard) {
-      toast.error("Tarayıcınız kopyalamayı desteklemiyor");
-      return;
-    }
-    navigator.clipboard
-      .writeText(value)
-      .then(() => {
-        toast.success(`${label ?? "Bilgi"} kopyalandı`);
-      })
-      .catch(() => {
-        toast.error("Kopyalama başarısız oldu");
-      });
-  }, []);
-
-  const generateTwoFactorMutation = useMutation({
-    mutationFn: async () => {
-      const res = await accountApiFactory.generateTwoFactorSecret();
-      return res.data?.result;
-    },
-    onSuccess: (result) => {
-      if (result) {
-        setTwoFactorSetup(result);
-        setTwoFactorCode("");
-      }
-    },
-  });
-
-  const enableTwoFactorMutation = useMutation({
-    mutationFn: async (code: string) => {
-      await accountApiFactory.enableTwoFactor({
-        authenticationTwoFactorVerifyRequestModel: { code },
-      });
-    },
-    onSuccess: async () => {
-      setTwoFactorSetup(null);
-      setTwoFactorCode("");
-      await invalidate();
-    },
-  });
-
-  const disableTwoFactorMutation = useMutation({
-    mutationFn: async (code: string) => {
-      await accountApiFactory.disableTwoFactor({
-        authenticationTwoFactorVerifyRequestModel: { code },
-      });
-    },
-    onSuccess: async () => {
-      setDisableTwoFactorCode("");
-      await invalidate();
-    },
-  });
-
-  const handleEnableTwoFactorSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-    if (!twoFactorCode.trim()) return;
-    try {
-      await enableTwoFactorMutation.mutateAsync(twoFactorCode.trim());
-    } catch {
-      /* handled globally */
-    }
-  };
-
-  const handleDisableTwoFactorSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-    if (!disableTwoFactorCode.trim()) return;
-    try {
-      await disableTwoFactorMutation.mutateAsync(disableTwoFactorCode.trim());
-    } catch {
-      /* handled globally */
-    }
-  };
-
-  const isTwoFactorEnabled = !!profile?.isTwoFactorEnabled;
-
-  const twoFactorOtpauthUrl = twoFactorSetup?.otpauthUrl ?? null;
-
-  const twoFactorQrUrl = useMemo(() => {
-    if (!twoFactorOtpauthUrl) return null;
-    const params = new URLSearchParams({
-      size: "220x220",
-      data: twoFactorOtpauthUrl,
-      ecc: "M",
-      margin: "1",
-    });
-    return `https://api.qrserver.com/v1/create-qr-code/?${params.toString()}`;
-  }, [twoFactorOtpauthUrl]);
-
   return (
     <div className="min-h-screen bg-background pt-28 pb-12 px-4">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
@@ -410,9 +301,9 @@ export default function AccountPage() {
                         profile?.subscription?.subscription?.status === "ACTIVE"
                           ? "bg-emerald-500/10 text-emerald-500"
                           : profile?.subscription?.subscription?.status ===
-                            "INACTIVE"
-                          ? "bg-amber-500/10 text-amber-600"
-                          : "bg-muted/10 text-muted-foreground"
+                              "INACTIVE"
+                            ? "bg-amber-500/10 text-amber-600"
+                            : "bg-muted/10 text-muted-foreground"
                       }`}
                     >
                       <BadgeCheck className="h-3.5 w-3.5" />
@@ -632,231 +523,6 @@ export default function AccountPage() {
                     </Button>
                   </div>
                 </form>
-              </CardContent>
-            </Card>
-
-            <Card id="two-factor">
-              <CardHeader>
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <CardTitle>İki Aşamalı Doğrulama</CardTitle>
-                    <CardDescription>
-                      Authenticator uygulamalarıyla ekstra güvenlik katmanı ekle
-                    </CardDescription>
-                  </div>
-                  <div
-                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-                      isTwoFactorEnabled
-                        ? "bg-emerald-500/10 text-emerald-500"
-                        : "bg-amber-500/10 text-amber-600"
-                    }`}
-                  >
-                    {isTwoFactorEnabled ? (
-                      <>
-                        <ShieldCheck className="h-4 w-4" />
-                        Aktif
-                      </>
-                    ) : (
-                      <>
-                        <ShieldAlert className="h-4 w-4" />
-                        Pasif
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {profileLoading ? (
-                  <div className="space-y-3 animate-pulse">
-                    <div className="h-4 w-3/5 bg-muted rounded" />
-                    <div className="h-3 w-4/5 bg-muted rounded" />
-                    <div className="h-3 w-2/3 bg-muted rounded" />
-                  </div>
-                ) : twoFactorSetup ? (
-                  <form
-                    onSubmit={handleEnableTwoFactorSubmit}
-                    className="space-y-4"
-                  >
-                    <div className="space-y-2 text-sm text-muted-foreground">
-                      <p>1. Authenticator uygulamasında yeni hesap ekle.</p>
-                      <p>
-                        2. Aşağıdaki gizli anahtarı manuel olarak gir ya da
-                        bağlantıyı cihazına gönder.
-                      </p>
-                      <p>
-                        3. Uygulamanın ürettiği 6 haneli kodu doğrula ve
-                        kurulumu tamamla.
-                      </p>
-                    </div>
-                    {twoFactorQrUrl && (
-                      <div className="flex flex-col items-center gap-3 rounded-xl border bg-muted/20 p-4">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={twoFactorQrUrl}
-                          alt="2FA QR kodu"
-                          className="h-48 w-48 rounded-lg border bg-white p-2"
-                        />
-                        <p className="text-xs text-muted-foreground text-center">
-                          QR kodu telefonundaki authenticator uygulamasıyla
-                          tarayabilirsin.
-                        </p>
-                      </div>
-                    )}
-                    <div className="rounded-xl border bg-muted/10 p-4 space-y-3">
-                      <div className="flex items-center justify-between gap-4 flex-wrap">
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            Gizli Anahtar
-                          </p>
-                          <p className="font-mono text-lg">
-                            {twoFactorSetup.secret}
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleCopy(twoFactorSetup.secret, "Gizli anahtar")
-                          }
-                        >
-                          <Copy className="h-4 w-4" />
-                          Kopyala
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">
-                          Otomatik kurulum bağlantısı
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Input value={twoFactorSetup.otpauthUrl} readOnly />
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() =>
-                              handleCopy(
-                                twoFactorSetup.otpauthUrl,
-                                "Kurulum bağlantısı"
-                              )
-                            }
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="twoFactorCode">Doğrulama Kodu</Label>
-                      <Input
-                        id="twoFactorCode"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        placeholder="123456"
-                        value={twoFactorCode}
-                        onChange={(e) => setTwoFactorCode(e.target.value)}
-                        maxLength={6}
-                        autoComplete="one-time-code"
-                        required
-                      />
-                    </div>
-                    <div className="flex items-center justify-end gap-3">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => {
-                          setTwoFactorSetup(null);
-                          setTwoFactorCode("");
-                        }}
-                        disabled={enableTwoFactorMutation.isPending}
-                      >
-                        İptal Et
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={
-                          enableTwoFactorMutation.isPending ||
-                          twoFactorCode.trim().length < 6
-                        }
-                      >
-                        {enableTwoFactorMutation.isPending && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Kurulumu Tamamla
-                      </Button>
-                    </div>
-                  </form>
-                ) : isTwoFactorEnabled ? (
-                  <form
-                    onSubmit={handleDisableTwoFactorSubmit}
-                    className="space-y-4"
-                  >
-                    <p className="text-sm text-muted-foreground">
-                      Authenticator uygulamasındaki aktif kodu girerek iki
-                      aşamalı doğrulamayı devre dışı bırakabilirsin.
-                    </p>
-                    <div className="space-y-2">
-                      <Label htmlFor="disableTwoFactorCode">
-                        Doğrulama Kodu
-                      </Label>
-                      <Input
-                        id="disableTwoFactorCode"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        placeholder="123456"
-                        value={disableTwoFactorCode}
-                        onChange={(e) =>
-                          setDisableTwoFactorCode(e.target.value)
-                        }
-                        maxLength={6}
-                        autoComplete="one-time-code"
-                        required
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-muted-foreground">
-                        Güvenliği kapatmak için kodu doğrulamalısın.
-                      </div>
-                      <Button
-                        type="submit"
-                        variant="destructive"
-                        disabled={
-                          disableTwoFactorMutation.isPending ||
-                          disableTwoFactorCode.trim().length < 6
-                        }
-                      >
-                        {disableTwoFactorMutation.isPending && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Devre Dışı Bırak
-                      </Button>
-                    </div>
-                  </form>
-                ) : (
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Hesabına her girişte ikinci bir doğrulama adımı ekleyerek
-                      yetkisiz erişimleri engelle.
-                    </p>
-                    <Button
-                      type="button"
-                      onClick={() => generateTwoFactorMutation.mutate()}
-                      disabled={generateTwoFactorMutation.isPending}
-                    >
-                      {generateTwoFactorMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Hazırlanıyor...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          Kurulumu Başlat
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>

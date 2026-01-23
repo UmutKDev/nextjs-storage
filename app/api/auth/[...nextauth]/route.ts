@@ -19,7 +19,6 @@ type DecodedAccessToken = {
 type RawCredentials = {
   email?: string;
   password?: string;
-  twoFactorCode?: string;
 };
 
 type UserWithTokens = {
@@ -31,15 +30,7 @@ type UserWithTokens = {
 const isUserWithTokens = (u: unknown): u is UserWithTokens =>
   !!u && typeof u === "object" && "accessToken" in u;
 
-const TWO_FACTOR_ERROR_TYPE = "TWO_FACTOR_REQUIRED";
 const ACCESS_TOKEN_GRACE_PERIOD_MS = 60 * 1000;
-
-const buildTwoFactorError = () =>
-  new Error(
-    JSON.stringify({
-      type: TWO_FACTOR_ERROR_TYPE,
-    })
-  );
 
 const normalizeAuthError = (error: unknown, fallback: string) => {
   if (error instanceof Error) return error;
@@ -77,7 +68,7 @@ const decodeUserFromToken = async (accessToken: string) => {
 };
 
 const mapTokensToUser = async (
-  tokens?: AuthenticationTokenResponseModel | null
+  tokens?: AuthenticationTokenResponseModel | null,
 ) => {
   const { accessToken, refreshToken } = ensureTokens(tokens);
   try {
@@ -107,43 +98,24 @@ const authenticateWithBackend = async (credentials: RawCredentials) => {
   }
 
   try {
-    const verifyRes = await authenticationApiFactory.verifyCredentials({
-      authenticationVerifyCredentialsRequestModel: {
+    const loginRes = await authenticationApiFactory.login({
+      authenticationSignInRequestModel: {
         email: credentials.email,
         password: credentials.password,
       },
     });
 
-    const verification = verifyRes.data?.result;
+    console.log(loginRes);
 
-    if (!verification?.isValid) {
-      throw new Error("E-posta veya şifre hatalı.");
+    const tokens = loginRes.data?.result;
+    if (!tokens) {
+      throw new Error("Kimlik doğrulama yanıtı alınamadı.");
     }
 
-    if (verification.twoFactorRequired && !credentials.twoFactorCode) {
-      throw buildTwoFactorError();
-    }
+    return tokens;
   } catch (error) {
-    throw normalizeAuthError(
-      error,
-      "Kimlik doğrulama doğrulaması başarısız oldu."
-    );
+    throw normalizeAuthError(error, "Kimlik doğrulama başarısız oldu.");
   }
-
-  const loginRes = await authenticationApiFactory.login({
-    authenticationSignInRequestModel: {
-      email: credentials.email,
-      password: credentials.password,
-      twoFactorCode: credentials.twoFactorCode?.trim() || undefined,
-    },
-  });
-
-  const tokens = loginRes.data.result;
-  if (!tokens) {
-    throw new Error("Kimlik doğrulama yanıtı alınamadı.");
-  }
-
-  return tokens;
 };
 
 const refreshSessionToken = async (token: JWT) => {
@@ -200,7 +172,6 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
-        twoFactorCode: { label: "Two Factor Code", type: "text" },
       },
       async authorize(credentials) {
         try {

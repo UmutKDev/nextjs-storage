@@ -5,46 +5,28 @@ import { signIn } from "next-auth/react";
 import type { SignInResponse } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { authenticationApiFactory } from "@/Service/Factories";
 
 type Values = {
   email: string;
   password: string;
-  twoFactorCode?: string;
   [k: string]: unknown;
 };
 
-type ParsedAuthError =
-  | {
-      kind: "twoFactor";
-    }
-  | {
-      kind: "message";
-      message: string;
-    }
-  | null;
+type ParsedAuthError = {
+  kind: "message";
+  message: string;
+} | null;
 
 type NextAuthSignInPayload = {
   email?: string;
   password?: string;
-  twoFactorCode?: string;
 };
-
-const TWO_FACTOR_ERROR_CODE = "TWO_FACTOR_REQUIRED";
 
 const parseAuthError = (error?: string | null): ParsedAuthError => {
   if (!error) return null;
 
   try {
     const parsed = JSON.parse(error);
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      parsed.type === TWO_FACTOR_ERROR_CODE
-    ) {
-      return { kind: "twoFactor" };
-    }
-
     if (parsed && typeof parsed.message === "string") {
       return { kind: "message", message: parsed.message };
     }
@@ -63,12 +45,10 @@ type AuthFormContextType = {
   loading: boolean;
   error: string | null;
   reset: () => void;
-  twoFactorRequired: boolean;
-  cancelTwoFactor: () => void;
 };
 
 const AuthFormContext = createContext<AuthFormContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function useAuthForm() {
@@ -80,13 +60,12 @@ export function useAuthForm() {
 
 export default function AuthFormProvider({
   children,
-  initialValues = { email: "", password: "", twoFactorCode: "" } as Values,
+  initialValues = { email: "", password: "" } as Values,
 }: React.PropsWithChildren<{ initialValues?: Values }>) {
   const router = useRouter();
   const [values, setValues] = useState<Values>(initialValues);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
 
   const setField = useCallback((name: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -97,21 +76,14 @@ export default function AuthFormProvider({
       const { name, value } = e.target;
       setField(name, value);
     },
-    [setField]
+    [setField],
   );
 
   const reset = useCallback(() => {
     setValues(initialValues);
     setError(null);
     setLoading(false);
-    setTwoFactorRequired(false);
   }, [initialValues]);
-
-  const cancelTwoFactor = useCallback(() => {
-    setTwoFactorRequired(false);
-    setValues((prev) => ({ ...prev, twoFactorCode: "" }));
-    setError(null);
-  }, []);
 
   const handleNextAuthSignIn = useCallback(
     async (payload: NextAuthSignInPayload) => {
@@ -127,15 +99,6 @@ export default function AuthFormProvider({
 
       if (result.error) {
         const parsed = parseAuthError(result.error);
-        if (parsed?.kind === "twoFactor") {
-          setTwoFactorRequired(true);
-          setError("Hesabınız için doğrulama kodu gerekiyor.");
-          toast.success("Lütfen doğrulama kodunuzu girin.", {
-            duration: 5000,
-          });
-          return undefined;
-        }
-
         const message =
           parsed?.kind === "message"
             ? parsed.message
@@ -143,7 +106,6 @@ export default function AuthFormProvider({
         throw new Error(message);
       }
 
-      setTwoFactorRequired(false);
       setValues(initialValues);
 
       if (result.ok) {
@@ -158,7 +120,7 @@ export default function AuthFormProvider({
 
       return result;
     },
-    [initialValues, router, setError, setTwoFactorRequired, setValues]
+    [initialValues, router, setValues],
   );
 
   const submit = useCallback(async () => {
@@ -166,41 +128,9 @@ export default function AuthFormProvider({
     setError(null);
 
     try {
-      if (!twoFactorRequired) {
-        const verifyRes = await authenticationApiFactory.verifyCredentials({
-          authenticationVerifyCredentialsRequestModel: {
-            email: values.email,
-            password: values.password,
-          },
-        });
-
-        const verification = verifyRes.data?.result;
-        if (!verification?.isValid) {
-          throw new Error("E-posta veya şifre hatalı.");
-        }
-
-        if (verification.twoFactorRequired) {
-          setTwoFactorRequired(true);
-          setError("Hesabınız için doğrulama kodu gerekiyor.");
-          toast.success("Lütfen doğrulama kodunuzu girin.", {
-            duration: 5000,
-          });
-          return undefined;
-        }
-      }
-
-      if (twoFactorRequired && !values.twoFactorCode?.trim()) {
-        setError("Doğrulama kodu gerekli.");
-        return undefined;
-      }
-
       return await handleNextAuthSignIn({
         email: values.email,
         password: values.password,
-        twoFactorCode:
-          twoFactorRequired && values.twoFactorCode?.trim()
-            ? values.twoFactorCode.trim()
-            : undefined,
       });
     } catch (err) {
       const message =
@@ -214,14 +144,11 @@ export default function AuthFormProvider({
       setLoading(false);
     }
   }, [
-    twoFactorRequired,
     values.email,
     values.password,
-    values.twoFactorCode,
     handleNextAuthSignIn,
     setError,
     setLoading,
-    setTwoFactorRequired,
   ]);
 
   const ctx: AuthFormContextType = {
@@ -232,8 +159,6 @@ export default function AuthFormProvider({
     loading,
     error,
     reset,
-    twoFactorRequired,
-    cancelTwoFactor,
   };
 
   return (

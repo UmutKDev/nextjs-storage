@@ -4,22 +4,13 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { useAuthForm } from "./AuthFormProvider";
 
 export const Login = () => {
-  const {
-    values,
-    handleChange,
-    submit,
-    loading,
-    error,
-    twoFactorRequired,
-    cancelTwoFactor,
-  } = useAuthForm();
+  const { values, handleChange, submit, loading, error } = useAuthForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,58 +59,6 @@ export const Login = () => {
               required
             />
           </div>
-          <AnimatePresence initial={false}>
-            {twoFactorRequired && (
-              <motion.div
-                key="twoFactorBlock"
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -12, scale: 0.96 }}
-                transition={{ type: "spring", stiffness: 320, damping: 30 }}
-                className="rounded-xl border bg-muted/40 px-4 py-3 shadow-inner grid gap-3"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                    <ShieldCheck className="h-4 w-4" />
-                    İki Aşamalı Doğrulama
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={cancelTwoFactor}
-                    disabled={loading}
-                  >
-                    Bilgileri Düzenle
-                  </Button>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="twoFactorCode">Doğrulama Kodu</Label>
-                  <Input
-                    id="twoFactorCode"
-                    name="twoFactorCode"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    placeholder="123456"
-                    disabled={loading}
-                    value={
-                      typeof values.twoFactorCode === "string"
-                        ? values.twoFactorCode
-                        : ""
-                    }
-                    onChange={handleChange}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Authenticator uygulamanızdaki 6 haneli kodu girin. Kod her 30
-                    saniyede yenilenir.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {error && (
             <div className="text-sm font-medium text-destructive">{error}</div>
@@ -127,7 +66,7 @@ export const Login = () => {
 
           <Button disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {twoFactorRequired ? "Doğrula ve Giriş Yap" : "Giriş Yap"}
+            {"Giriş Yap"}
           </Button>
         </div>
       </form>
