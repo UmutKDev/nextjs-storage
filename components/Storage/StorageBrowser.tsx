@@ -341,7 +341,7 @@ function FolderThumbnail({
     }
     const stableBaseUrl = stableUrlRef.current.get(key) || baseUrl;
 
-    const maxDim = 480;
+    const maxDim = 360;
     const width = Number(item.Metadata?.Width);
     const height = Number(item.Metadata?.Height);
     const hasDims = Number.isFinite(width) && Number.isFinite(height);
