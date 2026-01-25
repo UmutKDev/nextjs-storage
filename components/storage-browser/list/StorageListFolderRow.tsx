@@ -6,6 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { DraggableItem } from "@/components/storage-browser/dnd/DraggableItem";
 import type {
@@ -20,8 +21,12 @@ type StorageListFolderRowProps = {
   isSelected: boolean;
   isLoading?: boolean;
   deletingByKey?: Record<string, boolean>;
-  onSelectItem: (itemKey: string, allowMultiple: boolean) => void;
+  onSelectItem: (
+    itemKey: string,
+    options?: { allowMultiple?: boolean; rangeSelect?: boolean },
+  ) => void;
   onFolderClick: (directory: Directory, event: React.MouseEvent) => void;
+  onContextMenu?: (point: { x: number; y: number }) => void;
   onDelete?: (directory: Directory) => void;
   onRename?: (directory: Directory) => void;
   onConvertToEncrypted?: (directory: Directory) => void;
@@ -39,29 +44,94 @@ export const StorageListFolderRow = ({
   onDelete,
   onRename,
   onConvertToEncrypted,
-}: StorageListFolderRowProps) => (
-  <DraggableItem
-    itemKey={directoryKey}
-    itemType="folder"
-    isSelected={isSelected}
-    className="group"
-    data={directory}
-  >
-    <div
-      className="flex items-center gap-2 md:gap-4 px-2 md:px-4 py-3 hover:bg-muted/10 cursor-pointer active:bg-muted/20"
-      onClick={(event) => onFolderClick(directory, event)}
+  onContextMenu,
+}: StorageListFolderRowProps) => {
+  const longPressTimerRef = React.useRef<number | null>(null);
+  const longPressTriggeredRef = React.useRef(false);
+  const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
+
+  const clearLongPress = React.useCallback(() => {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const handlePointerDown = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType !== "touch" || !onContextMenu) return;
+      const { clientX, clientY } = event;
+      pointerStartRef.current = { x: clientX, y: clientY };
+      longPressTriggeredRef.current = false;
+      longPressTimerRef.current = window.setTimeout(() => {
+        longPressTriggeredRef.current = true;
+        onContextMenu({ x: clientX, y: clientY });
+      }, 550);
+    },
+    [onContextMenu],
+  );
+
+  const handlePointerMove = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!pointerStartRef.current) return;
+      const deltaX = Math.abs(event.clientX - pointerStartRef.current.x);
+      const deltaY = Math.abs(event.clientY - pointerStartRef.current.y);
+      if (deltaX > 6 || deltaY > 6) {
+        clearLongPress();
+        pointerStartRef.current = null;
+      }
+    },
+    [clearLongPress],
+  );
+
+  const handlePointerUp = React.useCallback(() => {
+    clearLongPress();
+    pointerStartRef.current = null;
+  }, [clearLongPress]);
+
+  return (
+    <DraggableItem
+      itemKey={directoryKey}
+      itemType="folder"
+      isSelected={isSelected}
+      className="group"
+      data={directory}
     >
       <div
-        className="flex items-center justify-center shrink-0"
-        onClick={(event) => event.stopPropagation()}
+        className="flex items-center gap-2 md:gap-4 px-2 md:px-4 py-3 hover:bg-muted/10 cursor-pointer active:bg-muted/20"
+        onClick={(event) => {
+          if (longPressTriggeredRef.current) {
+            longPressTriggeredRef.current = false;
+            return;
+          }
+          onFolderClick(directory, event);
+        }}
+        onContextMenu={(event) => {
+          if (!onContextMenu) return;
+          event.preventDefault();
+          onContextMenu({ x: event.clientX, y: event.clientY });
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
       >
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={() => onSelectItem(directoryKey, true)}
-          className="h-5 w-5 md:h-4 md:w-4 rounded border-gray-300 text-primary focus:ring-primary"
-        />
-      </div>
+        <div
+          className="flex items-center justify-center shrink-0"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <Checkbox
+            checked={isSelected}
+            onClick={(event) =>
+              onSelectItem(directoryKey, {
+                allowMultiple: true,
+                rangeSelect: event.shiftKey,
+              })
+            }
+            className="size-6 md:size-6 bg-background/90"
+            aria-label={`${directoryMetadata.displayName} klasorunu sec`}
+          />
+        </div>
       <div className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500 shrink-0">
         <Folder size={18} fill="currentColor" className="opacity-80" />
       </div>
@@ -157,6 +227,7 @@ export const StorageListFolderRow = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </div>
-  </DraggableItem>
-);
+      </div>
+    </DraggableItem>
+  );
+};

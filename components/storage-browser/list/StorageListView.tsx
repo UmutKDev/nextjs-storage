@@ -17,11 +17,20 @@ type StorageListViewProps = {
   selectedItemKeys: Set<string>;
   deletingByKey?: Record<string, boolean>;
   extractJobsByKey?: ZipExtractJobsByKey;
-  onSelectItem: (itemKey: string, allowMultiple: boolean) => void;
+  onSelectItem: (
+    itemKey: string,
+    options?: { allowMultiple?: boolean; rangeSelect?: boolean },
+  ) => void;
+  onReplaceSelection?: (nextSelection: Set<string>) => void;
   onItemClick: (
     item: CloudObject | Directory,
     itemType: StorageItemType,
     event: React.MouseEvent,
+  ) => void;
+  onItemContextMenu?: (
+    item: CloudObject | Directory,
+    itemType: StorageItemType,
+    point: { x: number; y: number },
   ) => void;
   onEditFile?: (file: CloudObject) => void;
   onMoveClick?: (fileKeys: string[]) => void;
@@ -60,6 +69,7 @@ export const StorageListView = ({
   getDirectoryMetadata,
   getReadableExtractStatus,
   getZipActionState,
+  onItemContextMenu,
 }: StorageListViewProps) => (
   <div className="divide-y rounded-md border bg-background/50">
     {(directories ?? []).map((directory, index) => {
@@ -78,6 +88,11 @@ export const StorageListView = ({
           onSelectItem={onSelectItem}
           onFolderClick={(selectedDirectory, event) =>
             onItemClick(selectedDirectory, "folder", event)
+          }
+          onContextMenu={
+            onItemContextMenu
+              ? (point) => onItemContextMenu(directory, "folder", point)
+              : undefined
           }
           onDelete={onDelete}
           onRename={onRenameFolder}
@@ -127,6 +142,11 @@ export const StorageListView = ({
             onSelectItem={onSelectItem}
             onFileClick={(selectedFile, event) =>
               onItemClick(selectedFile, "file", event)
+            }
+            onContextMenu={
+              onItemContextMenu
+                ? (point) => onItemContextMenu(fileItem, "file", point)
+                : undefined
             }
             onEditFile={onEditFile}
             onMoveClick={onMoveClick}

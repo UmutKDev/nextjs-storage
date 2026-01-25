@@ -26,11 +26,20 @@ type StorageGridViewProps = {
   extractJobsByKey?: ZipExtractJobsByKey;
   thumbnailAspectRatioByKey: Record<string, number>;
   onAspectRatioChange: (itemKey: string, aspectRatio: number) => void;
-  onSelectItem: (itemKey: string, allowMultiple: boolean) => void;
+  onSelectItem: (
+    itemKey: string,
+    options?: { allowMultiple?: boolean; rangeSelect?: boolean },
+  ) => void;
+  onReplaceSelection?: (nextSelection: Set<string>) => void;
   onItemClick: (
     item: CloudObject | Directory,
     itemType: StorageItemType,
     event: React.MouseEvent,
+  ) => void;
+  onItemContextMenu?: (
+    item: CloudObject | Directory,
+    itemType: StorageItemType,
+    point: { x: number; y: number },
   ) => void;
   onEditFile?: (file: CloudObject) => void;
   onMoveClick?: (fileKeys: string[]) => void;
@@ -71,7 +80,18 @@ export const StorageGridView = ({
   getDirectoryMetadata,
   getReadableExtractStatus,
   getZipActionState,
+  onItemContextMenu,
 }: StorageGridViewProps) => {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const containerRectRef = React.useRef<DOMRect | null>(null);
+  const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const [selectionBox, setSelectionBox] = React.useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
   const galleryItems: {
     key: string;
     aspectRatio: number;
@@ -86,21 +106,32 @@ export const StorageGridView = ({
       key: directoryKey,
       aspectRatio: FOLDER_CARD_ASPECT_RATIO,
       render: () => (
-        <StorageGridFolderCard
-          directory={directory}
-          directoryKey={directoryKey}
-          directoryMetadata={directoryMetadata}
-          isSelected={selectedItemKeys.has(directoryKey)}
-          isLoading={isLoading}
-          deletingByKey={deletingByKey}
-          onSelectItem={onSelectItem}
-          onFolderClick={(selectedDirectory, event) =>
-            onItemClick(selectedDirectory, "folder", event)
-          }
-          onDelete={onDelete}
-          onRename={onRenameFolder}
-          onConvertToEncrypted={onConvertFolder}
-        />
+        <div
+          data-selectable-item
+          data-item-key={directoryKey}
+          className="h-full"
+        >
+          <StorageGridFolderCard
+            directory={directory}
+            directoryKey={directoryKey}
+            directoryMetadata={directoryMetadata}
+            isSelected={selectedItemKeys.has(directoryKey)}
+            isLoading={isLoading}
+            deletingByKey={deletingByKey}
+            onSelectItem={onSelectItem}
+            onFolderClick={(selectedDirectory, event) =>
+              onItemClick(selectedDirectory, "folder", event)
+            }
+            onContextMenu={
+              onItemContextMenu
+                ? (point) => onItemContextMenu(directory, "folder", point)
+                : undefined
+            }
+            onDelete={onDelete}
+            onRename={onRenameFolder}
+            onConvertToEncrypted={onConvertFolder}
+          />
+        </div>
       ),
     });
   });
@@ -161,37 +192,130 @@ export const StorageGridView = ({
         MAX_GALLERY_ASPECT_RATIO,
       ),
       render: () => (
-        <StorageGridFileCard
-          file={fileItem}
-          fileKey={fileKey}
-          isSelected={selectedItemKeys.has(fileKey)}
-          isLoading={isLoading}
-          deletingByKey={deletingByKey}
-          extractStatusLabel={extractStatusLabel}
-          canStartExtraction={canStartExtraction}
-          canCancelExtraction={canCancelExtraction}
-          onSelectItem={onSelectItem}
-          onFileClick={(selectedFile, event) =>
-            onItemClick(selectedFile, "file", event)
-          }
-          onEditFile={onEditFile}
-          onMoveClick={onMoveClick}
-          onDelete={onDelete}
-          onExtractZip={onExtractZip}
-          onCancelExtractZip={onCancelExtractZip}
-          onAspectRatioChange={onAspectRatioChange}
-        />
+        <div data-selectable-item data-item-key={fileKey} className="h-full">
+          <StorageGridFileCard
+            file={fileItem}
+            fileKey={fileKey}
+            isSelected={selectedItemKeys.has(fileKey)}
+            isLoading={isLoading}
+            deletingByKey={deletingByKey}
+            extractStatusLabel={extractStatusLabel}
+            canStartExtraction={canStartExtraction}
+            canCancelExtraction={canCancelExtraction}
+            onSelectItem={onSelectItem}
+            onFileClick={(selectedFile, event) =>
+              onItemClick(selectedFile, "file", event)
+            }
+            onContextMenu={
+              onItemContextMenu
+                ? (point) => onItemContextMenu(fileItem, "file", point)
+                : undefined
+            }
+            onEditFile={onEditFile}
+            onMoveClick={onMoveClick}
+            onDelete={onDelete}
+            onExtractZip={onExtractZip}
+            onCancelExtractZip={onCancelExtractZip}
+            onAspectRatioChange={onAspectRatioChange}
+          />
+        </div>
       ),
     });
   });
 
   return (
-    <SmartGallery
-      items={galleryItems}
-      gap={8}
-      targetRowHeight={320}
-      tolerance={0.2}
-      className="pt-1"
-    />
+    <div
+      ref={containerRef}
+      className="relative"
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        if (!containerRef.current) return;
+        if ((event.target as HTMLElement | null)?.closest("[data-selectable-item]")) {
+          return;
+        }
+        containerRectRef.current =
+          containerRef.current.getBoundingClientRect();
+        pointerStartRef.current = {
+          x: event.clientX,
+          y: event.clientY,
+        };
+        setSelectionBox({
+          left: event.clientX,
+          top: event.clientY,
+          width: 0,
+          height: 0,
+        });
+        containerRef.current.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        if (!pointerStartRef.current || !containerRectRef.current) return;
+        const start = pointerStartRef.current;
+        const left = Math.min(start.x, event.clientX);
+        const top = Math.min(start.y, event.clientY);
+        const right = Math.max(start.x, event.clientX);
+        const bottom = Math.max(start.y, event.clientY);
+        const width = right - left;
+        const height = bottom - top;
+        setSelectionBox({ left, top, width, height });
+
+        if (!onReplaceSelection) return;
+        const nextKeys = new Set<string>();
+        const container = containerRef.current;
+        if (!container) return;
+        const items = container.querySelectorAll<HTMLElement>(
+          "[data-selectable-item]"
+        );
+        items.forEach((item) => {
+          const key = item.dataset.itemKey;
+          if (!key) return;
+          const rect = item.getBoundingClientRect();
+          const intersects =
+            rect.left < right &&
+            rect.right > left &&
+            rect.top < bottom &&
+            rect.bottom > top;
+          if (intersects) nextKeys.add(key);
+        });
+
+        const shouldMerge =
+          event.shiftKey || event.metaKey || event.ctrlKey;
+        if (shouldMerge) {
+          selectedItemKeys.forEach((key) => nextKeys.add(key));
+        }
+        onReplaceSelection(nextKeys);
+      }}
+      onPointerUp={(event) => {
+        if (!pointerStartRef.current) return;
+        pointerStartRef.current = null;
+        setSelectionBox(null);
+        containerRectRef.current = null;
+        containerRef.current?.releasePointerCapture(event.pointerId);
+      }}
+      onPointerCancel={(event) => {
+        pointerStartRef.current = null;
+        setSelectionBox(null);
+        containerRectRef.current = null;
+        containerRef.current?.releasePointerCapture(event.pointerId);
+      }}
+    >
+      <SmartGallery
+        items={galleryItems}
+        gap={8}
+        targetRowHeight={320}
+        tolerance={0.2}
+        className="pt-1"
+      />
+      {selectionBox && containerRectRef.current ? (
+        <div
+          className="pointer-events-none absolute z-20 border border-primary/60 bg-primary/10"
+          style={{
+            left: selectionBox.left - containerRectRef.current.left,
+            top: selectionBox.top - containerRectRef.current.top,
+            width: selectionBox.width,
+            height: selectionBox.height,
+          }}
+        />
+      ) : null}
+    </div>
   );
 };

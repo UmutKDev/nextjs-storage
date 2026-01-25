@@ -6,6 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { DraggableItem } from "@/components/storage-browser/dnd/DraggableItem";
 import { FolderThumbnail } from "@/components/storage-browser/thumbnails/FolderThumbnail";
@@ -21,8 +22,12 @@ type StorageGridFolderCardProps = {
   isSelected: boolean;
   isLoading?: boolean;
   deletingByKey?: Record<string, boolean>;
-  onSelectItem: (itemKey: string, allowMultiple: boolean) => void;
+  onSelectItem: (
+    itemKey: string,
+    options?: { allowMultiple?: boolean; rangeSelect?: boolean },
+  ) => void;
   onFolderClick: (directory: Directory, event: React.MouseEvent) => void;
+  onContextMenu?: (point: { x: number; y: number }) => void;
   onDelete?: (directory: Directory) => void;
   onRename?: (directory: Directory) => void;
   onConvertToEncrypted?: (directory: Directory) => void;
@@ -40,104 +45,170 @@ export const StorageGridFolderCard = ({
   onDelete,
   onRename,
   onConvertToEncrypted,
-}: StorageGridFolderCardProps) => (
-  <DraggableItem
-    itemKey={directoryKey}
-    itemType="folder"
-    isSelected={isSelected}
-    className="group h-full"
-    data={directory}
-  >
-    <div
-      className="relative w-full h-full rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden p-0"
-      onClick={(event) => onFolderClick(directory, event)}
+  onContextMenu,
+}: StorageGridFolderCardProps) => {
+  const longPressTimerRef = React.useRef<number | null>(null);
+  const longPressTriggeredRef = React.useRef(false);
+  const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
+
+  const clearLongPress = React.useCallback(() => {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const handlePointerDown = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType !== "touch" || !onContextMenu) return;
+      const { clientX, clientY } = event;
+      pointerStartRef.current = { x: clientX, y: clientY };
+      longPressTriggeredRef.current = false;
+      longPressTimerRef.current = window.setTimeout(() => {
+        longPressTriggeredRef.current = true;
+        onContextMenu({ x: clientX, y: clientY });
+      }, 550);
+    },
+    [onContextMenu],
+  );
+
+  const handlePointerMove = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!pointerStartRef.current) return;
+      const deltaX = Math.abs(event.clientX - pointerStartRef.current.x);
+      const deltaY = Math.abs(event.clientY - pointerStartRef.current.y);
+      if (deltaX > 6 || deltaY > 6) {
+        clearLongPress();
+        pointerStartRef.current = null;
+      }
+    },
+    [clearLongPress],
+  );
+
+  const handlePointerUp = React.useCallback(() => {
+    clearLongPress();
+    pointerStartRef.current = null;
+  }, [clearLongPress]);
+
+  return (
+    <DraggableItem
+      itemKey={directoryKey}
+      itemType="folder"
+      isSelected={isSelected}
+      className="group h-full"
+      data={directory}
     >
       <div
-        className="absolute top-2 left-2 z-10"
-        onClick={(event) => event.stopPropagation()}
+        className="relative w-full h-full rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden p-0"
+        onClick={(event) => {
+          if (longPressTriggeredRef.current) {
+            longPressTriggeredRef.current = false;
+            return;
+          }
+          onFolderClick(directory, event);
+        }}
+        onContextMenu={(event) => {
+          if (!onContextMenu) return;
+          event.preventDefault();
+          onContextMenu({ x: event.clientX, y: event.clientY });
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
       >
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={() => onSelectItem(directoryKey, true)}
-          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-        />
-      </div>
-
-      <div className="h-full p-2 md:p-3 flex flex-col items-center justify-center gap-2">
-        <FolderThumbnail directory={directory} className="mb-1 md:mb-2" />
-        <div className="text-xs md:text-sm font-medium text-center truncate w-full px-1 md:px-2">
-          {directoryMetadata.displayName}
-        </div>
-        <div className="text-[10px] md:text-xs text-muted-foreground">
-          {directoryMetadata.isEncrypted ? (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-medium",
-                directoryMetadata.isUnlocked
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-amber-50 text-amber-700",
-              )}
-            >
-              {directoryMetadata.isUnlocked ? (
-                <Unlock className="h-3 w-3 md:h-3.5 md:w-3.5" />
-              ) : (
-                <Lock className="h-3 w-3 md:h-3.5 md:w-3.5" />
-              )}
-              {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
-            </span>
-          ) : (
-            "Klasör"
-          )}
+        <div
+          className="absolute top-2 left-2 z-10"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <Checkbox
+            checked={isSelected}
+            onClick={(event) =>
+              onSelectItem(directoryKey, {
+                allowMultiple: true,
+                rangeSelect: event.shiftKey,
+              })
+            }
+            className="size-6 bg-background/90"
+            aria-label={`${directoryMetadata.displayName} klasorunu sec`}
+          />
         </div>
 
-        <div className="absolute top-2 right-2 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                onClick={(event) => event.stopPropagation()}
-                className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
+        <div className="h-full p-2 md:p-3 flex flex-col items-center justify-center gap-2">
+          <FolderThumbnail directory={directory} className="mb-1 md:mb-2" />
+          <div className="text-xs md:text-sm font-medium text-center truncate w-full px-1 md:px-2">
+            {directoryMetadata.displayName}
+          </div>
+          <div className="text-[10px] md:text-xs text-muted-foreground">
+            {directoryMetadata.isEncrypted ? (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-medium",
+                  directoryMetadata.isUnlocked
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700",
+                )}
               >
-                <MoreHorizontal size={16} className="text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {onRename ? (
+                {directoryMetadata.isUnlocked ? (
+                  <Unlock className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                ) : (
+                  <Lock className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                )}
+                {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
+              </span>
+            ) : (
+              "Klasör"
+            )}
+          </div>
+
+          <div className="absolute top-2 right-2 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={(event) => event.stopPropagation()}
+                  className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
+                >
+                  <MoreHorizontal size={16} className="text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onRename ? (
+                  <DropdownMenuItem
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (!isLoading) onRename(directory);
+                    }}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Düzenle
+                  </DropdownMenuItem>
+                ) : null}
+                {!directoryMetadata.isEncrypted && onConvertToEncrypted ? (
+                  <DropdownMenuItem
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (!isLoading) onConvertToEncrypted(directory);
+                    }}
+                  >
+                    <Lock className="mr-2 h-4 w-4" />
+                    Şifrele
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem
                   onClick={(event) => {
                     event.stopPropagation();
-                    if (!isLoading) onRename(directory);
+                    if (!isLoading && onDelete) onDelete(directory);
                   }}
+                  disabled={isLoading || Boolean(deletingByKey[directoryKey])}
                 >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Düzenle
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Sil
                 </DropdownMenuItem>
-              ) : null}
-              {!directoryMetadata.isEncrypted && onConvertToEncrypted ? (
-                <DropdownMenuItem
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (!isLoading) onConvertToEncrypted(directory);
-                  }}
-                >
-                  <Lock className="mr-2 h-4 w-4" />
-                  Şifrele
-                </DropdownMenuItem>
-              ) : null}
-              <DropdownMenuItem
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (!isLoading && onDelete) onDelete(directory);
-                }}
-                disabled={isLoading || Boolean(deletingByKey[directoryKey])}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Sil
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
-    </div>
-  </DraggableItem>
-);
+    </DraggableItem>
+  );
+};

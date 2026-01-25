@@ -2,16 +2,51 @@ import React from "react";
 
 type UseItemSelectionArgs = {
   selectedItemKeys: Set<string>;
+  orderedItemKeys?: string[];
   onSelectionChange?: (nextSelection: Set<string>) => void;
 };
 
 export const useItemSelection = ({
   selectedItemKeys,
+  orderedItemKeys,
   onSelectionChange,
 }: UseItemSelectionArgs) => {
+  const lastSelectedKeyRef = React.useRef<string | null>(null);
+
   const updateSelection = React.useCallback(
-    (itemKey: string, allowMultiple: boolean) => {
+    (
+      itemKey: string,
+      options?: { allowMultiple?: boolean; rangeSelect?: boolean },
+    ) => {
       if (!onSelectionChange) return;
+      const allowMultiple = options?.allowMultiple ?? false;
+      const rangeSelect = options?.rangeSelect ?? false;
+
+      if (rangeSelect && orderedItemKeys?.length) {
+        const anchorKey = lastSelectedKeyRef.current;
+        const anchorIndex = anchorKey
+          ? orderedItemKeys.indexOf(anchorKey)
+          : -1;
+        const targetIndex = orderedItemKeys.indexOf(itemKey);
+
+        if (anchorIndex !== -1 && targetIndex !== -1) {
+          const nextSelection = new Set(
+            allowMultiple ? selectedItemKeys : [],
+          );
+          const [start, end] =
+            anchorIndex < targetIndex
+              ? [anchorIndex, targetIndex]
+              : [targetIndex, anchorIndex];
+
+          orderedItemKeys.slice(start, end + 1).forEach((key) => {
+            nextSelection.add(key);
+          });
+          onSelectionChange(nextSelection);
+          lastSelectedKeyRef.current = itemKey;
+          return;
+        }
+      }
+
       const nextSelection = new Set(allowMultiple ? selectedItemKeys : []);
       if (nextSelection.has(itemKey)) {
         nextSelection.delete(itemKey);
@@ -19,8 +54,17 @@ export const useItemSelection = ({
         nextSelection.add(itemKey);
       }
       onSelectionChange(nextSelection);
+      lastSelectedKeyRef.current = itemKey;
     },
-    [onSelectionChange, selectedItemKeys],
+    [onSelectionChange, orderedItemKeys, selectedItemKeys],
+  );
+
+  const replaceSelection = React.useCallback(
+    (nextSelection: Set<string>) => {
+      if (!onSelectionChange) return;
+      onSelectionChange(new Set(nextSelection));
+    },
+    [onSelectionChange],
   );
 
   const isItemSelected = React.useCallback(
@@ -28,5 +72,5 @@ export const useItemSelection = ({
     [selectedItemKeys],
   );
 
-  return { updateSelection, isItemSelected };
+  return { updateSelection, replaceSelection, isItemSelected };
 };

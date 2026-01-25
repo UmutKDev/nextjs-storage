@@ -1,7 +1,6 @@
 import React from "react";
 import { useStorage } from "@/components/Storage/StorageProvider";
 import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
-import EditFileModal from "@/components/Storage/EditFileModal";
 import { StorageListView } from "@/components/storage-browser/list/StorageListView";
 import { StorageGridView } from "@/components/storage-browser/grid/StorageGridView";
 import { useItemSelection } from "@/components/storage-browser/hooks/useItemSelection";
@@ -31,8 +30,14 @@ export interface StorageBrowserProps {
   onSelect?: (items: Set<string>) => void;
   onMove?: (sourceKey: string, destinationKey: string) => void;
   onMoveClick?: (items: string[]) => void;
+  onEditFile?: (file: CloudObject) => void;
   onRenameFolder?: (directory: Directory) => void;
   onConvertFolder?: (directory: Directory) => void;
+  onItemContextMenu?: (
+    item: CloudObject | Directory,
+    itemType: "file" | "folder",
+    point: { x: number; y: number },
+  ) => void;
 }
 
 export default function StorageBrowser({
@@ -49,14 +54,27 @@ export default function StorageBrowser({
   selectedItems,
   onSelect,
   onMoveClick,
+  onEditFile,
   onRenameFolder,
   onConvertFolder,
+  onItemContextMenu,
 }: StorageBrowserProps) {
   const { setCurrentPath } = useStorage();
   const { promptUnlock } = useEncryptedFolders();
   const { getDirectoryMetadata } = useDirectoryMetadata();
-  const { updateSelection } = useItemSelection({
+  const orderedItemKeys = React.useMemo(() => {
+    const keys: string[] = [];
+    (directories ?? []).forEach((directory, index) => {
+      keys.push(directory.Prefix || `dir-${index}`);
+    });
+    (contents ?? []).forEach((file, index) => {
+      keys.push(file.Path?.Key ?? `file-${index}`);
+    });
+    return keys;
+  }, [contents, directories]);
+  const { updateSelection, replaceSelection } = useItemSelection({
     selectedItemKeys: selectedItems,
+    orderedItemKeys,
     onSelectionChange: onSelect,
   });
   const { thumbnailAspectRatioByKey, updateThumbnailAspectRatio } =
@@ -64,15 +82,15 @@ export default function StorageBrowser({
   const { getReadableExtractStatus, getZipActionState } =
     useZipExtractStatus();
 
-  const [fileBeingEdited, setFileBeingEdited] =
-    React.useState<CloudObject | null>(null);
-
   const isLoading = Boolean(loading);
   const isEmptyState = !directories?.length && !contents?.length && !isLoading;
 
   const handleItemSelection = React.useCallback(
-    (itemKey: string, allowMultiple: boolean) => {
-      updateSelection(itemKey, allowMultiple);
+    (
+      itemKey: string,
+      options?: { allowMultiple?: boolean; rangeSelect?: boolean },
+    ) => {
+      updateSelection(itemKey, options);
     },
     [updateSelection],
   );
@@ -89,8 +107,13 @@ export default function StorageBrowser({
           : (storageItem as Directory).Prefix;
       if (!itemKey) return;
 
+      if (event.shiftKey) {
+        updateSelection(itemKey, { allowMultiple: true, rangeSelect: true });
+        return;
+      }
+
       if (event.metaKey || event.ctrlKey) {
-        updateSelection(itemKey, true);
+        updateSelection(itemKey, { allowMultiple: true });
         return;
       }
 
@@ -136,8 +159,10 @@ export default function StorageBrowser({
           deletingByKey={deleting}
           extractJobsByKey={extractJobs}
           onSelectItem={handleItemSelection}
+          onReplaceSelection={replaceSelection}
           onItemClick={handleStorageItemClick}
-          onEditFile={setFileBeingEdited}
+          onItemContextMenu={onItemContextMenu}
+          onEditFile={onEditFile}
           onMoveClick={onMoveClick}
           onDelete={onDelete}
           onRenameFolder={onRenameFolder}
@@ -159,8 +184,10 @@ export default function StorageBrowser({
           thumbnailAspectRatioByKey={thumbnailAspectRatioByKey}
           onAspectRatioChange={updateThumbnailAspectRatio}
           onSelectItem={handleItemSelection}
+          onReplaceSelection={replaceSelection}
           onItemClick={handleStorageItemClick}
-          onEditFile={setFileBeingEdited}
+          onItemContextMenu={onItemContextMenu}
+          onEditFile={onEditFile}
           onMoveClick={onMoveClick}
           onDelete={onDelete}
           onRenameFolder={onRenameFolder}
@@ -173,14 +200,6 @@ export default function StorageBrowser({
         />
       )}
 
-      <EditFileModal
-        file={fileBeingEdited}
-        open={Boolean(fileBeingEdited)}
-        onClose={() => setFileBeingEdited(null)}
-        onConfirm={async () => {
-          setFileBeingEdited(null);
-        }}
-      />
     </>
   );
 }
