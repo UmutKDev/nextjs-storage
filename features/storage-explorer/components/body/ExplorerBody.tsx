@@ -3,7 +3,7 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import StorageBrowser from "@/components/Storage/StorageBrowser";
+import StorageBrowser from "@/components/storage-browser/StorageBrowser";
 import ExplorerEmptyState from "./ExplorerEmptyState";
 import ExplorerLockedState from "./ExplorerLockedState";
 import ExplorerInfiniteLoader from "./ExplorerInfiniteLoader";
