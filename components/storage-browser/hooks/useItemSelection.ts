@@ -1,16 +1,10 @@
 import React from "react";
+import { useExplorerSelection } from "@/features/storage-explorer/contexts/ExplorerSelectionContext";
+import { useExplorerSelectionRange } from "@/features/storage-explorer/contexts/ExplorerSelectionRangeContext";
 
-type UseItemSelectionArgs = {
-  selectedItemKeys: Set<string>;
-  orderedItemKeys?: string[];
-  onSelectionChange?: (nextSelection: Set<string>) => void;
-};
-
-export const useItemSelection = ({
-  selectedItemKeys,
-  orderedItemKeys,
-  onSelectionChange,
-}: UseItemSelectionArgs) => {
+export const useItemSelection = () => {
+  const { selectedItemKeys, replaceSelectedItemKeys } = useExplorerSelection();
+  const { orderedKeys, replaceSelectionRange } = useExplorerSelectionRange();
   const lastSelectedKeyRef = React.useRef<string | null>(null);
 
   const updateSelection = React.useCallback(
@@ -18,30 +12,14 @@ export const useItemSelection = ({
       itemKey: string,
       options?: { allowMultiple?: boolean; rangeSelect?: boolean },
     ) => {
-      if (!onSelectionChange) return;
       const allowMultiple = options?.allowMultiple ?? false;
       const rangeSelect = options?.rangeSelect ?? false;
 
-      if (rangeSelect && orderedItemKeys?.length) {
+      if (rangeSelect && orderedKeys.length) {
         const anchorKey = lastSelectedKeyRef.current;
-        const anchorIndex = anchorKey
-          ? orderedItemKeys.indexOf(anchorKey)
-          : -1;
-        const targetIndex = orderedItemKeys.indexOf(itemKey);
-
-        if (anchorIndex !== -1 && targetIndex !== -1) {
-          const nextSelection = new Set(
-            allowMultiple ? selectedItemKeys : [],
-          );
-          const [start, end] =
-            anchorIndex < targetIndex
-              ? [anchorIndex, targetIndex]
-              : [targetIndex, anchorIndex];
-
-          orderedItemKeys.slice(start, end + 1).forEach((key) => {
-            nextSelection.add(key);
-          });
-          onSelectionChange(nextSelection);
+        if (anchorKey) {
+          const baseSelection = allowMultiple ? selectedItemKeys : undefined;
+          replaceSelectionRange(anchorKey, itemKey, { baseSelection });
           lastSelectedKeyRef.current = itemKey;
           return;
         }
@@ -53,18 +31,17 @@ export const useItemSelection = ({
       } else {
         nextSelection.add(itemKey);
       }
-      onSelectionChange(nextSelection);
+      replaceSelectedItemKeys(nextSelection);
       lastSelectedKeyRef.current = itemKey;
     },
-    [onSelectionChange, orderedItemKeys, selectedItemKeys],
+    [orderedKeys, replaceSelectedItemKeys, replaceSelectionRange, selectedItemKeys],
   );
 
   const replaceSelection = React.useCallback(
     (nextSelection: Set<string>) => {
-      if (!onSelectionChange) return;
-      onSelectionChange(new Set(nextSelection));
+      replaceSelectedItemKeys(new Set(nextSelection));
     },
-    [onSelectionChange],
+    [replaceSelectedItemKeys],
   );
 
   const isItemSelected = React.useCallback(

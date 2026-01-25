@@ -15,6 +15,15 @@ import { getCloudObjectUrl, getImageCdnUrl, isImageFile } from "./imageCdn";
 import { downloadWithRetry } from "@/lib/download";
 import { retryWithBackoff } from "@/lib/retry";
 
+class RetryableResponseError extends Error {
+  response: Response;
+
+  constructor(response: Response) {
+    super(`Retryable response: ${response.status}`);
+    this.response = response;
+  }
+}
+
 function useInView<T extends HTMLElement>() {
   const ref = React.useRef<T | null>(null);
   const [inView, setInView] = React.useState(false);
@@ -115,15 +124,6 @@ export default function LazyPreview({
       "bat",
       "env",
     ].includes(ext);
-
-  class RetryableResponseError extends Error {
-    response: Response;
-
-    constructor(response: Response) {
-      super(`Retryable response: ${response.status}`);
-      this.response = response;
-    }
-  }
 
   const fetchTextWithRetry = React.useCallback(async (url: string) => {
     const response = await retryWithBackoff(

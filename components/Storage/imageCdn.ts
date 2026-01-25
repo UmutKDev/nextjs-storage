@@ -1,5 +1,4 @@
 import type { CloudObjectModel } from "@/Service/Generates/api";
-import { getSessionTokenForPath } from "@/lib/encryption";
 
 const IMAGE_EXTENSIONS = new Set([
   "jpg",

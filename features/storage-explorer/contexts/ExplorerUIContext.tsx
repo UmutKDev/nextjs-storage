@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import type { CloudObjectModel } from "@/Service/Generates/api";
 import type { ExplorerViewMode } from "../types/explorer.types";
 
 type ExplorerUIContextValue = {
@@ -11,12 +10,6 @@ type ExplorerUIContextValue = {
   setViewMode: (nextMode: ExplorerViewMode) => void;
   isNavigatingBetweenFolders: boolean;
   setIsNavigatingBetweenFolders: (nextValue: boolean) => void;
-  isCreateFolderModalOpen: boolean;
-  setIsCreateFolderModalOpen: (nextValue: boolean) => void;
-  isUploadModalOpen: boolean;
-  setIsUploadModalOpen: (nextValue: boolean) => void;
-  activePreviewFile: CloudObjectModel | null;
-  setActivePreviewFile: (nextFile: CloudObjectModel | null) => void;
   isMobileSidebarOpen: boolean;
   setIsMobileSidebarOpen: (nextValue: boolean) => void;
 };
@@ -30,11 +23,6 @@ export function ExplorerUIProvider({ children }: { children: React.ReactNode }) 
   const [viewMode, setViewMode] = React.useState<ExplorerViewMode>("list");
   const [isNavigatingBetweenFolders, setIsNavigatingBetweenFolders] =
     React.useState(false);
-  const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] =
-    React.useState(false);
-  const [isUploadModalOpen, setIsUploadModalOpen] = React.useState(false);
-  const [activePreviewFile, setActivePreviewFile] =
-    React.useState<CloudObjectModel | null>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] =
     React.useState(false);
 
@@ -46,21 +34,12 @@ export function ExplorerUIProvider({ children }: { children: React.ReactNode }) 
       setViewMode,
       isNavigatingBetweenFolders,
       setIsNavigatingBetweenFolders,
-      isCreateFolderModalOpen,
-      setIsCreateFolderModalOpen,
-      isUploadModalOpen,
-      setIsUploadModalOpen,
-      activePreviewFile,
-      setActivePreviewFile,
       isMobileSidebarOpen,
       setIsMobileSidebarOpen,
     }),
     [
-      activePreviewFile,
-      isCreateFolderModalOpen,
       isMobileSidebarOpen,
       isNavigatingBetweenFolders,
-      isUploadModalOpen,
       searchQuery,
       viewMode,
     ]

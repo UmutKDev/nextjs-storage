@@ -10,11 +10,9 @@ import {
   HardDrive,
   FileText,
   Folder,
-  Search,
   Grid,
   List,
   MoreHorizontal,
-  LayoutGrid,
 } from "lucide-react";
 
 export default async function Home() {

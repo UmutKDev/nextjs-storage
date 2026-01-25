@@ -23,8 +23,6 @@ export function useExplorerExtractZip() {
   const [extractJobs, setExtractJobs] = React.useState<
     Record<string, ExplorerExtractJob>
   >({});
-  const [filePendingExtraction, setFilePendingExtraction] =
-    React.useState<CloudObjectModel | null>(null);
   const extractToastStateRef = React.useRef<Record<string, string>>({});
 
   const invalidatePath = React.useCallback(
@@ -249,8 +247,6 @@ export function useExplorerExtractZip() {
 
   return {
     extractJobs,
-    filePendingExtraction,
-    setFilePendingExtraction,
     createZipExtractionJob,
     deleteZipExtractionJob,
     getFileDisplayName,

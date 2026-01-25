@@ -2,95 +2,53 @@ import React from "react";
 import SmartGallery from "@/components/Gallery/SmartGallery";
 import { StorageGridFileCard } from "@/components/storage-browser/grid/StorageGridFileCard";
 import { StorageGridFolderCard } from "@/components/storage-browser/grid/StorageGridFolderCard";
+import { useThumbnailAspectRatio } from "@/components/storage-browser/hooks/useThumbnailAspectRatio";
+import { StorageGridThumbnailProvider } from "@/components/storage-browser/contexts/StorageGridThumbnailContext";
+import { useStorageBrowserInteractions } from "@/components/storage-browser/contexts/StorageBrowserInteractionsContext";
+import { useExplorerSelection } from "@/features/storage-explorer/contexts/ExplorerSelectionContext";
 import type {
   CloudObject,
   Directory,
-  StorageItemType,
-  ZipExtractJobsByKey,
-  ZipExtractJob,
 } from "@/components/storage-browser/types/storage-browser.types";
-import type { DirectoryMetadata } from "@/components/storage-browser/hooks/useDirectoryMetadata";
 
 const DEFAULT_FILE_ASPECT_RATIO = 1.2;
 const FOLDER_CARD_ASPECT_RATIO = 1;
-const MIN_GALLERY_ASPECT_RATIO = 0.3;
+const MIN_GALLERY_ASPECT_RATIO = 0.5;
 const MAX_GALLERY_ASPECT_RATIO = 4;
 const GRID_SKELETON_COUNT = 12;
 
 type StorageGridViewProps = {
   directories?: Directory[];
   files?: CloudObject[];
-  isLoading?: boolean;
-  selectedItemKeys: Set<string>;
-  deletingByKey?: Record<string, boolean>;
-  extractJobsByKey?: ZipExtractJobsByKey;
-  thumbnailAspectRatioByKey: Record<string, number>;
-  onAspectRatioChange: (itemKey: string, aspectRatio: number) => void;
-  onSelectItem: (
-    itemKey: string,
-    options?: { allowMultiple?: boolean; rangeSelect?: boolean },
-  ) => void;
-  onReplaceSelection?: (nextSelection: Set<string>) => void;
-  onItemClick: (
-    item: CloudObject | Directory,
-    itemType: StorageItemType,
-    event: React.MouseEvent,
-  ) => void;
-  onItemContextMenu?: (
-    item: CloudObject | Directory,
-    itemType: StorageItemType,
-    point: { x: number; y: number },
-  ) => void;
-  onEditFile?: (file: CloudObject) => void;
-  onMoveClick?: (fileKeys: string[]) => void;
-  onDelete?: (item: CloudObject | Directory) => void;
-  onRenameFolder?: (directory: Directory) => void;
-  onConvertFolder?: (directory: Directory) => void;
-  onExtractZip?: (file: CloudObject) => void;
-  onCancelExtractZip?: (file: CloudObject) => void;
-  getDirectoryMetadata: (directory: Directory) => DirectoryMetadata;
-  getReadableExtractStatus: (extractJob: ZipExtractJob) => string;
-  getZipActionState: (args: {
-    file?: CloudObject;
-    isLoading?: boolean;
-    hasExtractHandler: boolean;
-    hasCancelHandler: boolean;
-    extractJob?: ZipExtractJob;
-  }) => { canStartExtraction: boolean; canCancelExtraction: boolean };
 };
 
 export const StorageGridView = ({
   directories,
   files,
-  isLoading,
-  selectedItemKeys,
-  deletingByKey = {},
-  extractJobsByKey = {},
-  thumbnailAspectRatioByKey,
-  onAspectRatioChange,
-  onSelectItem,
-  onItemClick,
-  onEditFile,
-  onMoveClick,
-  onDelete,
-  onRenameFolder,
-  onConvertFolder,
-  onExtractZip,
-  onCancelExtractZip,
-  getDirectoryMetadata,
-  getReadableExtractStatus,
-  getZipActionState,
-  onItemContextMenu,
 }: StorageGridViewProps) => {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const containerRectRef = React.useRef<DOMRect | null>(null);
   const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const { thumbnailAspectRatioByKey, updateThumbnailAspectRatio } =
+    useThumbnailAspectRatio();
+  const { isLoading, replaceSelection } = useStorageBrowserInteractions();
+  const { selectedItemKeys } = useExplorerSelection();
+  const [galleryMetrics, setGalleryMetrics] = React.useState({
+    rowHeight: 420,
+    gap: 12,
+    maxItemsPerRow: 4,
+  });
   const [selectionBox, setSelectionBox] = React.useState<{
     left: number;
     top: number;
     width: number;
     height: number;
   } | null>(null);
+  const [selectionContainerOffset, setSelectionContainerOffset] =
+    React.useState<{
+      left: number;
+      top: number;
+    } | null>(null);
 
   const galleryItems: {
     key: string;
@@ -100,7 +58,6 @@ export const StorageGridView = ({
 
   (directories ?? []).forEach((directory, index) => {
     const directoryKey = directory.Prefix || `dir-${index}`;
-    const directoryMetadata = getDirectoryMetadata(directory);
 
     galleryItems.push({
       key: directoryKey,
@@ -114,22 +71,6 @@ export const StorageGridView = ({
           <StorageGridFolderCard
             directory={directory}
             directoryKey={directoryKey}
-            directoryMetadata={directoryMetadata}
-            isSelected={selectedItemKeys.has(directoryKey)}
-            isLoading={isLoading}
-            deletingByKey={deletingByKey}
-            onSelectItem={onSelectItem}
-            onFolderClick={(selectedDirectory, event) =>
-              onItemClick(selectedDirectory, "folder", event)
-            }
-            onContextMenu={
-              onItemContextMenu
-                ? (point) => onItemContextMenu(directory, "folder", point)
-                : undefined
-            }
-            onDelete={onDelete}
-            onRename={onRenameFolder}
-            onConvertToEncrypted={onConvertFolder}
           />
         </div>
       ),
@@ -147,8 +88,8 @@ export const StorageGridView = ({
         key: skeletonKey,
         aspectRatio: DEFAULT_FILE_ASPECT_RATIO,
         render: () => (
-          <div className="w-full h-full rounded-xl border bg-muted/10 p-4 flex flex-col gap-3 animate-pulse">
-            <div className="flex-1 rounded-lg bg-muted/20" />
+          <div className="w-full h-full rounded-2xl border bg-muted/10 p-4 flex flex-col gap-3 animate-pulse">
+            <div className="flex-1 rounded-xl bg-muted/20" />
             <div className="h-4 w-2/3 rounded bg-muted/20 mx-auto" />
           </div>
         ),
@@ -158,17 +99,6 @@ export const StorageGridView = ({
 
     const fileItem = file as CloudObject;
     const fileKey = fileItem.Path?.Key ?? `file-${index}`;
-    const extractJob = extractJobsByKey[fileKey];
-    const { canStartExtraction, canCancelExtraction } = getZipActionState({
-      file: fileItem,
-      isLoading,
-      hasExtractHandler: Boolean(onExtractZip),
-      hasCancelHandler: Boolean(onCancelExtractZip),
-      extractJob,
-    });
-    const extractStatusLabel = extractJob
-      ? getReadableExtractStatus(extractJob)
-      : undefined;
     const metadataWidth = fileItem.Metadata?.Width
       ? Number(fileItem.Metadata.Width)
       : null;
@@ -193,35 +123,41 @@ export const StorageGridView = ({
       ),
       render: () => (
         <div data-selectable-item data-item-key={fileKey} className="h-full">
-          <StorageGridFileCard
-            file={fileItem}
-            fileKey={fileKey}
-            isSelected={selectedItemKeys.has(fileKey)}
-            isLoading={isLoading}
-            deletingByKey={deletingByKey}
-            extractStatusLabel={extractStatusLabel}
-            canStartExtraction={canStartExtraction}
-            canCancelExtraction={canCancelExtraction}
-            onSelectItem={onSelectItem}
-            onFileClick={(selectedFile, event) =>
-              onItemClick(selectedFile, "file", event)
-            }
-            onContextMenu={
-              onItemContextMenu
-                ? (point) => onItemContextMenu(fileItem, "file", point)
-                : undefined
-            }
-            onEditFile={onEditFile}
-            onMoveClick={onMoveClick}
-            onDelete={onDelete}
-            onExtractZip={onExtractZip}
-            onCancelExtractZip={onCancelExtractZip}
-            onAspectRatioChange={onAspectRatioChange}
-          />
+          <StorageGridFileCard file={fileItem} fileKey={fileKey} />
         </div>
       ),
     });
   });
+
+  React.useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    const updateMetrics = (width: number) => {
+      const next =
+        width < 640
+          ? { rowHeight: 260, gap: 10, maxItemsPerRow: 2 }
+          : width < 1100
+            ? { rowHeight: 320, gap: 12, maxItemsPerRow: 3 }
+            : { rowHeight: 400, gap: 14, maxItemsPerRow: 4 };
+      setGalleryMetrics((previous) =>
+        previous.rowHeight === next.rowHeight &&
+        previous.gap === next.gap &&
+        previous.maxItemsPerRow === next.maxItemsPerRow
+          ? previous
+          : next,
+      );
+    };
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      updateMetrics(entry.contentRect.width);
+    });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div
@@ -230,11 +166,18 @@ export const StorageGridView = ({
       onPointerDown={(event) => {
         if (event.button !== 0) return;
         if (!containerRef.current) return;
-        if ((event.target as HTMLElement | null)?.closest("[data-selectable-item]")) {
+        if (
+          (event.target as HTMLElement | null)?.closest(
+            "[data-selectable-item]",
+          )
+        ) {
           return;
         }
-        containerRectRef.current =
-          containerRef.current.getBoundingClientRect();
+        containerRectRef.current = containerRef.current.getBoundingClientRect();
+        setSelectionContainerOffset({
+          left: containerRectRef.current.left,
+          top: containerRectRef.current.top,
+        });
         pointerStartRef.current = {
           x: event.clientX,
           y: event.clientY,
@@ -258,12 +201,11 @@ export const StorageGridView = ({
         const height = bottom - top;
         setSelectionBox({ left, top, width, height });
 
-        if (!onReplaceSelection) return;
         const nextKeys = new Set<string>();
         const container = containerRef.current;
         if (!container) return;
         const items = container.querySelectorAll<HTMLElement>(
-          "[data-selectable-item]"
+          "[data-selectable-item]",
         );
         items.forEach((item) => {
           const key = item.dataset.itemKey;
@@ -277,40 +219,47 @@ export const StorageGridView = ({
           if (intersects) nextKeys.add(key);
         });
 
-        const shouldMerge =
-          event.shiftKey || event.metaKey || event.ctrlKey;
+        const shouldMerge = event.shiftKey || event.metaKey || event.ctrlKey;
         if (shouldMerge) {
           selectedItemKeys.forEach((key) => nextKeys.add(key));
         }
-        onReplaceSelection(nextKeys);
+        replaceSelection(nextKeys);
       }}
       onPointerUp={(event) => {
         if (!pointerStartRef.current) return;
         pointerStartRef.current = null;
         setSelectionBox(null);
         containerRectRef.current = null;
+        setSelectionContainerOffset(null);
         containerRef.current?.releasePointerCapture(event.pointerId);
       }}
       onPointerCancel={(event) => {
         pointerStartRef.current = null;
         setSelectionBox(null);
         containerRectRef.current = null;
+        setSelectionContainerOffset(null);
         containerRef.current?.releasePointerCapture(event.pointerId);
       }}
     >
-      <SmartGallery
-        items={galleryItems}
-        gap={8}
-        targetRowHeight={320}
-        tolerance={0.2}
-        className="pt-1"
-      />
-      {selectionBox && containerRectRef.current ? (
+      <StorageGridThumbnailProvider
+        thumbnailAspectRatioByKey={thumbnailAspectRatioByKey}
+        onAspectRatioChange={updateThumbnailAspectRatio}
+      >
+        <SmartGallery
+          items={galleryItems}
+          gap={galleryMetrics.gap}
+          targetRowHeight={galleryMetrics.rowHeight}
+          maxItemsPerRow={galleryMetrics.maxItemsPerRow}
+          tolerance={0.2}
+          className="pt-2 pb-3"
+        />
+      </StorageGridThumbnailProvider>
+      {selectionBox && selectionContainerOffset ? (
         <div
-          className="pointer-events-none absolute z-20 border border-primary/60 bg-primary/10"
+          className="pointer-events-none absolute z-20 border border-primary/60 bg-primary/10 backdrop-blur-[1px]"
           style={{
-            left: selectionBox.left - containerRectRef.current.left,
-            top: selectionBox.top - containerRectRef.current.top,
+            left: selectionBox.left - selectionContainerOffset.left,
+            top: selectionBox.top - selectionContainerOffset.top,
             width: selectionBox.width,
             height: selectionBox.height,
           }}

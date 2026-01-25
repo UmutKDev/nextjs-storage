@@ -2,24 +2,28 @@
 
 import React from "react";
 import MoveFileModal from "@/components/Storage/MoveFileModal";
-import { useExplorerFolderActions } from "../../hooks/useExplorerFolderActions";
 import { useExplorerMove } from "../../hooks/useExplorerMove";
 import { useExplorerQuery } from "../../contexts/ExplorerQueryContext";
 
-export default function MoveItemsModal() {
-  const {
-    isMoveItemsModalOpen,
-    setIsMoveItemsModalOpen,
-    moveSourceKeys,
-  } = useExplorerFolderActions();
+type MoveItemsDialogProps = {
+  open: boolean;
+  payload: { items: string[] } | null;
+  onClose: () => void;
+};
+
+export default function MoveItemsDialog({
+  open,
+  payload,
+  onClose,
+}: MoveItemsDialogProps) {
   const { updateItemsLocation } = useExplorerMove();
   const { currentPath } = useExplorerQuery();
 
   return (
     <MoveFileModal
-      open={isMoveItemsModalOpen}
-      onClose={() => setIsMoveItemsModalOpen(false)}
-      sourceKeys={moveSourceKeys}
+      open={open}
+      onClose={onClose}
+      sourceKeys={payload?.items ?? []}
       onMove={updateItemsLocation}
       initialPath={currentPath}
     />

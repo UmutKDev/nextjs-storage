@@ -24,11 +24,11 @@ export function useExplorerMove() {
   } = useExplorerEncryption();
 
   const updateItemsLocation = React.useCallback(
-    async (
+    async function updateItemsLocation(
       sourceKeys: string[],
       destinationKey: string,
       options?: MoveItemsOptions
-    ): Promise<boolean> => {
+    ): Promise<boolean> {
       const normalizedDestination = normalizeFolderPath(
         destinationKey === "/" ? "" : destinationKey
       );

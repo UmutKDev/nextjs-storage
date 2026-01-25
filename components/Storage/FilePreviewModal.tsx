@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { createPortal } from "react-dom";
 import {
   DownloadCloud,
   X,
@@ -11,7 +10,6 @@ import {
   ChevronRight,
   Trash2,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import LazyPreview from "./LazyPreview";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import toast from "react-hot-toast";
+import BaseDialog from "./BaseDialog";
 
 import type { CloudObjectModel } from "@/Service/Generates/api";
 import {
@@ -189,42 +188,24 @@ export default function FilePreviewModal({
     return `${size}${dims ? ` • ${dims}` : ""}`;
   })();
 
-  const modal = (
-    <AnimatePresence>
-      <motion.div
-        key="file-preview-modal"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.18 }}
-        className={`fixed inset-0 z-50 grid place-items-center ${
-          isFullScreen ? "p-0" : "p-4 sm:p-6"
-        }`}
-      >
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-          onClick={onClose}
-        />
+  if (!file) return null;
 
-        <motion.div
-          role="dialog"
-          aria-modal="true"
-          initial={{ opacity: 0, y: 16, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 12, scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className={`relative z-10 flex flex-col overflow-hidden transition-all duration-200 w-full h-full ${
-            isMediaPreview ? "bg-black text-white" : "bg-background text-foreground"
-          } sm:bg-card sm:text-foreground sm:border sm:border-border sm:shadow-2xl ${
-            isFullScreen
-              ? "sm:rounded-none"
-              : "sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl sm:rounded-xl"
-          }`}
-        >
+  return (
+    <BaseDialog
+      open={Boolean(file)}
+      onOpenChange={(nextOpen) => !nextOpen && onClose()}
+      containerClassName={`fixed inset-0 z-50 grid place-items-center ${
+        isFullScreen ? "p-0" : "p-4 sm:p-6"
+      }`}
+      overlayClassName="absolute inset-0 bg-black/50 backdrop-blur-sm"
+      panelClassName={`relative z-10 flex flex-col overflow-hidden transition-all duration-200 w-full h-full ${
+        isMediaPreview ? "bg-black text-white" : "bg-background text-foreground"
+      } sm:bg-card sm:text-foreground sm:border sm:border-border sm:shadow-2xl ${
+        isFullScreen
+          ? "sm:rounded-none"
+          : "sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl sm:rounded-xl"
+      }`}
+    >
           <div className="flex items-center justify-between p-3 border-b border-border/40 shrink-0 gap-4 bg-muted/5 hidden sm:flex">
             <div className="flex items-center gap-3 min-w-0 overflow-hidden">
               <div className="flex flex-col min-w-0">
@@ -390,12 +371,6 @@ export default function FilePreviewModal({
                 : "—"}
             </div>
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    </BaseDialog>
   );
-
-  // Render modal as a portal to document.body to avoid stacking/parent layout issues
-  if (typeof document === "undefined") return null;
-  return createPortal(modal, document.body);
 }

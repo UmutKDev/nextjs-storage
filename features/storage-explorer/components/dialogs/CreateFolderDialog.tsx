@@ -2,12 +2,17 @@
 
 import React from "react";
 import BaseCreateFolderModal from "@/components/Storage/CreateFolderModal";
-import { useExplorerUI } from "../../contexts/ExplorerUIContext";
 import { useExplorerFolderActions } from "../../hooks/useExplorerFolderActions";
 
-export default function CreateFolderModal() {
-  const { isCreateFolderModalOpen, setIsCreateFolderModalOpen } =
-    useExplorerUI();
+type CreateFolderDialogProps = {
+  open: boolean;
+  onClose: () => void;
+};
+
+export default function CreateFolderDialog({
+  open,
+  onClose,
+}: CreateFolderDialogProps) {
   const {
     folderNameInput,
     setFolderNameInput,
@@ -19,15 +24,20 @@ export default function CreateFolderModal() {
     createFolder,
   } = useExplorerFolderActions();
 
+  const handleClose = React.useCallback(() => {
+    setIsNewFolderEncrypted(false);
+    setNewFolderPassphrase("");
+    onClose();
+  }, [onClose, setIsNewFolderEncrypted, setNewFolderPassphrase]);
+
   return (
     <BaseCreateFolderModal
-      open={isCreateFolderModalOpen}
-      onClose={() => {
-        setIsCreateFolderModalOpen(false);
-        setIsNewFolderEncrypted(false);
-        setNewFolderPassphrase("");
+      open={open}
+      onClose={handleClose}
+      onSubmit={async () => {
+        await createFolder();
+        onClose();
       }}
-      onSubmit={createFolder}
       loading={isCreatingFolder}
       value={folderNameInput}
       onChange={setFolderNameInput}

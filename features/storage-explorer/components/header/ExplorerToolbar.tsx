@@ -7,16 +7,14 @@ import SearchBar from "@/components/Storage/SearchBar";
 import { useExplorerUI } from "../../contexts/ExplorerUIContext";
 import { useExplorerSelection } from "../../contexts/ExplorerSelectionContext";
 import { useExplorerFiltering } from "../../hooks/useExplorerFiltering";
-import { useExplorerDelete } from "../../hooks/useExplorerDelete";
-import { useExplorerFolderActions } from "../../hooks/useExplorerFolderActions";
+import { useDialogs } from "../../contexts/DialogsContext";
 
 export default function ExplorerToolbar() {
   const { viewMode, setViewMode, searchQuery, setSearchQuery } =
     useExplorerUI();
   const { selectedItemKeys, selectAllVisibleItems } = useExplorerSelection();
   const { filteredDirectoryItems, filteredObjectItems } = useExplorerFiltering();
-  const { deleteSelectedItems } = useExplorerDelete();
-  const { openMoveItemsModal } = useExplorerFolderActions();
+  const { openDialog } = useDialogs();
 
   const selectAllVisibleItemsInView = React.useCallback(() => {
     const allKeys: string[] = [];
@@ -45,7 +43,9 @@ export default function ExplorerToolbar() {
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => openMoveItemsModal(Array.from(selectedItemKeys))}
+            onClick={() =>
+              openDialog("move-items", { items: Array.from(selectedItemKeys) })
+            }
             className="shrink-0 whitespace-nowrap"
           >
             <FolderInput size={16} className="mr-2" />
@@ -57,7 +57,11 @@ export default function ExplorerToolbar() {
           <Button
             size="sm"
             variant="destructive"
-            onClick={() => void deleteSelectedItems()}
+            onClick={() =>
+              openDialog("delete-selection", {
+                count: selectedItemKeys.size,
+              })
+            }
             className="shrink-0 whitespace-nowrap"
           >
             <Trash2 size={16} className="mr-2" />

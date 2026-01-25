@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Base API Service
  * Base API Service Test Environment & Documentation

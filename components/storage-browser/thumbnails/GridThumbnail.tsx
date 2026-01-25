@@ -8,6 +8,7 @@ import { VideoThumbnail } from "@/components/storage-browser/thumbnails/VideoThu
 import type { CloudObject } from "@/components/storage-browser/types/storage-browser.types";
 
 const VIDEO_EXTENSIONS = ["mp4", "webm", "ogg", "mov", "mkv"];
+const GRID_THUMB_MAX_DIM = 720;
 
 export const GridThumbnail = ({
   file,
@@ -23,6 +24,7 @@ export const GridThumbnail = ({
   const [isVideoThumbnailLoading, setIsVideoThumbnailLoading] =
     React.useState(false);
   const lastAspectRatioRef = React.useRef<number | null>(null);
+  const [aspectRatio, setAspectRatio] = React.useState<number | null>(null);
 
   const thumbnailKey = file.Path?.Key || file.Name || "thumb";
   const baseUrl = getCloudObjectUrl(file);
@@ -61,7 +63,7 @@ export const GridThumbnail = ({
   const isVideo =
     mimeType.startsWith("video") || VIDEO_EXTENSIONS.includes(extension);
   const thumbnailUrl = isImage
-    ? getImageCdnUrl(stableFile, { target: "thumb" })
+    ? getImageCdnUrl(stableFile, { target: "thumb", maxDim: GRID_THUMB_MAX_DIM })
     : stableBaseUrl;
 
   const updateAspectRatio = (width: number, height: number) => {
@@ -71,6 +73,7 @@ export const GridThumbnail = ({
       Math.abs(lastAspectRatioRef.current - aspectRatio) > 0.01
     ) {
       lastAspectRatioRef.current = aspectRatio;
+      setAspectRatio(aspectRatio);
       onAspectRatioChange?.(aspectRatio);
     }
   };
@@ -90,11 +93,13 @@ export const GridThumbnail = ({
     return (
       <div
         className={cn(
-          "w-full h-full min-h-[160px] flex items-center justify-center rounded-md bg-muted/20",
+          "w-full h-full min-h-[220px] flex items-center justify-center rounded-lg bg-gradient-to-br from-muted/25 via-muted/10 to-muted/25",
           className,
         )}
       >
-        <FileIcon extension={file.Extension} />
+        <div className="rounded-full bg-background/80 border p-3 shadow-sm backdrop-blur">
+          <FileIcon extension={file.Extension} />
+        </div>
       </div>
     );
   }
@@ -102,14 +107,12 @@ export const GridThumbnail = ({
   return (
     <div
       className={cn(
-        "w-full relative rounded-md overflow-hidden bg-muted/5 flex items-center justify-center",
+        "w-full h-full relative rounded-lg overflow-hidden bg-muted/5 flex items-center justify-center",
         className,
       )}
       style={{
         maxHeight: className?.includes("min-h-") ? undefined : "60vh",
-        aspectRatio: lastAspectRatioRef.current
-          ? `${lastAspectRatioRef.current}`
-          : undefined,
+        aspectRatio: aspectRatio ? `${aspectRatio}` : undefined,
       }}
     >
       {(!isThumbnailLoaded || (isVideo && isVideoThumbnailLoading)) && (
@@ -134,11 +137,12 @@ export const GridThumbnail = ({
             setHasThumbnailError(true);
           }}
           onImageReady={handleImageReady}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
       )}
 
       {isVideo && thumbnailUrl && (
-        <div className="w-full h-auto flex items-center justify-center bg-black">
+        <div className="w-full h-full flex items-center justify-center bg-black">
           <VideoThumbnail
             videoUrl={thumbnailUrl}
             fileName={file.Name}
@@ -146,6 +150,7 @@ export const GridThumbnail = ({
             onLoaded={() => setIsThumbnailLoaded(true)}
             onAspectRatioChange={handleVideoAspectRatio}
             onLoadingStateChange={setIsVideoThumbnailLoading}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">

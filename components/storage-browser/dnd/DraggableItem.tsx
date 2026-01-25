@@ -1,9 +1,7 @@
 import React from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import type {
-  StorageItemType,
-} from "@/components/storage-browser/types/storage-browser.types";
+import type { StorageItemType } from "@/components/storage-browser/types/storage-browser.types";
 
 type DraggableItemProps = {
   itemKey: string;
@@ -11,7 +9,7 @@ type DraggableItemProps = {
   isSelected?: boolean;
   className?: string;
   children: React.ReactNode;
-  data?: Record<string, unknown>;
+  data?: Record<string, any>;
 };
 
 export const DraggableItem = ({
@@ -33,13 +31,32 @@ export const DraggableItem = ({
     disabled: itemType === "file",
   });
 
+  const shouldIgnoreDragStart = (target: EventTarget | null) => {
+    if (!target) return false;
+    const element = target as Element;
+    if (!("closest" in element)) return false;
+    return Boolean(
+      element.closest(
+        "button, a, input, select, textarea, [role='button'], [role='menuitem'], [data-dnd-ignore]",
+      ),
+    );
+  };
+
+  const filteredListeners = {
+    ...listeners,
+    onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
+      if (shouldIgnoreDragStart(event.target)) return;
+      listeners?.onPointerDown?.(event);
+    },
+  };
+
   return (
     <div
       ref={(node) => {
         setNodeRef(node);
         setDroppableRef(node);
       }}
-      {...listeners}
+      {...filteredListeners}
       {...attributes}
       className={cn(
         "relative transition-colors outline-none",

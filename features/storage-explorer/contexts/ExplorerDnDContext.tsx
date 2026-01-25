@@ -2,13 +2,11 @@
 
 import React from "react";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
-import type { ExplorerMoveRequest } from "../types/explorer.types";
 import { getFolderNameFromPrefix } from "../utils/path";
+import { useDialogs } from "./DialogsContext";
 
 type ExplorerDnDContextValue = {
   activeDraggedItemKey: string | null;
-  pendingMoveConfirmation: ExplorerMoveRequest | null;
-  setPendingMoveConfirmation: (nextValue: ExplorerMoveRequest | null) => void;
   startDragTracking: (event: DragStartEvent) => void;
   finalizeDragTracking: (event: DragEndEvent) => void;
 };
@@ -21,8 +19,7 @@ export function ExplorerDnDProvider({ children }: { children: React.ReactNode })
   const [activeDraggedItemKey, setActiveDraggedItemKey] = React.useState<
     string | null
   >(null);
-  const [pendingMoveConfirmation, setPendingMoveConfirmation] =
-    React.useState<ExplorerMoveRequest | null>(null);
+  const { openDialog } = useDialogs();
   const startDragTracking = React.useCallback((event: DragStartEvent) => {
     setActiveDraggedItemKey(event.active.id as string);
   }, []);
@@ -63,7 +60,7 @@ export function ExplorerDnDProvider({ children }: { children: React.ReactNode })
 
       const destinationKey = targetFolder === "" ? "/" : targetFolder;
 
-      setPendingMoveConfirmation({
+      openDialog("confirm-move-drag", {
         sourceKeys: [sourceId],
         targetKey: destinationKey,
         sourceName: isSourceFolder
@@ -75,24 +72,16 @@ export function ExplorerDnDProvider({ children }: { children: React.ReactNode })
             : getFolderNameFromPrefix(targetFolder),
       });
     },
-    [setPendingMoveConfirmation]
+    [openDialog]
   );
 
   const value = React.useMemo<ExplorerDnDContextValue>(
     () => ({
       activeDraggedItemKey,
-      pendingMoveConfirmation,
-      setPendingMoveConfirmation,
       startDragTracking,
       finalizeDragTracking,
     }),
-    [
-      activeDraggedItemKey,
-      finalizeDragTracking,
-      pendingMoveConfirmation,
-      setPendingMoveConfirmation,
-      startDragTracking,
-    ]
+    [activeDraggedItemKey, finalizeDragTracking, startDragTracking]
   );
 
   return (

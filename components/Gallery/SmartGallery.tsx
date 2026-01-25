@@ -21,7 +21,8 @@ function computeJustifiedLayout(
   containerWidth: number,
   gap: number,
   targetRowHeight: number,
-  tolerance: number
+  tolerance: number,
+  maxItemsPerRow: number
 ): { positioned: PositionedItem[]; height: number } {
   if (!containerWidth || items.length === 0) {
     return { positioned: [], height: 0 };
@@ -75,7 +76,9 @@ function computeJustifiedLayout(
     const withinTolerance = rowHeight <= safeTarget * (1 + tolerance);
     const isLast = idx === items.length - 1;
 
-    if (withinTolerance || isLast) {
+    const hitsRowLimit = row.length >= maxItemsPerRow;
+
+    if (withinTolerance || hitsRowLimit || isLast) {
       flushRow(isLast);
     }
   });
@@ -90,12 +93,14 @@ export default function SmartGallery({
   gap = 12,
   targetRowHeight = 280,
   tolerance = 0.25,
+  maxItemsPerRow = Number.POSITIVE_INFINITY,
   className,
 }: {
   items: SmartGalleryItem[];
   gap?: number;
   targetRowHeight?: number;
   tolerance?: number;
+  maxItemsPerRow?: number;
   className?: string;
 }) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
@@ -120,8 +125,15 @@ export default function SmartGallery({
 
   const { positioned, height } = React.useMemo(
     () =>
-      computeJustifiedLayout(items, width, gap, targetRowHeight, tolerance),
-    [gap, items, targetRowHeight, tolerance, width]
+      computeJustifiedLayout(
+        items,
+        width,
+        gap,
+        targetRowHeight,
+        tolerance,
+        maxItemsPerRow,
+      ),
+    [gap, items, maxItemsPerRow, targetRowHeight, tolerance, width]
   );
 
   const fallbackHeight = height || (items.length > 0 ? targetRowHeight : 0);

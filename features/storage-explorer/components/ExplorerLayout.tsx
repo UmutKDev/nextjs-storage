@@ -13,15 +13,7 @@ import Sidebar from "@/components/Storage/Sidebar";
 import ExplorerHeader from "./header/ExplorerHeader";
 import ExplorerBody from "./body/ExplorerBody";
 import DragPreviewOverlay from "./overlays/DragPreviewOverlay";
-import CreateFolderModal from "./modals/CreateFolderModal";
-import ConvertEncryptedModal from "./modals/ConvertEncryptedModal";
-import RenameFolderModal from "./modals/RenameFolderModal";
-import MoveItemsModal from "./modals/MoveItemsModal";
-import DeleteConfirmModal from "./modals/DeleteConfirmModal";
-import ExtractZipModal from "./modals/ExtractZipModal";
-import FileUploadModal from "./modals/FileUploadModal";
-import DragMoveConfirmModal from "./modals/ConfirmMoveDragModal";
-import FilePreviewModal from "./modals/FilePreviewModal";
+import DialogsHost from "./DialogsHost";
 import { useExplorerDnD } from "../contexts/ExplorerDnDContext";
 import { useExplorerUI } from "../contexts/ExplorerUIContext";
 import { useExplorerNavigation } from "../hooks/useExplorerNavigation";
@@ -78,15 +70,7 @@ export default function ExplorerLayout() {
         </div>
       </div>
 
-      <MoveItemsModal />
-      <CreateFolderModal />
-      <ConvertEncryptedModal />
-      <RenameFolderModal />
-      <FileUploadModal />
-      <DragMoveConfirmModal />
-      <DeleteConfirmModal />
-      <ExtractZipModal />
-      <FilePreviewModal />
+      <DialogsHost />
     </div>
   );
 }

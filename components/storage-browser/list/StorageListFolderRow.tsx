@@ -1,5 +1,12 @@
 import React from "react";
-import { Folder, Lock, MoreHorizontal, Pencil, Trash2, Unlock } from "lucide-react";
+import {
+  Folder,
+  Lock,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Unlock,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,43 +16,29 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { DraggableItem } from "@/components/storage-browser/dnd/DraggableItem";
-import type {
-  Directory,
-} from "@/components/storage-browser/types/storage-browser.types";
-import type { DirectoryMetadata } from "@/components/storage-browser/hooks/useDirectoryMetadata";
+import type { Directory } from "@/components/storage-browser/types/storage-browser.types";
+import { useDirectoryMetadata } from "@/components/storage-browser/hooks/useDirectoryMetadata";
+import { useExplorerSelection } from "@/features/storage-explorer/contexts/ExplorerSelectionContext";
+import { useExplorerActions } from "@/features/storage-explorer/contexts/ExplorerActionsContext";
+import { useStorageBrowserInteractions } from "@/components/storage-browser/contexts/StorageBrowserInteractionsContext";
 
 type StorageListFolderRowProps = {
   directory: Directory;
   directoryKey: string;
-  directoryMetadata: DirectoryMetadata;
-  isSelected: boolean;
-  isLoading?: boolean;
-  deletingByKey?: Record<string, boolean>;
-  onSelectItem: (
-    itemKey: string,
-    options?: { allowMultiple?: boolean; rangeSelect?: boolean },
-  ) => void;
-  onFolderClick: (directory: Directory, event: React.MouseEvent) => void;
-  onContextMenu?: (point: { x: number; y: number }) => void;
-  onDelete?: (directory: Directory) => void;
-  onRename?: (directory: Directory) => void;
-  onConvertToEncrypted?: (directory: Directory) => void;
 };
 
 export const StorageListFolderRow = ({
   directory,
   directoryKey,
-  directoryMetadata,
-  isSelected,
-  isLoading,
-  deletingByKey = {},
-  onSelectItem,
-  onFolderClick,
-  onDelete,
-  onRename,
-  onConvertToEncrypted,
-  onContextMenu,
 }: StorageListFolderRowProps) => {
+  const { selectedItemKeys } = useExplorerSelection();
+  const { deletingStatusByKey, renameItem, convertFolder, deleteItem } =
+    useExplorerActions();
+  const { getDirectoryMetadata } = useDirectoryMetadata();
+  const { handleItemClick, updateSelection, openContextMenu, isLoading } =
+    useStorageBrowserInteractions();
+  const directoryMetadata = getDirectoryMetadata(directory);
+  const isSelected = selectedItemKeys.has(directoryKey);
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
   const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
@@ -59,16 +52,16 @@ export const StorageListFolderRow = ({
 
   const handlePointerDown = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.pointerType !== "touch" || !onContextMenu) return;
+      if (event.pointerType !== "touch") return;
       const { clientX, clientY } = event;
       pointerStartRef.current = { x: clientX, y: clientY };
       longPressTriggeredRef.current = false;
       longPressTimerRef.current = window.setTimeout(() => {
         longPressTriggeredRef.current = true;
-        onContextMenu({ x: clientX, y: clientY });
+        openContextMenu(directory, "folder", { x: clientX, y: clientY });
       }, 550);
     },
-    [onContextMenu],
+    [directory, openContextMenu],
   );
 
   const handlePointerMove = React.useCallback(
@@ -104,12 +97,14 @@ export const StorageListFolderRow = ({
             longPressTriggeredRef.current = false;
             return;
           }
-          onFolderClick(directory, event);
+          handleItemClick(directory, "folder", event);
         }}
         onContextMenu={(event) => {
-          if (!onContextMenu) return;
           event.preventDefault();
-          onContextMenu({ x: event.clientX, y: event.clientY });
+          openContextMenu(directory, "folder", {
+            x: event.clientX,
+            y: event.clientY,
+          });
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -123,7 +118,7 @@ export const StorageListFolderRow = ({
           <Checkbox
             checked={isSelected}
             onClick={(event) =>
-              onSelectItem(directoryKey, {
+              updateSelection(directoryKey, {
                 allowMultiple: true,
                 rangeSelect: event.shiftKey,
               })
@@ -132,101 +127,117 @@ export const StorageListFolderRow = ({
             aria-label={`${directoryMetadata.displayName} klasorunu sec`}
           />
         </div>
-      <div className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500 shrink-0">
-        <Folder size={18} fill="currentColor" className="opacity-80" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm truncate">
-          {directoryMetadata.displayName}
+        <div className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500 shrink-0">
+          <Folder size={18} fill="currentColor" className="opacity-80" />
         </div>
-        {directoryMetadata.isEncrypted ? (
-          <div
-            className={cn(
-              "mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium sm:hidden",
-              directoryMetadata.isUnlocked
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-amber-50 text-amber-700",
-            )}
-          >
-            {directoryMetadata.isUnlocked ? (
-              <Unlock className="h-3 w-3" />
-            ) : (
-              <Lock className="h-3 w-3" />
-            )}
-            {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">
+            {directoryMetadata.displayName}
           </div>
-        ) : null}
-      </div>
-      <div className="text-xs text-muted-foreground hidden sm:block">
-        {directoryMetadata.isEncrypted ? (
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 font-medium",
-              directoryMetadata.isUnlocked
-                ? "text-emerald-600"
-                : "text-amber-600",
-            )}
-          >
-            {directoryMetadata.isUnlocked ? (
-              <Unlock className="h-3.5 w-3.5" />
-            ) : (
-              <Lock className="h-3.5 w-3.5" />
-            )}
-            <span className="hidden sm:inline">
-              {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
-            </span>
-          </span>
-        ) : (
-          <span className="hidden sm:inline">Klasör</span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              onClick={(event) => event.stopPropagation()}
-              className="rounded p-2 md:p-1 hover:bg-muted/10 active:bg-muted/20"
+          {directoryMetadata.isEncrypted ? (
+            <div
+              className={cn(
+                "mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium sm:hidden",
+                directoryMetadata.isUnlocked
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-amber-50 text-amber-700",
+              )}
             >
-              <MoreHorizontal size={16} className="text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {onRename ? (
+              {directoryMetadata.isUnlocked ? (
+                <Unlock className="h-3 w-3" />
+              ) : (
+                <Lock className="h-3 w-3" />
+              )}
+              {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
+            </div>
+          ) : null}
+        </div>
+        <div className="text-xs text-muted-foreground hidden sm:block">
+          {directoryMetadata.isEncrypted ? (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 font-medium",
+                directoryMetadata.isUnlocked
+                  ? "text-emerald-600"
+                  : "text-amber-600",
+              )}
+            >
+              {directoryMetadata.isUnlocked ? (
+                <Unlock className="h-3.5 w-3.5" />
+              ) : (
+                <Lock className="h-3.5 w-3.5" />
+              )}
+              <span className="hidden sm:inline">
+                {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
+              </span>
+            </span>
+          ) : (
+            <span className="hidden sm:inline">Klasör</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                onClick={(event) => event.stopPropagation()}
+                className="rounded p-2 md:p-1 hover:bg-muted/10 active:bg-muted/20"
+                data-dnd-ignore
+              >
+                <MoreHorizontal size={16} className="text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem
+                onSelect={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) renameItem(directory);
+                }}
                 onClick={(event) => {
                   event.stopPropagation();
-                  if (!isLoading) onRename(directory);
+                  if (!isLoading) renameItem(directory);
                 }}
+                data-dnd-ignore
               >
                 <Pencil className="mr-2 h-4 w-4" />
                 Düzenle
               </DropdownMenuItem>
-            ) : null}
-            {!directoryMetadata.isEncrypted && onConvertToEncrypted ? (
+              {!directoryMetadata.isEncrypted ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) convertFolder(directory);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) convertFolder(directory);
+                  }}
+                  data-dnd-ignore
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Şifrele
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuItem
+                onSelect={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) deleteItem(directory);
+                }}
                 onClick={(event) => {
                   event.stopPropagation();
-                  if (!isLoading) onConvertToEncrypted(directory);
+                  if (!isLoading) deleteItem(directory);
                 }}
+                disabled={
+                  isLoading || Boolean(deletingStatusByKey[directoryKey])
+                }
+                data-dnd-ignore
               >
-                <Lock className="mr-2 h-4 w-4" />
-                Şifrele
+                <Trash2 className="mr-2 h-4 w-4" />
+                Sil
               </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem
-              onClick={(event) => {
-                event.stopPropagation();
-                if (!isLoading && onDelete) onDelete(directory);
-              }}
-              disabled={isLoading || Boolean(deletingByKey[directoryKey])}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Sil
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </DraggableItem>
   );

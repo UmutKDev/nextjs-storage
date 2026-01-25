@@ -26,7 +26,7 @@ type ExplorerEncryptionContextValue = {
   isFolderEncrypted: (path?: string | null) => boolean;
   isFolderEncryptedExact: (path?: string | null) => boolean;
   isFolderUnlocked: (path?: string | null) => boolean;
-  getSessionToken: (path?: string | null) => string | undefined;
+  getSessionToken: (path?: string | null) => string | null;
   getFolderPassphrase: (path: string) => string | undefined;
   refetchManifest: () => Promise<void>;
 };
@@ -66,8 +66,7 @@ export function ExplorerEncryptionProvider({
     const objectError = objectsQuery.error;
 
     const accessError =
-      (isAxiosError(directoryError) &&
-      directoryError.response?.status === 403
+      (isAxiosError(directoryError) && directoryError.response?.status === 403
         ? directoryError
         : null) ||
       (isAxiosError(objectError) && objectError.response?.status === 403
@@ -179,14 +178,14 @@ export function ExplorerEncryptionProvider({
     }) => {
       promptUnlock(options);
     },
-    [promptUnlock]
+    [promptUnlock],
   );
 
   const registerEncryptedFolderPath = React.useCallback(
     (path: string) => {
       registerEncryptedPath(path);
     },
-    [registerEncryptedPath]
+    [registerEncryptedPath],
   );
 
   const value = React.useMemo<ExplorerEncryptionContextValue>(
@@ -215,7 +214,7 @@ export function ExplorerEncryptionProvider({
       refetchManifest,
       requestFolderUnlock,
       registerEncryptedFolderPath,
-    ]
+    ],
   );
 
   return (
@@ -229,7 +228,7 @@ export function useExplorerEncryption() {
   const context = React.useContext(ExplorerEncryptionContext);
   if (!context) {
     throw new Error(
-      "useExplorerEncryption must be used within ExplorerEncryptionProvider"
+      "useExplorerEncryption must be used within ExplorerEncryptionProvider",
     );
   }
   return context;

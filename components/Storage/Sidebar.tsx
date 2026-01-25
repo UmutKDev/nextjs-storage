@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button";
 import StorageUsage from "./StorageUsage";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import { useStorage } from "./StorageProvider";
-import { useExplorerUI } from "@/features/storage-explorer/contexts/ExplorerUIContext";
 import { useExplorerEncryption } from "@/features/storage-explorer/contexts/ExplorerEncryptionContext";
+import { useDialogs } from "@/features/storage-explorer/contexts/DialogsContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +32,7 @@ interface SidebarProps {
 export default function Sidebar({ className }: SidebarProps) {
   const { userStorageUsageQuery } = useUserStorageUsage();
   const { currentPath, setCurrentPath } = useStorage();
-  const { setIsCreateFolderModalOpen, setIsUploadModalOpen } = useExplorerUI();
+  const { openDialog } = useDialogs();
   const { isExplorerLocked } = useExplorerEncryption();
   const isUploadBlocked = isExplorerLocked;
 
@@ -90,7 +90,9 @@ export default function Sidebar({ className }: SidebarProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56 p-2 rounded-xl">
           <DropdownMenuItem
-            onClick={isUploadBlocked ? undefined : () => setIsUploadModalOpen(true)}
+            onClick={
+              isUploadBlocked ? undefined : () => openDialog("upload-files", {})
+            }
             disabled={isUploadBlocked}
             className="gap-2 p-3 rounded-lg cursor-pointer"
           >
@@ -99,7 +101,9 @@ export default function Sidebar({ className }: SidebarProps) {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={
-              isUploadBlocked ? undefined : () => setIsCreateFolderModalOpen(true)
+              isUploadBlocked
+                ? undefined
+                : () => openDialog("create-folder", {})
             }
             disabled={isUploadBlocked}
             className="gap-2 p-3 rounded-lg cursor-pointer"

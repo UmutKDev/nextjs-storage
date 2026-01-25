@@ -106,7 +106,7 @@ export default function EncryptedFoldersProvider({
       if (storedEncrypted) {
         setEncryptedPaths(new Set(JSON.parse(storedEncrypted)));
       }
-    } catch (e) {
+    } catch {
       /* ignore */
     }
   }, []);

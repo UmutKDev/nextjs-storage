@@ -3,10 +3,13 @@ import { Folder, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FileIcon from "@/components/Storage/FileIcon";
 import { getCloudObjectUrl } from "@/components/Storage/imageCdn";
-import type { CloudObject, Directory } from "@/components/storage-browser/types/storage-browser.types";
+import type {
+  CloudObject,
+  Directory,
+} from "@/components/storage-browser/types/storage-browser.types";
 
 const FOLDER_THUMBNAIL_LIMIT = 4;
-const FOLDER_THUMBNAIL_MAX_DIMENSION = 360;
+const FOLDER_THUMBNAIL_MAX_DIMENSION = 560;
 
 export const FolderThumbnail = ({
   directory,
@@ -15,9 +18,23 @@ export const FolderThumbnail = ({
   directory: Directory;
   className?: string;
 }) => {
-  const thumbnails = (directory.Thumbnails ?? []).slice(0, FOLDER_THUMBNAIL_LIMIT);
-  const [failedThumbnailKeys, setFailedThumbnailKeys] = React.useState<Record<string, boolean>>({});
-  const [loadedThumbnailKeys, setLoadedThumbnailKeys] = React.useState<Record<string, boolean>>({});
+  const thumbnails = (directory.Thumbnails ?? []).slice(
+    0,
+    FOLDER_THUMBNAIL_LIMIT,
+  );
+  const [failedThumbnailKeys, setFailedThumbnailKeys] = React.useState<
+    Record<string, boolean>
+  >({});
+  const [loadedThumbnailKeys, setLoadedThumbnailKeys] = React.useState<
+    Record<string, boolean>
+  >({});
+  const [thumbnailDataByKey, setThumbnailDataByKey] = React.useState<
+    Record<
+      string,
+      { url?: string; width?: number; height?: number }
+    >
+  >({});
+  const [thumbnailDataVersion, setThumbnailDataVersion] = React.useState(0);
   const stableUrlByKeyRef = React.useRef<Map<string, string>>(new Map());
   const latestUrlByKeyRef = React.useRef<Map<string, string>>(new Map());
 
@@ -30,22 +47,39 @@ export const FolderThumbnail = ({
     if (!stableUrlByKeyRef.current.has(thumbnailKey)) {
       stableUrlByKeyRef.current.set(thumbnailKey, baseUrl);
     }
-    const stableBaseUrl = stableUrlByKeyRef.current.get(thumbnailKey) || baseUrl;
+    const stableBaseUrl =
+      stableUrlByKeyRef.current.get(thumbnailKey) || baseUrl;
 
     const width = Number(file.Metadata?.Width);
     const height = Number(file.Metadata?.Height);
     const hasDimensions = Number.isFinite(width) && Number.isFinite(height);
-    const maxSide = hasDimensions ? Math.max(width, height) : FOLDER_THUMBNAIL_MAX_DIMENSION;
+    const maxSide = hasDimensions
+      ? Math.max(width, height)
+      : FOLDER_THUMBNAIL_MAX_DIMENSION;
     const scale = Math.min(1, FOLDER_THUMBNAIL_MAX_DIMENSION / maxSide);
-    const scaledWidth = Math.max(1, Math.round((hasDimensions ? width : FOLDER_THUMBNAIL_MAX_DIMENSION) * scale));
-    const scaledHeight = Math.max(1, Math.round((hasDimensions ? height : FOLDER_THUMBNAIL_MAX_DIMENSION) * scale));
+    const scaledWidth = Math.max(
+      1,
+      Math.round(
+        (hasDimensions ? width : FOLDER_THUMBNAIL_MAX_DIMENSION) * scale,
+      ),
+    );
+    const scaledHeight = Math.max(
+      1,
+      Math.round(
+        (hasDimensions ? height : FOLDER_THUMBNAIL_MAX_DIMENSION) * scale,
+      ),
+    );
 
     const [base, query] = stableBaseUrl.split("?");
     const search = new URLSearchParams(query || "");
     search.set("w", String(scaledWidth));
     search.set("h", String(scaledHeight));
     const next = search.toString();
-    return { url: next ? `${base}?${next}` : base, width: scaledWidth, height: scaledHeight };
+    return {
+      url: next ? `${base}?${next}` : base,
+      width: scaledWidth,
+      height: scaledHeight,
+    };
   }, []);
 
   const markThumbnailAsFailed = React.useCallback((thumbnailKey: string) => {
@@ -53,13 +87,17 @@ export const FolderThumbnail = ({
     const stableUrl = stableUrlByKeyRef.current.get(thumbnailKey);
     if (latestUrl && latestUrl !== stableUrl) {
       stableUrlByKeyRef.current.set(thumbnailKey, latestUrl);
-      setLoadedThumbnailKeys((previous) => ({ ...previous, [thumbnailKey]: false }));
+      setLoadedThumbnailKeys((previous) => ({
+        ...previous,
+        [thumbnailKey]: false,
+      }));
       setFailedThumbnailKeys((previous) => {
         if (!previous[thumbnailKey]) return previous;
         const next = { ...previous };
         delete next[thumbnailKey];
         return next;
       });
+      setThumbnailDataVersion((previous) => previous + 1);
       return;
     }
     setFailedThumbnailKeys((previous) =>
@@ -73,22 +111,38 @@ export const FolderThumbnail = ({
     );
   }, []);
 
+  React.useEffect(() => {
+    const next: Record<
+      string,
+      { url?: string; width?: number; height?: number }
+    > = {};
+    thumbnails.forEach((file, index) => {
+      const thumbnailKey = file.Path?.Key || file.Name || `thumb-${index}`;
+      next[thumbnailKey] = buildThumbnailData(file);
+    });
+    setThumbnailDataByKey(next);
+  }, [buildThumbnailData, thumbnails, thumbnailDataVersion]);
+
   if (!thumbnails.length) {
     return (
       <div
         className={cn(
-          "w-56 h-56 md:w-72 md:h-72 flex items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500",
+          "w-full h-full flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/15 via-blue-500/5 to-transparent text-blue-600",
           className,
         )}
       >
-        <Folder size={84} fill="currentColor" className="opacity-80 md:w-24 md:h-24" />
+        <Folder
+          size={84}
+          fill="currentColor"
+          className="opacity-80 md:w-24 md:h-24"
+        />
       </div>
     );
   }
 
   const renderThumbnail = (file: CloudObject, index: number) => {
     const thumbnailKey = file.Path?.Key || file.Name || `thumb-${index}`;
-    const { url, width, height } = buildThumbnailData(file);
+    const { url, width, height } = thumbnailDataByKey[thumbnailKey] ?? {};
 
     if (!url || failedThumbnailKeys[thumbnailKey]) {
       return (
@@ -114,7 +168,7 @@ export const FolderThumbnail = ({
         <img
           src={url}
           alt={file.Name}
-          className="w-full h-full object-cover rounded-sm"
+          className="w-full h-full object-cover rounded-sm transition-transform duration-300 group-hover:scale-[1.03]"
           loading="lazy"
           decoding="async"
           width={width}
@@ -129,12 +183,12 @@ export const FolderThumbnail = ({
   if (thumbnails.length === 1) {
     const file = thumbnails[0];
     const thumbnailKey = file.Path?.Key || file.Name || "thumb-single";
-    const { url, width, height } = buildThumbnailData(file);
+    const { url, width, height } = thumbnailDataByKey[thumbnailKey] ?? {};
 
     return (
       <div
         className={cn(
-          "relative w-56 h-56 md:w-72 md:h-72 rounded-2xl overflow-hidden bg-muted/10",
+          "relative w-full h-full rounded-xl overflow-hidden bg-muted/10",
           className,
         )}
       >
@@ -149,7 +203,7 @@ export const FolderThumbnail = ({
             <img
               src={url}
               alt={file.Name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="lazy"
               decoding="async"
               width={width}
@@ -165,7 +219,7 @@ export const FolderThumbnail = ({
             </div>
           </div>
         )}
-        <div className="absolute bottom-0.5 right-0.5 rounded-full bg-background/80 border p-0.5 shadow-sm">
+        <div className="absolute bottom-1 right-1 rounded-full bg-background/80 border p-0.5 shadow-sm backdrop-blur">
           <Folder size={12} className="text-muted-foreground" />
         </div>
       </div>
@@ -181,7 +235,7 @@ export const FolderThumbnail = ({
   return (
     <div
       className={cn(
-        "relative w-56 h-56 md:w-72 md:h-72 rounded-2xl overflow-hidden bg-muted/10 p-0.5",
+        "relative w-full h-full rounded-xl overflow-hidden bg-muted/10 p-0.5",
         className,
       )}
     >
@@ -194,7 +248,7 @@ export const FolderThumbnail = ({
           />
         ))}
       </div>
-      <div className="absolute bottom-0.5 right-0.5 rounded-full bg-background/80 border p-0.5 shadow-sm">
+      <div className="absolute bottom-1 right-1 rounded-full bg-background/80 border p-0.5 shadow-sm backdrop-blur">
         <Folder size={12} className="text-muted-foreground" />
       </div>
     </div>

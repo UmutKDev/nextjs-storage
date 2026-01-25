@@ -7,7 +7,6 @@ import type { CloudDirectoryModel } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
 import { useExplorerEncryption } from "../contexts/ExplorerEncryptionContext";
 import { useExplorerQuery } from "../contexts/ExplorerQueryContext";
-import { useExplorerUI } from "../contexts/ExplorerUIContext";
 import { getFolderNameFromPrefix, normalizeFolderPath } from "../utils/path";
 
 export function useExplorerFolderActions() {
@@ -26,8 +25,6 @@ export function useExplorerFolderActions() {
     requestFolderUnlock,
     refetchManifest,
   } = useExplorerEncryption();
-  const { isCreateFolderModalOpen, setIsCreateFolderModalOpen } = useExplorerUI();
-
   const [folderNameInput, setFolderNameInput] = React.useState("");
   const [isNewFolderEncrypted, setIsNewFolderEncrypted] = React.useState(false);
   const [newFolderPassphrase, setNewFolderPassphrase] = React.useState("");
@@ -42,17 +39,6 @@ export function useExplorerFolderActions() {
     React.useState<CloudDirectoryModel | null>(null);
   const [convertPassphrase, setConvertPassphrase] = React.useState("");
   const [isConvertingFolder, setIsConvertingFolder] = React.useState(false);
-
-  const [isMoveItemsModalOpen, setIsMoveItemsModalOpen] =
-    React.useState(false);
-  const [moveSourceKeys, setMoveSourceKeys] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    if (isExplorerLocked && isCreateFolderModalOpen) {
-      setIsCreateFolderModalOpen(false);
-      toast.error("Sifrelenmis klasor kilitli. Klasor olusturamazsiniz.");
-    }
-  }, [isCreateFolderModalOpen, isExplorerLocked, setIsCreateFolderModalOpen]);
 
   const createFolder = React.useCallback(async () => {
     if (isExplorerLocked) {
@@ -106,7 +92,6 @@ export function useExplorerFolderActions() {
       toast.success(
         isNewFolderEncrypted ? "Şifreli klasör oluşturuldu" : "Folder created"
       );
-      setIsCreateFolderModalOpen(false);
       setFolderNameInput("");
       setIsNewFolderEncrypted(false);
       setNewFolderPassphrase("");
@@ -129,7 +114,6 @@ export function useExplorerFolderActions() {
     isNewFolderEncrypted,
     newFolderPassphrase,
     refetchManifest,
-    setIsCreateFolderModalOpen,
   ]);
 
   const closeConvertModal = React.useCallback(() => {
@@ -347,11 +331,6 @@ export function useExplorerFolderActions() {
     ? getFolderNameFromPrefix(renameTargetFolder.Prefix)
     : "";
 
-  const openMoveItemsModal = React.useCallback((sourceKeys: string[]) => {
-    setMoveSourceKeys(sourceKeys);
-    setIsMoveItemsModalOpen(true);
-  }, []);
-
   return {
     folderNameInput,
     setFolderNameInput,
@@ -377,9 +356,5 @@ export function useExplorerFolderActions() {
     closeConvertModal,
     requestConvertFolder,
     convertFolderToEncrypted,
-    isMoveItemsModalOpen,
-    setIsMoveItemsModalOpen,
-    moveSourceKeys,
-    openMoveItemsModal,
   };
 }

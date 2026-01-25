@@ -1,66 +1,37 @@
 import React from "react";
-import {
-  Archive,
-  FolderInput,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DraggableItem } from "@/components/storage-browser/dnd/DraggableItem";
 import { GridThumbnail } from "@/components/storage-browser/thumbnails/GridThumbnail";
-import type {
-  CloudObject,
-} from "@/components/storage-browser/types/storage-browser.types";
+import { cn } from "@/lib/utils";
+import type { CloudObject } from "@/components/storage-browser/types/storage-browser.types";
+import { useExplorerSelection } from "@/features/storage-explorer/contexts/ExplorerSelectionContext";
+import { useExplorerActions } from "@/features/storage-explorer/contexts/ExplorerActionsContext";
+import { useStorageBrowserInteractions } from "@/components/storage-browser/contexts/StorageBrowserInteractionsContext";
+import { useStorageGridThumbnailContext } from "@/components/storage-browser/contexts/StorageGridThumbnailContext";
+import { useZipExtractStatus } from "@/components/storage-browser/hooks/useZipExtractStatus";
 
 type StorageGridFileCardProps = {
   file: CloudObject;
   fileKey: string;
-  isSelected: boolean;
-  isLoading?: boolean;
-  deletingByKey?: Record<string, boolean>;
-  extractStatusLabel?: string;
-  canStartExtraction: boolean;
-  canCancelExtraction: boolean;
-  onSelectItem: (
-    itemKey: string,
-    options?: { allowMultiple?: boolean; rangeSelect?: boolean },
-  ) => void;
-  onFileClick: (file: CloudObject, event: React.MouseEvent) => void;
-  onContextMenu?: (point: { x: number; y: number }) => void;
-  onEditFile?: (file: CloudObject) => void;
-  onMoveClick?: (fileKeys: string[]) => void;
-  onDelete?: (file: CloudObject) => void;
-  onExtractZip?: (file: CloudObject) => void;
-  onCancelExtractZip?: (file: CloudObject) => void;
-  onAspectRatioChange: (itemKey: string, aspectRatio: number) => void;
 };
 
 export const StorageGridFileCard = ({
   file,
   fileKey,
-  isSelected,
-  isLoading,
-  deletingByKey = {},
-  extractStatusLabel,
-  canStartExtraction,
-  canCancelExtraction,
-  onSelectItem,
-  onFileClick,
-  onEditFile,
-  onMoveClick,
-  onDelete,
-  onExtractZip,
-  onCancelExtractZip,
-  onAspectRatioChange,
-  onContextMenu,
 }: StorageGridFileCardProps) => {
+  const { selectedItemKeys } = useExplorerSelection();
+  const { extractJobs } = useExplorerActions();
+  const { handleItemClick, updateSelection, openContextMenu } =
+    useStorageBrowserInteractions();
+  const { onAspectRatioChange } = useStorageGridThumbnailContext();
+  const { getReadableExtractStatus } = useZipExtractStatus();
+  const extractJob = extractJobs[fileKey];
+  const extractStatusLabel = extractJob
+    ? getReadableExtractStatus(extractJob)
+    : undefined;
+  const isSelected = selectedItemKeys.has(fileKey);
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
   const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
@@ -74,16 +45,16 @@ export const StorageGridFileCard = ({
 
   const handlePointerDown = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      if (event.pointerType !== "touch" || !onContextMenu) return;
+      if (event.pointerType !== "touch") return;
       const { clientX, clientY } = event;
       pointerStartRef.current = { x: clientX, y: clientY };
       longPressTriggeredRef.current = false;
       longPressTimerRef.current = window.setTimeout(() => {
         longPressTriggeredRef.current = true;
-        onContextMenu({ x: clientX, y: clientY });
+        openContextMenu(file, "file", { x: clientX, y: clientY });
       }, 550);
     },
-    [onContextMenu],
+    [file, openContextMenu],
   );
 
   const handlePointerMove = React.useCallback(
@@ -113,18 +84,24 @@ export const StorageGridFileCard = ({
       data={file}
     >
       <div
-        className="relative w-full h-full rounded-xl border bg-card hover:bg-muted/10 cursor-pointer transition-colors overflow-hidden"
+        className={cn(
+          "relative w-full h-full rounded-2xl border bg-card/80 hover:bg-muted/10 cursor-pointer overflow-hidden transition-all duration-200",
+          "shadow-sm hover:-translate-y-1 hover:shadow-lg",
+          isSelected && "ring-2 ring-primary/60 border-primary/40",
+        )}
         onClick={(event) => {
           if (longPressTriggeredRef.current) {
             longPressTriggeredRef.current = false;
             return;
           }
-          onFileClick(file, event);
+          handleItemClick(file, "file", event);
         }}
         onContextMenu={(event) => {
-          if (!onContextMenu) return;
           event.preventDefault();
-          onContextMenu({ x: event.clientX, y: event.clientY });
+          openContextMenu(file, "file", {
+            x: event.clientX,
+            y: event.clientY,
+          });
         }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -138,24 +115,27 @@ export const StorageGridFileCard = ({
           <Checkbox
             checked={isSelected}
             onClick={(event) =>
-              onSelectItem(fileKey, {
+              updateSelection(fileKey, {
                 allowMultiple: true,
                 rangeSelect: event.shiftKey,
               })
             }
-            className="size-6 bg-background/90"
+            className="size-6 bg-background/90 backdrop-blur"
             aria-label={`${file.Name} sec`}
           />
         </div>
 
-        <div className="w-full h-full overflow-hidden rounded-lg bg-muted/5 relative">
+        <div className="w-full h-full overflow-hidden rounded-xl bg-muted/5 relative">
           <GridThumbnail
             file={file}
             onAspectRatioChange={(ratio) => onAspectRatioChange(fileKey, ratio)}
           />
 
-          <div className="absolute left-0 right-0 bottom-0 px-3 py-2 bg-linear-to-t from-black/60 to-transparent text-white text-xs flex items-center justify-between gap-2">
-            <div className="truncate font-medium" title={file.Name}>
+          <div className="absolute left-0 right-0 bottom-0 px-3 py-2 bg-gradient-to-t from-black/70 via-black/30 to-transparent text-white text-xs flex items-center justify-between gap-2">
+            <div
+              className="truncate font-medium drop-shadow-sm"
+              title={file.Name}
+            >
               {file.Name}
             </div>
           </div>
@@ -172,66 +152,12 @@ export const StorageGridFileCard = ({
             <DropdownMenuTrigger asChild>
               <button
                 onClick={(event) => event.stopPropagation()}
-                className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border"
+                className="rounded-full p-1.5 bg-background/80 hover:bg-muted shadow-sm border backdrop-blur"
+                data-dnd-ignore
               >
                 <MoreHorizontal size={16} className="text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (!isLoading && onEditFile) onEditFile(file);
-                }}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (!isLoading && file.Path?.Key && onMoveClick)
-                    onMoveClick([file.Path.Key]);
-                }}
-              >
-                <FolderInput className="mr-2 h-4 w-4" />
-                Move
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (!isLoading && onDelete) onDelete(file);
-                }}
-                disabled={
-                  isLoading || Boolean(deletingByKey[file.Path?.Key ?? ""])
-                }
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-              {canStartExtraction ? (
-                <DropdownMenuItem
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (onExtractZip) onExtractZip(file);
-                  }}
-                >
-                  <Archive className="mr-2 h-4 w-4" />
-                  Extract zip
-                </DropdownMenuItem>
-              ) : null}
-              {canCancelExtraction ? (
-                <DropdownMenuItem
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onCancelExtractZip?.(file);
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Cancel extract
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
