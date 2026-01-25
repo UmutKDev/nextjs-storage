@@ -9,6 +9,7 @@ import ExplorerLockedState from "./ExplorerLockedState";
 import ExplorerInfiniteLoader from "./ExplorerInfiniteLoader";
 import FileDragOverlay from "../overlays/FileDragOverlay";
 import UploadProgressOverlay from "../overlays/UploadProgressOverlay";
+import ExplorerContextMenu from "./ExplorerContextMenu";
 import { useExplorerEncryption } from "../../contexts/ExplorerEncryptionContext";
 import { useExplorerQuery } from "../../contexts/ExplorerQueryContext";
 import { useExplorerUI } from "../../contexts/ExplorerUIContext";
@@ -66,7 +67,7 @@ export default function ExplorerBody() {
   return (
     <>
       <div
-        className="flex-1 overflow-hidden relative"
+        className="flex-1 overflow-hidden relative min-h-0"
         onDragEnter={trackFileDragEnter}
         onDragLeave={trackFileDragLeave}
         onDragOver={trackFileDragOver}
@@ -77,7 +78,7 @@ export default function ExplorerBody() {
 
         <div
           ref={scrollContainerRef}
-          className="absolute inset-0 overflow-y-auto p-4"
+          className="h-full overflow-y-auto p-4 pb-6 relative"
         >
           {isExplorerLocked ? (
             <ExplorerLockedState />
@@ -90,6 +91,11 @@ export default function ExplorerBody() {
               />
 
               {showEmptyState ? <ExplorerEmptyState /> : null}
+              <ExplorerContextMenu
+                files={objectItems}
+                directories={directoryItems}
+                isLoading={isLoading}
+              />
 
               <div ref={loadMoreTriggerRef} className="h-12 w-full" />
               {isFetchingMore ? (

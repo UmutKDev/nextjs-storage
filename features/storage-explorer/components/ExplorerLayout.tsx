@@ -51,9 +51,9 @@ export default function ExplorerLayout() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col h-full overflow-hidden pt-20 md:pt-24 px-2 md:px-4 pb-4">
-        <div className="w-full h-full flex flex-col">
-          <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl md:rounded-2xl shadow-sm h-full overflow-hidden flex flex-col">
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-h-0 pt-20 md:pt-24 px-2 md:px-4 pb-4">
+        <div className="w-full h-full flex flex-col min-h-0">
+          <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl md:rounded-2xl shadow-sm h-full overflow-hidden flex flex-col min-h-0">
             <DndContext
               sensors={sensors}
               collisionDetection={pointerWithin}

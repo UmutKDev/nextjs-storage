@@ -165,6 +165,18 @@ export const StorageGridView = ({
       className="relative"
       onPointerDown={(event) => {
         if (event.button !== 0) return;
+        const targetNode = event.target as Node | null;
+        const targetElement =
+          targetNode instanceof Element
+            ? targetNode
+            : (targetNode?.parentElement ?? null);
+        if (
+          targetElement?.closest(
+            "[data-slot='dropdown-menu-content'], [data-slot='dropdown-menu-item'], [data-slot='dropdown-menu-trigger'], [role='menuitem'], [data-context-menu], [data-dnd-ignore]",
+          )
+        ) {
+          return;
+        }
         if (!containerRef.current) return;
         if (
           (event.target as HTMLElement | null)?.closest(
@@ -254,6 +266,11 @@ export const StorageGridView = ({
           className="pt-2 pb-3"
         />
       </StorageGridThumbnailProvider>
+      <div
+        className="w-full"
+        style={{ height: Math.round(galleryMetrics.rowHeight * 0.3) }}
+        aria-hidden
+      />
       {selectionBox && selectionContainerOffset ? (
         <div
           className="pointer-events-none absolute z-20 border border-primary/60 bg-primary/10 backdrop-blur-[1px]"

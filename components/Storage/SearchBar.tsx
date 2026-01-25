@@ -34,6 +34,7 @@ export default function SearchBar({
         <Input
           className="pl-10 h-10"
           placeholder={placeholder}
+          name="search"
           autoComplete="off"
           autoCorrect="off"
           spellCheck="false"

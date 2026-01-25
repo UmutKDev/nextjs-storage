@@ -33,8 +33,9 @@ export const DraggableItem = ({
 
   const shouldIgnoreDragStart = (target: EventTarget | null) => {
     if (!target) return false;
-    const element = target as Element;
-    if (!("closest" in element)) return false;
+    const element =
+      target instanceof Element ? target : (target as Node).parentElement;
+    if (!element) return false;
     return Boolean(
       element.closest(
         "button, a, input, select, textarea, [role='button'], [role='menuitem'], [data-dnd-ignore]",

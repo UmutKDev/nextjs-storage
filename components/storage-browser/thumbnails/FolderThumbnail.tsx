@@ -18,9 +18,9 @@ export const FolderThumbnail = ({
   directory: Directory;
   className?: string;
 }) => {
-  const thumbnails = (directory.Thumbnails ?? []).slice(
-    0,
-    FOLDER_THUMBNAIL_LIMIT,
+  const thumbnails = React.useMemo(
+    () => (directory.Thumbnails ?? []).slice(0, FOLDER_THUMBNAIL_LIMIT),
+    [directory.Thumbnails],
   );
   const [failedThumbnailKeys, setFailedThumbnailKeys] = React.useState<
     Record<string, boolean>
@@ -120,7 +120,24 @@ export const FolderThumbnail = ({
       const thumbnailKey = file.Path?.Key || file.Name || `thumb-${index}`;
       next[thumbnailKey] = buildThumbnailData(file);
     });
-    setThumbnailDataByKey(next);
+    setThumbnailDataByKey((previous) => {
+      const prevKeys = Object.keys(previous);
+      const nextKeys = Object.keys(next);
+      if (prevKeys.length !== nextKeys.length) return next;
+      for (const key of nextKeys) {
+        const prevValue = previous[key];
+        const nextValue = next[key];
+        if (!prevValue || !nextValue) return next;
+        if (
+          prevValue.url !== nextValue.url ||
+          prevValue.width !== nextValue.width ||
+          prevValue.height !== nextValue.height
+        ) {
+          return next;
+        }
+      }
+      return previous;
+    });
   }, [buildThumbnailData, thumbnails, thumbnailDataVersion]);
 
   if (!thumbnails.length) {

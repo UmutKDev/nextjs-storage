@@ -94,7 +94,14 @@ export default function UnlockEncryptedFolderModal({
               </button>
             </div>
 
-            <div className="p-4 space-y-3 text-sm">
+            <form
+              className="p-4 space-y-3 text-sm"
+              autoComplete="off"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleUnlock();
+              }}
+            >
               <p className="text-muted-foreground">
                 Enter the passphrase to unlock{" "}
                 <span className="font-semibold text-foreground">
@@ -104,16 +111,15 @@ export default function UnlockEncryptedFolderModal({
               </p>
 
               <Input
+                id="folder-passphrase"
+                name="password"
                 type="password"
                 value={passphrase}
                 placeholder="Passphrase"
+                autoComplete="current-password"
                 autoFocus
                 onChange={(e) => setPassphrase(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void handleUnlock();
-                  }
                   if (e.key === "Escape") onClose();
                 }}
               />
@@ -121,16 +127,16 @@ export default function UnlockEncryptedFolderModal({
               {error ? (
                 <div className="text-xs text-destructive">{error}</div>
               ) : null}
-            </div>
 
-            <div className="flex items-center justify-end gap-2 p-4 border-t border-muted/10">
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleUnlock} disabled={loading}>
-                {loading ? "Unlocking..." : "Unlock"}
-              </Button>
-            </div>
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-muted/10">
+                <Button variant="ghost" size="sm" onClick={onClose} type="button">
+                  Cancel
+                </Button>
+                <Button size="sm" type="submit" disabled={loading}>
+                  {loading ? "Unlocking..." : "Unlock"}
+                </Button>
+              </div>
+            </form>
           </motion.div>
         </motion.div>
       ) : null}

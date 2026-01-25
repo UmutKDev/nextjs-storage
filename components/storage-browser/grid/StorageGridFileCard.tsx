@@ -1,6 +1,19 @@
 import React from "react";
-import { MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Archive,
+  Eye,
+  FolderInput,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  XCircle,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DraggableItem } from "@/components/storage-browser/dnd/DraggableItem";
 import { GridThumbnail } from "@/components/storage-browser/thumbnails/GridThumbnail";
@@ -22,16 +35,40 @@ export const StorageGridFileCard = ({
   fileKey,
 }: StorageGridFileCardProps) => {
   const { selectedItemKeys } = useExplorerSelection();
-  const { extractJobs } = useExplorerActions();
-  const { handleItemClick, updateSelection, openContextMenu } =
+  const {
+    deletingStatusByKey,
+    extractJobs,
+    extractZip,
+    cancelExtractZip,
+    previewFile,
+    editFile,
+    moveItems,
+    deleteItem,
+  } = useExplorerActions();
+  const { handleItemClick, updateSelection, openContextMenu, isLoading } =
     useStorageBrowserInteractions();
   const { onAspectRatioChange } = useStorageGridThumbnailContext();
-  const { getReadableExtractStatus } = useZipExtractStatus();
+  const { getReadableExtractStatus, getZipActionState } =
+    useZipExtractStatus();
   const extractJob = extractJobs[fileKey];
   const extractStatusLabel = extractJob
     ? getReadableExtractStatus(extractJob)
     : undefined;
   const isSelected = selectedItemKeys.has(fileKey);
+  const zipName = (
+    file.Metadata?.Originalfilename ||
+    file.Name ||
+    ""
+  ).toLowerCase();
+  const isZipFile =
+    file.Extension?.toLowerCase() === "zip" || zipName.endsWith(".zip");
+  const { canStartExtraction, canCancelExtraction } = getZipActionState({
+    file,
+    isLoading,
+    hasExtractHandler: Boolean(extractZip),
+    hasCancelHandler: Boolean(cancelExtractZip),
+    extractJob,
+  });
   const longPressTimerRef = React.useRef<number | null>(null);
   const longPressTriggeredRef = React.useRef(false);
   const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
@@ -158,6 +195,98 @@ export const StorageGridFileCard = ({
                 <MoreHorizontal size={16} className="text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) previewFile(file);
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) previewFile(file);
+                }}
+                data-dnd-ignore
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Önizle
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) editFile(file);
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) editFile(file);
+                }}
+                data-dnd-ignore
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Düzenle
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) moveItems([fileKey]);
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) moveItems([fileKey]);
+                }}
+                data-dnd-ignore
+              >
+                <FolderInput className="mr-2 h-4 w-4" />
+                Taşı
+              </DropdownMenuItem>
+              {isZipFile ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    if (canStartExtraction) extractZip(file);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (canStartExtraction) extractZip(file);
+                  }}
+                  disabled={!canStartExtraction}
+                  data-dnd-ignore
+                >
+                  <Archive className="mr-2 h-4 w-4" />
+                  Zip çıkar
+                </DropdownMenuItem>
+              ) : null}
+              {canCancelExtraction ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    cancelExtractZip(file);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    cancelExtractZip(file);
+                  }}
+                  data-dnd-ignore
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Çıkarmayı iptal et
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) deleteItem(file);
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) deleteItem(file);
+                }}
+                disabled={isLoading || Boolean(deletingStatusByKey[fileKey])}
+                data-dnd-ignore
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Sil
+              </DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import React from "react";
-import { Lock, MoreHorizontal, Unlock } from "lucide-react";
+import { Lock, MoreHorizontal, Pencil, Trash2, Unlock } from "lucide-react";
 import {
   DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,6 +14,7 @@ import type { Directory } from "@/components/storage-browser/types/storage-brows
 import { useDirectoryMetadata } from "@/components/storage-browser/hooks/useDirectoryMetadata";
 import { useExplorerSelection } from "@/features/storage-explorer/contexts/ExplorerSelectionContext";
 import { useStorageBrowserInteractions } from "@/components/storage-browser/contexts/StorageBrowserInteractionsContext";
+import { useExplorerActions } from "@/features/storage-explorer/contexts/ExplorerActionsContext";
 
 type StorageGridFolderCardProps = {
   directory: Directory;
@@ -24,8 +27,10 @@ export const StorageGridFolderCard = ({
 }: StorageGridFolderCardProps) => {
   const { selectedItemKeys } = useExplorerSelection();
   const { getDirectoryMetadata } = useDirectoryMetadata();
-  const { handleItemClick, updateSelection, openContextMenu } =
+  const { handleItemClick, updateSelection, openContextMenu, isLoading } =
     useStorageBrowserInteractions();
+  const { deletingStatusByKey, renameItem, convertFolder, deleteItem } =
+    useExplorerActions();
   const directoryMetadata = getDirectoryMetadata(directory);
   const isSelected = selectedItemKeys.has(directoryKey);
   const longPressTimerRef = React.useRef<number | null>(null);
@@ -164,6 +169,55 @@ export const StorageGridFolderCard = ({
                 <MoreHorizontal size={16} className="text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) renameItem(directory);
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) renameItem(directory);
+                }}
+                data-dnd-ignore
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Düzenle
+              </DropdownMenuItem>
+              {!directoryMetadata.isEncrypted ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) convertFolder(directory);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) convertFolder(directory);
+                  }}
+                  data-dnd-ignore
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Şifrele
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) deleteItem(directory);
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!isLoading) deleteItem(directory);
+                }}
+                disabled={
+                  isLoading || Boolean(deletingStatusByKey[directoryKey])
+                }
+                data-dnd-ignore
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Sil
+              </DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
