@@ -10,14 +10,14 @@ import {
   Plus,
   UploadCloud,
   FolderPlus,
-  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import StorageUsage from "./StorageUsage";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import { useStorage } from "./StorageProvider";
-import { useEncryptedFolders } from "./EncryptedFoldersProvider";
+import { useExplorerUI } from "@/features/storage-explorer/contexts/ExplorerUIContext";
+import { useExplorerEncryption } from "@/features/storage-explorer/contexts/ExplorerEncryptionContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,23 +27,14 @@ import {
 
 interface SidebarProps {
   className?: string;
-  onCreateFolder?: () => void;
-  onCreateEncryptedFolder?: () => void;
-  onUpload?: () => void;
 }
 
-export default function Sidebar({
-  className,
-  onCreateFolder,
-  onCreateEncryptedFolder,
-  onUpload,
-}: SidebarProps) {
+export default function Sidebar({ className }: SidebarProps) {
   const { userStorageUsageQuery } = useUserStorageUsage();
-  const { currentPath, setCurrentPath, isCurrentLocked } = useStorage();
-  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders();
-  const isUploadBlocked =
-    isCurrentLocked ||
-    (isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath));
+  const { currentPath, setCurrentPath } = useStorage();
+  const { setIsCreateFolderModalOpen, setIsUploadModalOpen } = useExplorerUI();
+  const { isExplorerLocked } = useExplorerEncryption();
+  const isUploadBlocked = isExplorerLocked;
 
   const navItems = [
     {
@@ -99,7 +90,7 @@ export default function Sidebar({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56 p-2 rounded-xl">
           <DropdownMenuItem
-            onClick={isUploadBlocked ? undefined : onUpload}
+            onClick={isUploadBlocked ? undefined : () => setIsUploadModalOpen(true)}
             disabled={isUploadBlocked}
             className="gap-2 p-3 rounded-lg cursor-pointer"
           >
@@ -107,7 +98,9 @@ export default function Sidebar({
             <span>Dosya Yükle</span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={isUploadBlocked ? undefined : onCreateFolder}
+            onClick={
+              isUploadBlocked ? undefined : () => setIsCreateFolderModalOpen(true)
+            }
             disabled={isUploadBlocked}
             className="gap-2 p-3 rounded-lg cursor-pointer"
           >
