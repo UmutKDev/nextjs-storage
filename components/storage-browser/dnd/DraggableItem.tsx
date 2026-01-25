@@ -9,7 +9,7 @@ type DraggableItemProps = {
   isSelected?: boolean;
   className?: string;
   children: React.ReactNode;
-  data?: Record<string, unknown>;
+  data?: Record<string, any>;
 };
 
 export const DraggableItem = ({
