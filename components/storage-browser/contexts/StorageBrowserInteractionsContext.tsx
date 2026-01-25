@@ -3,7 +3,7 @@
 import React from "react";
 import { useItemSelection } from "@/components/storage-browser/hooks/useItemSelection";
 import { useExplorerItemNavigation } from "@/features/storage-explorer/contexts/ExplorerNavigationContext";
-import { useExplorerContextMenu } from "@/features/storage-explorer/contexts/ExplorerContextMenuContext";
+import { useExplorerContextMenu } from "@/features/storage-explorer/stores/explorerContextMenu.store";
 import type {
   CloudObject,
   Directory,

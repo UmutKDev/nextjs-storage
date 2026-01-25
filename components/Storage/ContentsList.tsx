@@ -17,7 +17,7 @@ import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import EditFileModal from "./EditFileModal";
 import { motion } from "framer-motion";
 import FileIcon from "./FileIcon";
-import { useEncryptedFolders } from "./EncryptedFoldersProvider";
+import { useEncryptedFolders } from "./stores/encryptedFolders.store";
 
 import type {
   CloudObjectListBaseModel,
@@ -52,7 +52,9 @@ export default function ContentsList({
   const qc = useQueryClient();
   const { currentPath } = useStorage();
   const { invalidate: invalidateUsage } = useUserStorageUsage();
-  const { getSessionToken } = useEncryptedFolders();
+  const { getSessionToken } = useEncryptedFolders((state) => ({
+    getSessionToken: state.getSessionToken,
+  }));
   // only need invalidation helpers here — don't run the list queries to avoid duplicate requests
   const { invalidates: invalidatesObjects } = useCloudList(currentPath, {
     enabled: false,

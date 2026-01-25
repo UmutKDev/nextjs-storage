@@ -1,5 +1,5 @@
 import React from "react";
-import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
+import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
 import type {
   Directory,
 } from "@/components/storage-browser/types/storage-browser.types";
@@ -19,7 +19,12 @@ export type DirectoryMetadata = {
 };
 
 export const useDirectoryMetadata = () => {
-  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders();
+  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders(
+    (state) => ({
+      isFolderEncrypted: state.isFolderEncrypted,
+      isFolderUnlocked: state.isFolderUnlocked,
+    }),
+  );
 
   const getDirectoryMetadata = React.useCallback(
     (directory: Directory): DirectoryMetadata => {

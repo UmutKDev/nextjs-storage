@@ -1,11 +1,14 @@
 "use client";
 
 import React from "react";
+import { createWithEqualityFn } from "zustand/traditional";
+import { devtools } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
 import type {
   CloudObject,
   Directory,
 } from "@/components/storage-browser/types/storage-browser.types";
-import { useExplorerSelection } from "./ExplorerSelectionContext";
+import { useExplorerSelection } from "../contexts/ExplorerSelectionContext";
 
 type ContextMenuState = {
   x: number;
@@ -14,33 +17,39 @@ type ContextMenuState = {
   type: "file" | "folder";
 };
 
-type ExplorerContextMenuContextValue = {
+type ExplorerContextMenuStore = {
   contextMenuState: ContextMenuState | null;
-  openContextMenu: (
-    item: CloudObject | Directory,
-    itemType: "file" | "folder",
-    point: { x: number; y: number },
-  ) => void;
-  closeContextMenu: () => void;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  setContextMenuState: (state: ContextMenuState | null) => void;
 };
 
-const ExplorerContextMenuContext =
-  React.createContext<ExplorerContextMenuContextValue | null>(null);
+export const useExplorerContextMenuStore =
+  createWithEqualityFn<ExplorerContextMenuStore>()(
+    devtools(
+      (set) => ({
+        contextMenuState: null,
+        scrollContainerRef: React.createRef<HTMLDivElement>(),
+        setContextMenuState: (state) => set({ contextMenuState: state }),
+      }),
+      { name: "ExplorerContextMenuStore" },
+    ),
+  );
 
-export function ExplorerContextMenuProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function useExplorerContextMenu() {
+  const { contextMenuState, scrollContainerRef, setContextMenuState } =
+    useExplorerContextMenuStore(
+      (state) => ({
+        contextMenuState: state.contextMenuState,
+        scrollContainerRef: state.scrollContainerRef,
+        setContextMenuState: state.setContextMenuState,
+      }),
+      shallow,
+    );
   const { selectedItemKeys, replaceSelectedItemKeys } = useExplorerSelection();
-  const [contextMenuState, setContextMenuState] =
-    React.useState<ContextMenuState | null>(null);
-  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
 
   const closeContextMenu = React.useCallback(() => {
     setContextMenuState(null);
-  }, []);
+  }, [setContextMenuState]);
 
   const openContextMenu = React.useCallback(
     (
@@ -65,8 +74,20 @@ export function ExplorerContextMenuProvider({
         type: itemType,
       });
     },
-    [replaceSelectedItemKeys, selectedItemKeys],
+    [replaceSelectedItemKeys, scrollContainerRef, selectedItemKeys, setContextMenuState],
   );
+
+  return {
+    contextMenuState,
+    openContextMenu,
+    closeContextMenu,
+    scrollContainerRef,
+  };
+}
+
+export function ExplorerContextMenuEffects() {
+  const { contextMenuState, closeContextMenu, scrollContainerRef } =
+    useExplorerContextMenu();
 
   React.useEffect(() => {
     if (!contextMenuState) return;
@@ -83,33 +104,7 @@ export function ExplorerContextMenuProvider({
       window.removeEventListener("mousedown", handlePointerDown);
       scrollContainer?.removeEventListener("scroll", handleScroll);
     };
-  }, [closeContextMenu, contextMenuState]);
+  }, [closeContextMenu, contextMenuState, scrollContainerRef]);
 
-  const value = React.useMemo<ExplorerContextMenuContextValue>(
-    () => ({
-      contextMenuState,
-      openContextMenu,
-      closeContextMenu,
-      scrollContainerRef,
-    }),
-    [closeContextMenu, contextMenuState, openContextMenu],
-  );
-
-  return (
-    <ExplorerContextMenuContext.Provider value={value}>
-      {children}
-    </ExplorerContextMenuContext.Provider>
-  );
+  return null;
 }
-
-export function useExplorerContextMenu() {
-  const context = React.useContext(ExplorerContextMenuContext);
-  if (!context) {
-    throw new Error(
-      "useExplorerContextMenu must be used within ExplorerContextMenuProvider",
-    );
-  }
-  return context;
-}
-
-export { ExplorerContextMenuContext };

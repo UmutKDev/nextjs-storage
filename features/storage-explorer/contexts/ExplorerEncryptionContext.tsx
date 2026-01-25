@@ -3,7 +3,7 @@
 import React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
+import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
 import { useStorage } from "@/components/Storage/StorageProvider";
 import {
   CLOUD_DIRECTORIES_QUERY_KEY,
@@ -57,7 +57,16 @@ export function ExplorerEncryptionProvider({
     getFolderPassphrase,
     registerEncryptedPath,
     refetchManifest,
-  } = useEncryptedFolders();
+  } = useEncryptedFolders((state) => ({
+    isFolderEncrypted: state.isFolderEncrypted,
+    isFolderEncryptedExact: state.isFolderEncryptedExact,
+    isFolderUnlocked: state.isFolderUnlocked,
+    promptUnlock: state.promptUnlock,
+    getSessionToken: state.getSessionToken,
+    getFolderPassphrase: state.getFolderPassphrase,
+    registerEncryptedPath: state.registerEncryptedPath,
+    refetchManifest: state.refetchManifest,
+  }));
 
   const promptedUnlockPathsRef = React.useRef<Set<string>>(new Set());
 

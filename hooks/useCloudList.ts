@@ -13,7 +13,7 @@ import type {
   CloudDirectoryListModelResult,
   CloudObjectListModelResult,
 } from "@/Service/Generates/api";
-import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
+import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
 import { isAxiosError } from "axios";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -140,7 +140,9 @@ export const createInfiniteDirectoriesQueryKey = (
 
 export function useCloudList(path?: string, options?: UseCloudListOptions) {
   const { status } = useSession();
-  const { getSessionToken } = useEncryptedFolders();
+  const { getSessionToken } = useEncryptedFolders((state) => ({
+    getSessionToken: state.getSessionToken,
+  }));
   const {
     delimiter = true,
     isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED,

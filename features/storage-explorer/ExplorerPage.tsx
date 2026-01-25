@@ -9,7 +9,7 @@ import { ExplorerSelectionProvider } from "./contexts/ExplorerSelectionContext";
 import { ExplorerSelectionRangeProvider } from "./contexts/ExplorerSelectionRangeContext";
 import { ExplorerNavigationProvider } from "./contexts/ExplorerNavigationContext";
 import { ExplorerActionsProvider } from "./contexts/ExplorerActionsContext";
-import { ExplorerContextMenuProvider } from "./contexts/ExplorerContextMenuContext";
+import { ExplorerContextMenuEffects } from "./stores/explorerContextMenu.store";
 import { ExplorerKeyboardProvider } from "./contexts/ExplorerKeyboardContext";
 import { ExplorerUIProvider } from "./contexts/ExplorerUIContext";
 import { ExplorerDnDProvider } from "./contexts/ExplorerDnDContext";
@@ -28,15 +28,14 @@ export default function ExplorerPage() {
               <ExplorerSelectionRangeProvider>
                 <ExplorerNavigationProvider>
                   <ExplorerActionsProvider>
-                    <ExplorerContextMenuProvider>
-                      <ExplorerKeyboardProvider>
-                        <ExplorerUploadProvider>
-                          <ExplorerDnDProvider>
-                            <ExplorerLayout />
-                          </ExplorerDnDProvider>
-                        </ExplorerUploadProvider>
-                      </ExplorerKeyboardProvider>
-                    </ExplorerContextMenuProvider>
+                  <ExplorerKeyboardProvider>
+                    <ExplorerUploadProvider>
+                      <ExplorerDnDProvider>
+                        <ExplorerContextMenuEffects />
+                        <ExplorerLayout />
+                      </ExplorerDnDProvider>
+                    </ExplorerUploadProvider>
+                  </ExplorerKeyboardProvider>
                   </ExplorerActionsProvider>
                 </ExplorerNavigationProvider>
               </ExplorerSelectionRangeProvider>

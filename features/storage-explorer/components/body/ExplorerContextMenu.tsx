@@ -16,7 +16,7 @@ import type {
   Directory,
 } from "@/components/storage-browser/types/storage-browser.types";
 import { useExplorerActions } from "../../contexts/ExplorerActionsContext";
-import { useExplorerContextMenu } from "../../contexts/ExplorerContextMenuContext";
+import { useExplorerContextMenu } from "../../stores/explorerContextMenu.store";
 import { useDirectoryMetadata } from "@/components/storage-browser/hooks/useDirectoryMetadata";
 import { useZipExtractStatus } from "@/components/storage-browser/hooks/useZipExtractStatus";
 

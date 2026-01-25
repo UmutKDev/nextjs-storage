@@ -14,7 +14,7 @@ import { useExplorerEncryption } from "../../contexts/ExplorerEncryptionContext"
 import { useExplorerQuery } from "../../contexts/ExplorerQueryContext";
 import { useExplorerUI } from "../../contexts/ExplorerUIContext";
 import { useExplorerUpload } from "../../contexts/ExplorerUploadContext";
-import { useExplorerContextMenu } from "../../contexts/ExplorerContextMenuContext";
+import { useExplorerContextMenu } from "../../stores/explorerContextMenu.store";
 import { useExplorerFiltering } from "../../hooks/useExplorerFiltering";
 import { useExplorerInfiniteLoad } from "../../hooks/useExplorerInfiniteLoad";
 

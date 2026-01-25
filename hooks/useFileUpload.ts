@@ -5,7 +5,7 @@ import type { AxiosProgressEvent } from "axios";
 import { isAxiosError } from "axios";
 import useCloudList from "./useCloudList";
 import useUserStorageUsage from "./useUserStorageUsage";
-import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
+import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
 import { useStorage } from "@/components/Storage/StorageProvider";
 import { md5Base64 } from "@/lib/md5";
 import { retryWithBackoff } from "@/lib/retry";
@@ -29,7 +29,11 @@ export function useFileUpload(currentPath: string | null) {
   const { invalidates } = useCloudList(currentPath || "", { enabled: false });
   const { invalidate: invalidatesUsage } = useUserStorageUsage(); // to ensure usage is up to date after upload
   const { getSessionToken, isFolderEncrypted, isFolderUnlocked } =
-    useEncryptedFolders();
+    useEncryptedFolders((state) => ({
+      getSessionToken: state.getSessionToken,
+      isFolderEncrypted: state.isFolderEncrypted,
+      isFolderUnlocked: state.isFolderUnlocked,
+    }));
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const controllersRef = useRef<Record<string, AbortController>>({});
   // query client is not required here; invalidation helpers from useCloudList

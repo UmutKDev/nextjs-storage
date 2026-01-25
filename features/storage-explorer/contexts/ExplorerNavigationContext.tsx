@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useStorage } from "@/components/Storage/StorageProvider";
-import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
+import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
 import { useDirectoryMetadata } from "@/components/storage-browser/hooks/useDirectoryMetadata";
 import type {
   CloudObject,
@@ -30,7 +30,9 @@ export function ExplorerNavigationProvider({
   children: React.ReactNode;
 }) {
   const { setCurrentPath } = useStorage();
-  const { promptUnlock } = useEncryptedFolders();
+  const { promptUnlock } = useEncryptedFolders((state) => ({
+    promptUnlock: state.promptUnlock,
+  }));
   const { getDirectoryMetadata } = useDirectoryMetadata();
   const { openDialog } = useDialogs();
   const { orderedItemByKey } = useExplorerSelectionRange();

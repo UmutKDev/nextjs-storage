@@ -7,7 +7,7 @@ import { Folder, ArrowLeft, Loader2, X, Lock, Unlock } from "lucide-react";
 import BaseDialog from "./BaseDialog";
 import { useCloudList } from "@/hooks/useCloudList";
 import type { CloudDirectoryModel } from "@/Service/Generates/api";
-import { useEncryptedFolders } from "./EncryptedFoldersProvider";
+import { useEncryptedFolders } from "./stores/encryptedFolders.store";
 
 interface MoveFileModalProps {
   open: boolean;
@@ -34,7 +34,11 @@ export default function MoveFileModal({
   const [isManual, setIsManual] = useState(false);
   const [moving, setMoving] = useState(false);
   const { isFolderEncrypted, isFolderUnlocked, promptUnlock } =
-    useEncryptedFolders();
+    useEncryptedFolders((state) => ({
+      isFolderEncrypted: state.isFolderEncrypted,
+      isFolderUnlocked: state.isFolderUnlocked,
+      promptUnlock: state.promptUnlock,
+    }));
 
   // Fetch directories for the current path
   const { directoriesQuery } = useCloudList(currentPath, {

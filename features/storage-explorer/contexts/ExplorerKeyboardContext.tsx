@@ -6,7 +6,7 @@ import { useExplorerSelection } from "./ExplorerSelectionContext";
 import { useExplorerSelectionRange } from "./ExplorerSelectionRangeContext";
 import { useExplorerItemNavigation } from "./ExplorerNavigationContext";
 import { useExplorerActions } from "./ExplorerActionsContext";
-import { useExplorerContextMenu } from "./ExplorerContextMenuContext";
+import { useExplorerContextMenu } from "../stores/explorerContextMenu.store";
 import { useExplorerQuery } from "./ExplorerQueryContext";
 import { useExplorerMove } from "../hooks/useExplorerMove";
 import {

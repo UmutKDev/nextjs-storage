@@ -22,7 +22,7 @@ import {
 import { useStorage } from "./StorageProvider";
 import { useFileUpload, type UploadItem } from "@/hooks/useFileUpload";
 import toast from "react-hot-toast";
-import { useEncryptedFolders } from "./EncryptedFoldersProvider";
+import { useEncryptedFolders } from "./stores/encryptedFolders.store";
 
 // Helper component for rendering a list of uploads
 function UploadList({
@@ -117,7 +117,12 @@ export default function FileUpload() {
   const filePickerRef = useRef<HTMLInputElement>(null);
   const { userStorageUsageQuery } = useUserStorageUsage();
   const maxUploadBytes = userStorageUsageQuery.data?.MaxUploadSizeBytes;
-  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders();
+  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders(
+    (state) => ({
+      isFolderEncrypted: state.isFolderEncrypted,
+      isFolderUnlocked: state.isFolderUnlocked,
+    }),
+  );
   const isUploadBlocked =
     isCurrentLocked ||
     isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath);

@@ -12,7 +12,7 @@ import type {
   UseInfiniteQueryResult,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { useEncryptedFolders } from "@/components/Storage/EncryptedFoldersProvider";
+import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -43,7 +43,12 @@ export function ExplorerQueryProvider({
   currentPath: string;
   children: React.ReactNode;
 }) {
-  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders();
+  const { isFolderEncrypted, isFolderUnlocked } = useEncryptedFolders(
+    (state) => ({
+      isFolderEncrypted: state.isFolderEncrypted,
+      isFolderUnlocked: state.isFolderUnlocked,
+    }),
+  );
   const isQueryLocked =
     isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath);
 
