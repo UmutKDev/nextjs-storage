@@ -83,10 +83,10 @@ export default function ContentsList({
     const objectsQueryKey = createCloudObjectsQueryKey(currentPath);
 
     const prevList = qc.getQueryData(
-      createCloudObjectsQueryKey(currentPath, true, false)
+      createCloudObjectsQueryKey(currentPath, true, false),
     );
     const prevObjects = qc.getQueryData(
-      createCloudObjectsQueryKey(currentPath)
+      createCloudObjectsQueryKey(currentPath),
     );
     try {
       // optimistic update: remove the file from the cached lists immediately
@@ -98,25 +98,27 @@ export default function ContentsList({
           return {
             ...old,
             items: [
-              ...old.data.result.items.filter((c) => c?.Path?.Key !== key),
+              ...old.data.Result.Items.filter((c) => c?.Path?.Key !== key),
             ],
           };
-        }
+        },
       );
 
       qc.setQueryData(objectsQueryKey, (old: CloudObject[]) =>
         Array.isArray(old)
           ? old.filter((o: CloudObject) => o?.Path?.Key !== key)
-          : old
+          : old,
       );
 
       // call server to remove file
       await cloudApiFactory._delete(
         {
           idempotencyKey: createIdempotencyKey(),
-          cloudDeleteRequestModel: { Items: [{ Key: key, IsDirectory: false }] },
+          cloudDeleteRequestModel: {
+            Items: [{ Key: key, IsDirectory: false }],
+          },
         },
-        sessionOptions
+        sessionOptions,
       );
 
       // success — keep optimistic state and refresh other queries that may be affected
@@ -140,7 +142,7 @@ export default function ContentsList({
 
   async function performUpdate(
     file: CloudObject,
-    payload: { name?: string; metadata?: Record<string, string> }
+    payload: { name?: string; metadata?: Record<string, string> },
   ) {
     const key = file?.Path?.Key;
     if (!key) return toast.error("Unable to update: missing key");
@@ -155,10 +157,10 @@ export default function ContentsList({
     const objectsQueryKey = createCloudObjectsQueryKey(currentPath);
 
     const prevList = qc.getQueryData(
-      createCloudObjectsQueryKey(currentPath, true, false)
+      createCloudObjectsQueryKey(currentPath, true, false),
     );
     const prevObjects = qc.getQueryData(
-      createCloudObjectsQueryKey(currentPath)
+      createCloudObjectsQueryKey(currentPath),
     );
 
     try {
@@ -166,7 +168,7 @@ export default function ContentsList({
       const nameToSend =
         payload.name && file.Extension
           ? `${payload.name}.${String(file.Extension).replace(/^\./, "")}`
-          : payload.name ?? undefined;
+          : (payload.name ?? undefined);
 
       // Merge incoming metadata with existing to preserve default model fields
       const mergedMetadata = {
@@ -182,18 +184,18 @@ export default function ContentsList({
           return {
             ...old,
             items: [
-              ...old.data.result.items.map((c) =>
+              ...old.data.Result.Items.map((c) =>
                 c?.Path?.Key === key
                   ? {
                       ...c,
                       Name: nameToSend ?? c.Name,
                       Metadata: mergedMetadata,
                     }
-                  : c
+                  : c,
               ),
             ],
           };
-        }
+        },
       );
 
       qc.setQueryData(
@@ -207,19 +209,22 @@ export default function ContentsList({
                       Name: nameToSend ?? o.Name,
                       Metadata: mergedMetadata,
                     }
-                  : o
+                  : o,
               )
-            : old
+            : old,
       );
 
       // call server
-      await cloudApiFactory.update({
-        cloudUpdateRequestModel: {
-          Key: key,
-          Name: nameToSend,
-          Metadata: mergedMetadata,
+      await cloudApiFactory.update(
+        {
+          cloudUpdateRequestModel: {
+            Key: key,
+            Name: nameToSend,
+            Metadata: mergedMetadata,
+          },
         },
-      }, sessionOptions);
+        sessionOptions,
+      );
 
       toast.success("Updated");
       await invalidateUsage();
@@ -241,7 +246,7 @@ export default function ContentsList({
 
   return (
     <div className="divide-y rounded-md border bg-background/50">
-      {(loading ? Array.from({ length: skeletonCount }) : contents ?? []).map(
+      {(loading ? Array.from({ length: skeletonCount }) : (contents ?? [])).map(
         (item: unknown, idx) => {
           const c = loading ? undefined : (item as CloudObject);
           return (
@@ -286,7 +291,7 @@ export default function ContentsList({
                   {loading ? (
                     <div className="h-3 w-24 rounded bg-muted/30 animate-pulse" />
                   ) : (
-                    c!.MimeType ?? "—"
+                    (c!.MimeType ?? "—")
                   )}
                 </div>
               </div>
@@ -353,7 +358,7 @@ export default function ContentsList({
               </div>
             </motion.div>
           );
-        }
+        },
       )}
       <ConfirmDeleteModal
         open={Boolean(toDelete)}

@@ -42,6 +42,7 @@ type AuthFormContextType = {
   setField: (name: string, value: unknown) => void;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   submit: () => Promise<SignInResponse | undefined>;
+  loginWithPasskey: () => Promise<SignInResponse | undefined>;
   loading: boolean;
   error: string | null;
   reset: () => void;
@@ -70,6 +71,45 @@ export default function AuthFormProvider({
   const setField = useCallback((name: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [name]: value }));
   }, []);
+
+  const loginWithPasskey = useCallback(async () => {
+    if (!values.email) {
+      setError("E-posta gerekli.");
+      return;
+    }
+
+    try {
+      // Dynamic import the browser helpers
+      const swa = await import("@simplewebauthn/browser");
+      if (!swa.browserSupportsWebAuthn()) throw new Error("Tarayıcı passkey desteklemiyor");
+
+      // Begin passkey login
+      const beginRes = await (await import("@/Service/Factories")).authenticationApiFactory.passkeyLoginBegin({
+        passkeyLoginBeginRequestModel: { Email: values.email },
+      });
+
+      const options = beginRes.data?.Result?.Options;
+      if (!options) throw new Error("Login başlangıç verisi alınamadı");
+
+      const credential = await swa.startAuthentication(options);
+
+      // Use next-auth credentials provider to finalize on server side
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: values.email,
+        passkey: JSON.stringify(credential),
+      });
+
+      if (res?.error) {
+        setError(res.error as string);
+      }
+
+      return res;
+    } catch (err: any) {
+      setError(err?.message || "Passkey login hatası");
+      return undefined;
+    }
+  }, [values.email]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,6 +196,7 @@ export default function AuthFormProvider({
     setField,
     handleChange,
     submit,
+    loginWithPasskey,
     loading,
     error,
     reset,

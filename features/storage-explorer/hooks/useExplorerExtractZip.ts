@@ -47,7 +47,7 @@ export function useExplorerExtractZip() {
         }),
       ]);
     },
-    [queryClient]
+    [queryClient],
   );
 
   const scheduleJobCleanup = React.useCallback((key: string) => {
@@ -67,7 +67,7 @@ export function useExplorerExtractZip() {
       key: string,
       update: Partial<ExplorerExtractJob> & {
         progress?: ExplorerExtractJob["progress"];
-      }
+      },
     ) => {
       setExtractJobs((previous) => {
         const existing = previous[key];
@@ -95,17 +95,18 @@ export function useExplorerExtractZip() {
         };
       });
     },
-    []
+    [],
   );
 
   const fetchZipExtractionStatus = React.useCallback(
     async (key: string, jobId: string) => {
       try {
         const response = await cloudApiFactory.extractZipStatus({ jobId });
-        const result = response.data?.result;
+        const result = response.data?.Result;
         if (!result) return;
 
-        const progress = (result.Progress || {}) as ExplorerExtractJob["progress"];
+        const progress = (result.Progress ||
+          {}) as ExplorerExtractJob["progress"];
 
         updateExtractJob(key, {
           state: result.State,
@@ -155,13 +156,13 @@ export function useExplorerExtractZip() {
         console.error(error);
       }
     },
-    [invalidatePath, scheduleJobCleanup, updateExtractJob]
+    [invalidatePath, scheduleJobCleanup, updateExtractJob],
   );
 
   React.useEffect(() => {
     const pollStates = new Set(["active", "waiting", "delayed", "starting"]);
     const jobsToPoll = Object.values(extractJobs).filter(
-      (job) => job.jobId && pollStates.has(job.state)
+      (job) => job.jobId && pollStates.has(job.state),
     );
 
     if (jobsToPoll.length === 0) return;
@@ -199,9 +200,9 @@ export function useExplorerExtractZip() {
           {
             cloudExtractZipStartRequestModel: { Key: key },
           },
-          sessionOptions
+          sessionOptions,
         );
-        const jobId = response.data?.result?.JobId;
+        const jobId = response.data?.Result?.JobId;
         if (!jobId) {
           toast.error("Extract jobId missing");
           updateExtractJob(key, { state: "failed" });
@@ -219,7 +220,12 @@ export function useExplorerExtractZip() {
         extractToastStateRef.current[key] = "failed";
       }
     },
-    [fetchZipExtractionStatus, getSessionToken, scheduleJobCleanup, updateExtractJob]
+    [
+      fetchZipExtractionStatus,
+      getSessionToken,
+      scheduleJobCleanup,
+      updateExtractJob,
+    ],
   );
 
   const deleteZipExtractionJob = React.useCallback(
@@ -242,7 +248,7 @@ export function useExplorerExtractZip() {
         toast.error("Zip çıkarma iptal edilemedi");
       }
     },
-    [extractJobs, scheduleJobCleanup, updateExtractJob]
+    [extractJobs, scheduleJobCleanup, updateExtractJob],
   );
 
   return {

@@ -20,14 +20,14 @@ export default function useUserStorageUsage() {
 
   const userStorageUsageQueryKey = useMemo(
     () => createCloudUserStorageUsageQueryKey(),
-    []
+    [],
   );
 
   const userStorageUsageQuery = useQuery({
     queryKey: userStorageUsageQueryKey,
     queryFn: async ({ signal }) =>
       await cloudApiFactory.userStorageUsage({ signal }),
-    select: (res) => res.data?.result,
+    select: (res) => res.data?.Result,
     staleTime: STALE_TIME,
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
@@ -43,7 +43,7 @@ export default function useUserStorageUsage() {
           q.queryKey[0] === CLOUD_USER_STORAGE_USAGE_QUERY_KEY[0] &&
           q.queryKey[1] === CLOUD_USER_STORAGE_USAGE_QUERY_KEY[1],
       }),
-    [queryClient]
+    [queryClient],
   );
 
   return { userStorageUsageQueryKey, userStorageUsageQuery, invalidate };

@@ -15,9 +15,9 @@ const onSuccess = (response: AxiosResponse) => {
 
 export function setClientToken(token?: string | null) {
   if (!token) {
-    delete Instance.defaults.headers.common["Authorization"];
+    delete Instance.defaults.headers.common["X-Session-Id"];
   } else {
-    Instance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    Instance.defaults.headers.common["X-Session-Id"] = token;
   }
 }
 
@@ -93,7 +93,7 @@ Instance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 export default Instance;

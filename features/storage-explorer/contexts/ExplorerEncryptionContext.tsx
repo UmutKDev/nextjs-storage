@@ -170,7 +170,7 @@ export function ExplorerEncryptionProvider({
 
   React.useEffect(() => {
     const allDirectories =
-      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+      directoriesQuery.data?.pages?.flatMap((page) => page?.Items ?? []) ?? [];
     allDirectories.forEach((directory) => {
       if (directory.IsEncrypted && directory.Prefix) {
         registerEncryptedPath(directory.Prefix);

@@ -17,13 +17,13 @@ export function useExplorerInfiniteLoad({
   const totalFiles = React.useMemo(() => {
     const pages = objectsQuery.data?.pages ?? [];
     if (pages.length === 0) return 0;
-    return pages[pages.length - 1]?.options?.count ?? 0;
+    return pages[pages.length - 1]?.Options?.Count ?? 0;
   }, [objectsQuery.data]);
 
   const totalDirectories = React.useMemo(() => {
     const pages = directoriesQuery.data?.pages ?? [];
     if (pages.length === 0) return 0;
-    return pages[pages.length - 1]?.options?.count ?? 0;
+    return pages[pages.length - 1]?.Options?.Count ?? 0;
   }, [directoriesQuery.data]);
 
   const loadedItemCount = objectItems.length + directoryItems.length;
@@ -72,7 +72,7 @@ export function useExplorerInfiniteLoad({
         if (!entry?.isIntersecting) return;
         loadMore();
       },
-      { rootMargin: INFINITE_LOAD_ROOT_MARGIN }
+      { rootMargin: INFINITE_LOAD_ROOT_MARGIN },
     );
     observer.observe(node);
     return () => observer.disconnect();

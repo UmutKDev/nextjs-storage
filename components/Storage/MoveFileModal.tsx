@@ -46,7 +46,7 @@ export default function MoveFileModal({
     take: 100,
   });
 
-  const directories = directoriesQuery.data?.items || [];
+  const directories = directoriesQuery.data?.Items || [];
   const isLoading = directoriesQuery.isLoading;
 
   useEffect(() => {
@@ -175,14 +175,16 @@ export default function MoveFileModal({
                   No folders found
                 </div>
               ) : (
-                directories.map((dir) => {
+                directories.map((dir: any) => {
                   const normalized = normalizeFolderPath(dir.Prefix);
                   const segments = dir.Prefix?.split("/").filter(Boolean) ?? [];
                   const name = segments[segments.length - 1] || dir.Name || "";
                   const encrypted = normalized
                     ? isFolderEncrypted(normalized)
                     : false;
-                  const unlocked = encrypted ? isFolderUnlocked(normalized) : true;
+                  const unlocked = encrypted
+                    ? isFolderUnlocked(normalized)
+                    : true;
                   return (
                     <button
                       key={dir.Prefix}

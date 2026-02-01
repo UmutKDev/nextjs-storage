@@ -41,7 +41,7 @@ export function useFileUpload(currentPath: string | null) {
 
   const updateUpload = useCallback((id: string, patch: Partial<UploadItem>) => {
     setUploads((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, ...patch } : u))
+      prev.map((u) => (u.id === id ? { ...u, ...patch } : u)),
     );
   }, []);
 
@@ -63,7 +63,7 @@ export function useFileUpload(currentPath: string | null) {
       }
       updateUpload(id, { status: "cancelled", progress: 0 });
     },
-    [updateUpload]
+    [updateUpload],
   );
 
   const uploadFile = useCallback(
@@ -118,16 +118,16 @@ export function useFileUpload(currentPath: string | null) {
                 },
                 xFolderSession: sessionToken || undefined,
               },
-              { headers }
+              { headers },
             ),
           {
             shouldRetry: (err) =>
               isAxiosError(err) && err.response?.status === 429,
-          }
+          },
         );
 
-        uploadId = createResp.data?.result?.UploadId;
-        finalKey = createResp.data?.result?.Key ?? key;
+        uploadId = createResp.data?.Result?.UploadId;
+        finalKey = createResp.data?.Result?.Key ?? key;
 
         if (!uploadId) throw new Error("Missing uploadId");
         if (!finalKey) throw new Error("Missing upload key");
@@ -174,16 +174,16 @@ export function useFileUpload(currentPath: string | null) {
                     const p = Math.round((overallLoaded / totalSize) * 100);
                     updateUpload(id, { progress: Math.min(100, p) });
                   },
-                }
+                },
               ),
             {
               shouldRetry: (err) =>
                 isAxiosError(err) && err.response?.status === 429,
               signal: controller.signal,
-            }
+            },
           );
 
-          const etag = partResp.data?.result?.ETag;
+          const etag = partResp.data?.Result?.ETag;
           if (!etag) throw new Error(`Missing ETag for part ${partNumber}`);
           parts.push({ PartNumber: partNumber, ETag: etag });
           uploadedBytesSoFar += chunk.size;
@@ -203,12 +203,12 @@ export function useFileUpload(currentPath: string | null) {
                 },
                 xFolderSession: sessionToken || undefined,
               },
-              { headers }
+              { headers },
             ),
           {
             shouldRetry: (err) =>
               isAxiosError(err) && err.response?.status === 429,
-          }
+          },
         );
 
         updateUpload(id, { progress: 100, status: "completed" });
@@ -233,12 +233,12 @@ export function useFileUpload(currentPath: string | null) {
                       UploadId: uploadId!,
                     },
                   },
-                  { headers }
+                  { headers },
                 ),
               {
                 shouldRetry: (err) =>
                   isAxiosError(err) && err.response?.status === 429,
-              }
+              },
             );
           } catch (e) {
             console.warn("Abort failed", e);
@@ -274,7 +274,7 @@ export function useFileUpload(currentPath: string | null) {
       isFolderEncrypted,
       isFolderUnlocked,
       isCurrentLocked,
-    ]
+    ],
   );
 
   const handleFiles = useCallback(
@@ -294,7 +294,7 @@ export function useFileUpload(currentPath: string | null) {
       isFolderEncrypted,
       isFolderUnlocked,
       isCurrentLocked,
-    ]
+    ],
   );
 
   return {

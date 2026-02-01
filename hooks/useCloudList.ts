@@ -62,7 +62,7 @@ const normalizePath = (path?: string): string => {
 export const createCloudListQueryKey = (
   path: string,
   delimiter = true,
-  isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED
+  isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED,
 ) => [...CLOUD_LIST_QUERY_KEY, path, delimiter, isMetadataProcessing] as const;
 
 export const createCloudBreadcrumbQueryKey = (path: string, delimiter = true) =>
@@ -74,7 +74,7 @@ export const createCloudObjectsQueryKey = (
   isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED,
   skip = 0,
   take = 100,
-  search: string | undefined = undefined
+  search: string | undefined = undefined,
 ) =>
   [
     ...CLOUD_OBJECTS_QUERY_KEY,
@@ -91,7 +91,7 @@ export const createCloudDirectoriesQueryKey = (
   delimiter = true,
   skip = 0,
   take = 100,
-  search: string | undefined = undefined
+  search: string | undefined = undefined,
 ) =>
   [
     ...CLOUD_DIRECTORIES_QUERY_KEY,
@@ -107,7 +107,7 @@ export const createInfiniteObjectsQueryKey = (
   delimiter = true,
   isMetadataProcessing = IS_METADATA_PROCESSING_ENABLED,
   take = 100,
-  search: string | undefined = undefined
+  search: string | undefined = undefined,
 ) =>
   [
     ...CLOUD_OBJECTS_QUERY_KEY,
@@ -123,7 +123,7 @@ export const createInfiniteDirectoriesQueryKey = (
   path: string,
   delimiter = true,
   take = 100,
-  search: string | undefined = undefined
+  search: string | undefined = undefined,
 ) =>
   [
     ...CLOUD_DIRECTORIES_QUERY_KEY,
@@ -166,7 +166,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
 
   const breadcrumbQueryKey = useMemo(
     () => createCloudBreadcrumbQueryKey(normalizedPath, delimiter),
-    [normalizedPath, delimiter]
+    [normalizedPath, delimiter],
   );
 
   const directoriesQueryKey = useMemo(
@@ -176,9 +176,9 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
         delimiter,
         skip,
         take,
-        search
+        search,
       ),
-    [normalizedPath, delimiter, skip, take, search]
+    [normalizedPath, delimiter, skip, take, search],
   );
 
   const objectsQueryKey = useMemo(
@@ -189,9 +189,9 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
         isMetadataProcessing,
         skip,
         take,
-        search
+        search,
       ),
-    [normalizedPath, delimiter, isMetadataProcessing, skip, take, search]
+    [normalizedPath, delimiter, isMetadataProcessing, skip, take, search],
   );
 
   // Ana query
@@ -200,9 +200,9 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     queryFn: async ({ signal }) =>
       await cloudApiFactory.listBreadcrumb(
         { path: normalizedPath, delimiter },
-        sessionHeaders ? { signal, headers: sessionHeaders } : { signal }
+        sessionHeaders ? { signal, headers: sessionHeaders } : { signal },
       ),
-    select: (res) => res.data?.result,
+    select: (res) => res.data?.Result,
     staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
@@ -222,9 +222,9 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
           search,
           xFolderSession: sessionToken || undefined,
         },
-        { signal }
+        { signal },
       ),
-    select: (res) => res.data?.result,
+    select: (res) => res.data?.Result,
     refetchOnMount,
     refetchOnWindowFocus: false,
     enabled: status === "authenticated" && enabled && objectsEnabled,
@@ -247,9 +247,9 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
           search,
           xFolderSession: sessionToken || undefined,
         },
-        { signal }
+        { signal },
       ),
-    select: (res) => res.data?.result,
+    select: (res) => res.data?.Result,
     staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
@@ -272,7 +272,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
           q.queryKey[1] === CLOUD_LIST_QUERY_KEY[1] &&
           q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, normalizedPath]
+    [queryClient, normalizedPath],
   );
 
   const invalidateBreadcrumb = useCallback(
@@ -285,7 +285,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
           q.queryKey[1] === CLOUD_BREADCRUMB_QUERY_KEY[1] &&
           q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, normalizedPath]
+    [queryClient, normalizedPath],
   );
 
   const invalidateObjects = useCallback(
@@ -298,7 +298,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
           q.queryKey[1] === CLOUD_OBJECTS_QUERY_KEY[1] &&
           q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, normalizedPath]
+    [queryClient, normalizedPath],
   );
 
   const invalidateDirectories = useCallback(
@@ -311,7 +311,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
           q.queryKey[1] === CLOUD_DIRECTORIES_QUERY_KEY[1] &&
           q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, normalizedPath]
+    [queryClient, normalizedPath],
   );
 
   return {
@@ -331,7 +331,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
 
 export function useInfiniteCloudList(
   path?: string,
-  options?: UseCloudListOptions
+  options?: UseCloudListOptions,
 ) {
   const { status } = useSession();
   const { getSessionToken } = useEncryptedFolders();
@@ -357,7 +357,7 @@ export function useInfiniteCloudList(
 
   const breadcrumbQueryKey = useMemo(
     () => createCloudBreadcrumbQueryKey(normalizedPath, delimiter),
-    [normalizedPath, delimiter]
+    [normalizedPath, delimiter],
   );
 
   const objectsQueryKey = useMemo(
@@ -367,9 +367,9 @@ export function useInfiniteCloudList(
         delimiter,
         isMetadataProcessing,
         take,
-        search
+        search,
       ),
-    [normalizedPath, delimiter, isMetadataProcessing, take, search]
+    [normalizedPath, delimiter, isMetadataProcessing, take, search],
   );
 
   const directoriesQueryKey = useMemo(
@@ -378,9 +378,9 @@ export function useInfiniteCloudList(
         normalizedPath,
         delimiter,
         take,
-        search
+        search,
       ),
-    [normalizedPath, delimiter, take, search]
+    [normalizedPath, delimiter, take, search],
   );
 
   const breadcrumbQuery = useQuery({
@@ -388,9 +388,9 @@ export function useInfiniteCloudList(
     queryFn: async ({ signal }) =>
       await cloudApiFactory.listBreadcrumb(
         { path: normalizedPath, delimiter },
-        sessionHeaders ? { signal, headers: sessionHeaders } : { signal }
+        sessionHeaders ? { signal, headers: sessionHeaders } : { signal },
       ),
-    select: (res) => res.data?.result,
+    select: (res) => res.data?.Result,
     staleTime: STALE_TIME,
     refetchOnMount,
     refetchOnWindowFocus: false,
@@ -417,20 +417,25 @@ export function useInfiniteCloudList(
             search,
             xFolderSession: sessionToken || undefined,
           },
-          { signal }
+          { signal },
         )
-        .then((res) => res.data?.result),
+        .then((res) => res.data?.Result),
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
-      const total = lastPage.options?.count ?? 0;
-      const currentSkip = lastPage.options?.skip ?? 0;
-      const itemsCount = lastPage.items?.length ?? 0;
+      const total = lastPage.Options?.Count ?? 0;
+      const currentSkip = lastPage.Options?.Skip ?? 0;
+      const itemsCount = lastPage.Items?.length ?? 0;
 
       if (itemsCount === 0) return undefined;
 
+      // If server returned fewer items than requested, it's likely the last page
+      if (itemsCount < take) return undefined;
+
       const nextSkip = currentSkip + itemsCount;
 
-      if (nextSkip >= total) return undefined;
+      // Safety guard: stop when server does not advance the skip to prevent infinite loops
+      if (nextSkip <= currentSkip) return undefined;
+      if (total && nextSkip >= total) return undefined;
       return nextSkip;
     },
     initialPageParam: 0,
@@ -463,20 +468,25 @@ export function useInfiniteCloudList(
             search,
             xFolderSession: sessionToken || undefined,
           },
-          { signal }
+          { signal },
         )
-        .then((res) => res.data?.result),
+        .then((res) => res.data?.Result),
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
-      const total = lastPage.options?.count ?? 0;
-      const currentSkip = lastPage.options?.skip ?? 0;
-      const itemsCount = lastPage.items?.length ?? 0;
+      const total = lastPage.Options?.Count ?? 0;
+      const currentSkip = lastPage.Options?.Skip ?? 0;
+      const itemsCount = lastPage.Items?.length ?? 0;
 
       if (itemsCount === 0) return undefined;
 
+      // If server returned fewer items than requested, it's likely the last page
+      if (itemsCount < take) return undefined;
+
       const nextSkip = currentSkip + itemsCount;
 
-      if (nextSkip >= total) return undefined;
+      // Safety guard: stop when server does not advance the skip to prevent infinite loops
+      if (nextSkip <= currentSkip) return undefined;
+      if (total && nextSkip >= total) return undefined;
       return nextSkip;
     },
     initialPageParam: 0,
@@ -492,7 +502,7 @@ export function useInfiniteCloudList(
 
   const combinedObjects = useMemo(() => {
     const all =
-      objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+      objectsQuery.data?.pages?.flatMap((page) => page?.Items ?? []) ?? [];
     const seen = new Set<string>();
     return all.filter((item) => {
       const key = item.Path?.Key;
@@ -504,7 +514,7 @@ export function useInfiniteCloudList(
 
   const combinedDirectories = useMemo(() => {
     const all =
-      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+      directoriesQuery.data?.pages?.flatMap((page) => page?.Items ?? []) ?? [];
     const seen = new Set<string>();
     return all.filter((item) => {
       const key = item.Prefix;
@@ -524,7 +534,7 @@ export function useInfiniteCloudList(
           q.queryKey[1] === CLOUD_LIST_QUERY_KEY[1] &&
           q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, normalizedPath]
+    [queryClient, normalizedPath],
   );
 
   const invalidateBreadcrumb = useCallback(
@@ -537,7 +547,7 @@ export function useInfiniteCloudList(
           q.queryKey[1] === CLOUD_BREADCRUMB_QUERY_KEY[1] &&
           q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, normalizedPath]
+    [queryClient, normalizedPath],
   );
 
   const invalidateObjects = useCallback(
@@ -550,7 +560,7 @@ export function useInfiniteCloudList(
           q.queryKey[1] === CLOUD_OBJECTS_QUERY_KEY[1] &&
           q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, normalizedPath]
+    [queryClient, normalizedPath],
   );
 
   const invalidateDirectories = useCallback(
@@ -563,7 +573,7 @@ export function useInfiniteCloudList(
           q.queryKey[1] === CLOUD_DIRECTORIES_QUERY_KEY[1] &&
           q.queryKey[2] === normalizedPath,
       }),
-    [queryClient, normalizedPath]
+    [queryClient, normalizedPath],
   );
 
   return {

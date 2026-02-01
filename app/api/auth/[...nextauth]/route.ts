@@ -1,168 +1,32 @@
-import { parseJwt } from "@/lib/utils";
 import {
   accountApiFactory,
   authenticationApiFactory,
 } from "@/Service/Factories";
-import type { AuthenticationTokenResponseModel } from "@/Service/Generates/api";
+import type { AuthResponseModel } from "@/Service/Generates/api";
 import NextAuth, { type NextAuthOptions } from "next-auth";
-import type { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 
-type DecodedAccessToken = {
-  id: string;
-  fullName?: string;
-  email?: string;
-  image?: string;
-  exp?: number;
-};
-
+// Types
 type RawCredentials = {
   email?: string;
   password?: string;
 };
 
-type UserWithTokens = {
-  accessToken: string;
-  refreshToken?: string;
-  accessTokenExpires?: number;
-};
-
-const isUserWithTokens = (u: unknown): u is UserWithTokens =>
-  !!u && typeof u === "object" && "accessToken" in u;
-
-const ACCESS_TOKEN_GRACE_PERIOD_MS = 60 * 1000;
-
+// Error normalization
 const normalizeAuthError = (error: unknown, fallback: string) => {
   if (error instanceof Error) return error;
   if (typeof error === "string") return new Error(error);
+  // Enhance this to look into Axios error response if available
+  // @ts-ignore - Check if it's an axios error
+  if (error?.response?.data?.message) {
+    // @ts-ignore
+    return new Error(error.response.data.message);
+  }
   return new Error(fallback);
 };
 
-const ensureTokens = (tokens?: AuthenticationTokenResponseModel | null) => {
-  if (!tokens?.accessToken) {
-    throw new Error("Erişim tokenı yok veya geçersiz.");
-  }
-  if (!tokens.refreshToken) {
-    throw new Error("Refresh token zorunludur.");
-  }
-
-  return {
-    accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken,
-  };
-};
-
-const decodeUserFromToken = async (accessToken: string) => {
-  const decoded = await parseJwt<DecodedAccessToken>(accessToken);
-  if (!decoded?.id) {
-    throw new Error("Token içerisinde kullanıcı bilgisi bulunamadı.");
-  }
-
-  return {
-    id: decoded.id,
-    name: decoded.fullName ?? decoded.email ?? "Kullanıcı",
-    email: decoded.email,
-    image: decoded.image,
-    accessTokenExpires: decoded.exp ? decoded.exp * 1000 : undefined,
-  };
-};
-
-const mapTokensToUser = async (
-  tokens?: AuthenticationTokenResponseModel | null,
-) => {
-  const { accessToken, refreshToken } = ensureTokens(tokens);
-  try {
-    const decoded = await decodeUserFromToken(accessToken);
-    const expiresFromResponse = tokens?.expiresIn
-      ? Date.now() + tokens.expiresIn * 1000
-      : undefined;
-    const accessTokenExpires =
-      expiresFromResponse ??
-      decoded.accessTokenExpires ??
-      Date.now() + 5 * 60 * 1000;
-
-    return {
-      ...decoded,
-      accessToken,
-      refreshToken,
-      accessTokenExpires,
-    };
-  } catch (error) {
-    throw normalizeAuthError(error, "Kullanıcı bilgileri çözümlenemedi.");
-  }
-};
-
-const authenticateWithBackend = async (credentials: RawCredentials) => {
-  if (!credentials.email || !credentials.password) {
-    throw new Error("E-posta ve şifre gerekli.");
-  }
-
-  try {
-    const loginRes = await authenticationApiFactory.login({
-      authenticationSignInRequestModel: {
-        email: credentials.email,
-        password: credentials.password,
-      },
-    });
-
-    const tokens = loginRes.data?.result;
-    if (!tokens) {
-      throw new Error("Kimlik doğrulama yanıtı alınamadı.");
-    }
-
-    return tokens;
-  } catch (error) {
-    throw normalizeAuthError(error, "Kimlik doğrulama başarısız oldu.");
-  }
-};
-
-const refreshSessionToken = async (token: JWT) => {
-  if (typeof token.refreshToken !== "string" || !token.refreshToken) {
-    token.error = "NoRefreshToken";
-    return token;
-  }
-
-  try {
-    const res = await authenticationApiFactory.refreshToken({
-      authenticationRefreshTokenRequestModel: {
-        refreshToken: token.refreshToken,
-      },
-    });
-
-    const tokens = res.data.result;
-
-    if (!tokens?.accessToken) {
-      throw new Error("Yeni erişim tokenı alınamadı.");
-    }
-
-    token.accessToken = tokens.accessToken;
-    token.refreshToken = tokens.refreshToken ?? token.refreshToken;
-
-    try {
-      const decoded = await parseJwt<{ exp?: number }>(tokens.accessToken);
-      const fromExp = decoded.exp ? decoded.exp * 1000 : undefined;
-      const fromResponse = tokens.expiresIn
-        ? Date.now() + tokens.expiresIn * 1000
-        : undefined;
-      token.accessTokenExpires =
-        fromResponse ?? fromExp ?? Date.now() + 5 * 60 * 1000;
-    } catch (err) {
-      console.warn("Failed to decode refreshed access token", err);
-      token.accessTokenExpires = tokens?.expiresIn
-        ? Date.now() + tokens.expiresIn * 1000
-        : undefined;
-    }
-
-    delete token.error;
-    return token;
-  } catch (error) {
-    console.error("Refresh access token error", error);
-    token.error = "RefreshAccessTokenError";
-    return token;
-  }
-};
-
 export const authOptions: NextAuthOptions = {
+  // Use JWT strategy because we need to persist the opaque session ID in the cookie
   session: { strategy: "jwt" },
   providers: [
     Credentials({
@@ -173,62 +37,121 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const normalized = (credentials ?? {}) as RawCredentials;
+          const creds = (credentials ?? {}) as RawCredentials & { passkey?: string };
 
-          const tokens = await authenticateWithBackend(normalized);
-          return await mapTokensToUser(tokens);
-        } catch (error) {
-          throw normalizeAuthError(error, "Kimlik doğrulama başarısız oldu.");
+          // Passkey login flow: frontend handles WebAuthn and sends credential JSON
+          if (creds.passkey) {
+            if (!creds.email) {
+              throw new Error("E-posta (Email) passkey ile giriş için gerekli.");
+            }
+            const parsed = typeof creds.passkey === "string" ? JSON.parse(creds.passkey) : creds.passkey;
+            const res = await authenticationApiFactory.passkeyLoginFinish({
+              passkeyLoginFinishRequestModel: {
+                Email: creds.email,
+                Credential: parsed,
+              },
+            });
+
+            const authData = res.data?.Result as unknown as AuthResponseModel | undefined;
+            if (!authData || !authData.SessionId) {
+              throw new Error("Passkey ile giriş başarısız.");
+            }
+
+            return {
+              id: authData.SessionId,
+              sessionId: authData.SessionId,
+              expiresAt: authData.ExpiresAt,
+              requiresTwoFactor: authData.RequiresTwoFactor,
+            };
+          }
+
+          if (!creds.email || !creds.password) {
+            throw new Error("E-posta ve şifre gereklidir.");
+          }
+
+          // Call the new Login endpoint
+          const response = await authenticationApiFactory.login({
+            loginRequestModel: {
+              Email: creds.email,
+              Password: creds.password,
+            },
+          });
+
+          const baseResponse = response.data;
+
+          if (!baseResponse.Result) {
+            throw new Error("Sunucudan geçerli bir yanıt alınamadı.");
+          }
+
+          const authData = baseResponse.Result as unknown as AuthResponseModel;
+
+          if (!authData.SessionId) {
+            throw new Error("Oturum kimliği alınamadı.");
+          }
+
+          return {
+            id: authData.SessionId,
+            sessionId: authData.SessionId,
+            expiresAt: authData.ExpiresAt,
+            requiresTwoFactor: authData.RequiresTwoFactor,
+          };
+        } catch (error: any) {
+          console.error("Login failed:", error);
+          throw normalizeAuthError(error, "Giriş işlemi başarısız oldu.");
         }
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (isUserWithTokens(user)) {
-        token.accessToken = user.accessToken;
-        token.refreshToken = user.refreshToken;
-        token.accessTokenExpires = user.accessTokenExpires;
-
-        return token;
+    async jwt({ token, user, trigger, session }) {
+      // Allow updating session from client (e.g. after 2FA verification if we handle it client-side)
+      if (trigger === "update" && session) {
+        return { ...token, ...session };
       }
 
-      if (
-        token.accessToken &&
-        token.accessTokenExpires &&
-        typeof token.accessTokenExpires === "number"
-      ) {
-        const now = Date.now();
-        if (now < token.accessTokenExpires - ACCESS_TOKEN_GRACE_PERIOD_MS) {
-          return token;
-        }
+      // Initial sign in - properties come from the object returned by authorize()
+      if (user) {
+        token.sessionId = user.sessionId;
+        token.expiresAt = user.expiresAt;
+        token.requiresTwoFactor = user.requiresTwoFactor;
+        // User.id is already set
       }
 
-      return refreshSessionToken(token);
+      return token;
     },
     async session({ session, token }) {
-      if (token?.accessToken) session.accessToken = token.accessToken;
-      if (token?.accessTokenExpires)
-        session.accessTokenExpires = token.accessTokenExpires;
+      // Pass token data to session
+      session.sessionId = token.sessionId;
+      session.expiresAt = token.expiresAt;
+      session.requiresTwoFactor = token.requiresTwoFactor;
 
-      if (token?.error) session.error = token.error as string;
+      // If we have a session ID and NOT requiresTwoFactor, try to fetch profile
+      // If requiresTwoFactor is true, the user is technically not fully logged in yet
+      if (session.sessionId && !session.requiresTwoFactor) {
+        try {
+          // Fetch user profile using the session ID in header
+          const profileRes = await accountApiFactory.profile({
+            headers: {
+              "X-Session-Id": session.sessionId,
+            },
+          });
 
-      try {
-        const account = await accountApiFactory.profile({
-          headers: {
-            Authorization: `Bearer ${token.accessToken}`,
-          },
-        });
+          // profileRes.data is AccountProfileResponseBaseModel { Result: AccountProfileResponseModel, ... }
+          const profile = profileRes.data.Result as any; // Cast if needed
 
-        session.user = {
-          id: account.data.result.id,
-          name: account.data.result.fullName,
-          email: account.data.result.email,
-          image: account.data.result.image,
-        };
-      } catch (err) {
-        // If profile lookup fails, return session with whatever we have — the token may be invalid
-        console.warn("Failed to fetch profile in session callback", err);
+          if (profile) {
+            session.user = {
+              id: profile.Id,
+              name: profile.FullName,
+              email: profile.Email,
+              image: profile.Image,
+              role: profile.Role,
+            };
+          }
+        } catch (error) {
+          console.error("Failed to fetch profile in session callback", error);
+          // Don't fail the session entirely, but user info might be missing
+        }
       }
 
       return session;
@@ -236,17 +159,16 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signOut({ token }) {
-      try {
-        const refreshToken = token?.refreshToken;
-        if (!refreshToken) return;
-
-        await authenticationApiFactory.logout({
-          authenticationRefreshTokenRequestModel: {
-            refreshToken,
-          },
-        });
-      } catch (err) {
-        console.warn("Failed to revoke refresh token on signOut", err);
+      if (token.sessionId) {
+        try {
+          await authenticationApiFactory.logout({
+            headers: {
+              "X-Session-Id": token.sessionId,
+            },
+          });
+        } catch (error) {
+          // Ignore logout errors
+        }
       }
     },
   },

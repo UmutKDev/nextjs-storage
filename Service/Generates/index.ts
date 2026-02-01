@@ -1,4 +1,5 @@
 /* tslint:disable */
+/* eslint-disable */
 /**
  * Base API Service
  * Base API Service Test Environment & Documentation
@@ -14,3 +15,4 @@
 
 export * from "./api";
 export * from "./configuration";
+

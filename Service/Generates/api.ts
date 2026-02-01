@@ -24,24 +24,24 @@ import type { RequestArgs } from './base';
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
 export interface AccountChangePasswordRequestModel {
-    'current_password': string;
-    'new_password': string;
-    'new_password_confirmation': string;
+    'CurrentPassword': string;
+    'NewPassword': string;
+    'NewPasswordConfirmation': string;
 }
 export interface AccountProfileResponseBaseModel {
-    'result': AccountProfileResponseModel;
-    'status': BaseStatusModel;
+    'Result': AccountProfileResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface AccountProfileResponseModel {
-    'id': string;
-    'email': string;
-    'fullName': string;
-    'phoneNumber': string;
-    'image': string;
-    'role': AccountProfileResponseModelRoleEnum;
-    'status': AccountProfileResponseModelStatusEnum;
-    'subscription': UserSubscriptionResponseModel;
-    'date': UserDateModel;
+    'Id': string;
+    'Email': string;
+    'FullName': string;
+    'PhoneNumber': string;
+    'Image': string;
+    'Role': AccountProfileResponseModelRoleEnum;
+    'Status': AccountProfileResponseModelStatusEnum;
+    'Subscription': UserSubscriptionResponseModel;
+    'Date': UserDateModel;
 }
 
 export const AccountProfileResponseModelRoleEnum = {
@@ -61,54 +61,131 @@ export const AccountProfileResponseModelStatusEnum = {
 export type AccountProfileResponseModelStatusEnum = typeof AccountProfileResponseModelStatusEnum[keyof typeof AccountProfileResponseModelStatusEnum];
 
 export interface AccountPutBodyRequestModel {
-    'fullName': string;
-    'phoneNumber': string;
+    'FullName': string;
+    'PhoneNumber': string;
+}
+export interface ApiKeyCreateRequestModel {
+    'Name': string;
+    'Scopes': Array<ApiKeyCreateRequestModelScopesEnum>;
+    'Environment': ApiKeyCreateRequestModelEnvironmentEnum;
+    'IpWhitelist'?: Array<string>;
+    'RateLimitPerMinute'?: number;
+    'ExpiresAt'?: string;
+}
+
+export const ApiKeyCreateRequestModelScopesEnum = {
+    Read: 'READ',
+    Write: 'WRITE',
+    Delete: 'DELETE',
+    Admin: 'ADMIN'
+} as const;
+
+export type ApiKeyCreateRequestModelScopesEnum = typeof ApiKeyCreateRequestModelScopesEnum[keyof typeof ApiKeyCreateRequestModelScopesEnum];
+export const ApiKeyCreateRequestModelEnvironmentEnum = {
+    Test: 'TEST',
+    Live: 'LIVE'
+} as const;
+
+export type ApiKeyCreateRequestModelEnvironmentEnum = typeof ApiKeyCreateRequestModelEnvironmentEnum[keyof typeof ApiKeyCreateRequestModelEnvironmentEnum];
+
+export interface ApiKeyCreatedResponseBaseModel {
+    'Result': ApiKeyCreatedResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface ApiKeyCreatedResponseModel {
+    'Id': string;
+    'Name': string;
+    /**
+     * Public key - can be shared
+     */
+    'PublicKey': string;
+    /**
+     * Secret key - shown only once!
+     */
+    'SecretKey': string;
+    'Environment': string;
+    'Scopes': Array<string>;
+    'CreatedAt': string;
+}
+export interface ApiKeyRotateResponseBaseModel {
+    'Result': ApiKeyRotateResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface ApiKeyRotateResponseModel {
+    'Id': string;
+    'PublicKey': string;
+    /**
+     * New secret key - shown only once!
+     */
+    'SecretKey': string;
+}
+export interface ApiKeyUpdateRequestModel {
+    'Name'?: string;
+    'Scopes'?: Array<ApiKeyUpdateRequestModelScopesEnum>;
+    'IpWhitelist'?: Array<string>;
+    'RateLimitPerMinute'?: number;
+}
+
+export const ApiKeyUpdateRequestModelScopesEnum = {
+    Read: 'READ',
+    Write: 'WRITE',
+    Delete: 'DELETE',
+    Admin: 'ADMIN'
+} as const;
+
+export type ApiKeyUpdateRequestModelScopesEnum = typeof ApiKeyUpdateRequestModelScopesEnum[keyof typeof ApiKeyUpdateRequestModelScopesEnum];
+
+export interface ApiKeyViewBaseModel {
+    'Result': ApiKeyViewModel;
+    'Status': BaseStatusModel;
+}
+export interface ApiKeyViewModel {
+    'Id': string;
+    'Name': string;
+    'PublicKey': string;
+    /**
+     * First 8 characters of secret key
+     */
+    'SecretKeyPrefix': string;
+    'Environment': string;
+    'Scopes': Array<string>;
+    'IpWhitelist': Array<string>;
+    'RateLimitPerMinute': number;
+    'LastUsedAt': string;
+    'ExpiresAt': string;
+    'IsRevoked': boolean;
+    'CreatedAt': string;
 }
 export interface ArrayResponseModel {
-    'options': PaginationResponseModel;
-    'items': Array<Array<string>>;
+    'Options': PaginationResponseModel;
+    'Items': Array<Array<string>>;
 }
-export interface AuthenticationRefreshTokenRequestModel {
-    'refreshToken': string;
+export interface AuthResponseBaseModel {
+    'Result': AuthResponseModel;
+    'Status': BaseStatusModel;
 }
-export interface AuthenticationResetPasswordRequestModel {
-    'email': string;
-}
-export interface AuthenticationSignInRequestModel {
-    'email': string;
-    'password': string;
-}
-export interface AuthenticationSignUpRequestModel {
-    'email': string;
-    'password': string;
-    'password_confirmation': string;
-}
-export interface AuthenticationTokenResponseBaseModel {
-    'result': AuthenticationTokenResponseModel;
-    'status': BaseStatusModel;
-}
-export interface AuthenticationTokenResponseModel {
-    'accessToken'?: string;
-    'refreshToken'?: string;
-    'expiresIn'?: number;
+export interface AuthResponseModel {
+    'SessionId': string;
+    'ExpiresAt': string;
+    'RequiresTwoFactor': boolean;
 }
 export interface BaseDateModel {
-    'created': string;
-    'updated': string;
+    'Created': string;
+    'Updated': string;
 }
 export interface BaseResponseModel {
-    'result': object;
-    'status': BaseStatusModel;
+    'Result': object;
+    'Status': BaseStatusModel;
 }
 export interface BaseStatusModel {
-    'messages': Array<string>;
-    'code': number;
-    'timestamp': string;
-    'path': string;
+    'Messages': Array<string>;
+    'Code': number;
+    'Timestamp': string;
+    'Path': string;
 }
 export interface BooleanResponseModel {
-    'result': boolean;
-    'status': BaseStatusModel;
+    'Result': boolean;
+    'Status': BaseStatusModel;
 }
 export interface Check200Response {
     'status'?: string;
@@ -132,12 +209,12 @@ export interface CloudAbortMultipartUploadRequestModel {
     'UploadId': string;
 }
 export interface CloudBreadCrumbListBaseModel {
-    'result': CloudBreadCrumbListModelResult;
-    'status': BaseStatusModel;
+    'Result': CloudBreadCrumbListModelResult;
+    'Status': BaseStatusModel;
 }
 export interface CloudBreadCrumbListModelResult {
-    'options': PaginationResponseModel;
-    'items': Array<CloudBreadCrumbModel>;
+    'Options': PaginationResponseModel;
+    'Items': Array<CloudBreadCrumbModel>;
 }
 export interface CloudBreadCrumbModel {
     'Name': string;
@@ -158,8 +235,8 @@ export interface CloudCompleteMultipartUploadRequestModel {
     'Parts': Array<CloudMultipartPartModel>;
 }
 export interface CloudCompleteMultipartUploadResponseBaseModel {
-    'result': CloudCompleteMultipartUploadResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudCompleteMultipartUploadResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudCompleteMultipartUploadResponseModel {
     'Location': string;
@@ -175,8 +252,8 @@ export interface CloudCreateMultipartUploadRequestModel {
     'TotalSize': number;
 }
 export interface CloudCreateMultipartUploadResponseBaseModel {
-    'result': CloudCreateMultipartUploadResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudCreateMultipartUploadResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudCreateMultipartUploadResponseModel {
     'UploadId': string;
@@ -190,12 +267,12 @@ export interface CloudDeleteRequestModel {
     'Items': Array<CloudDeleteModel>;
 }
 export interface CloudDirectoryListBaseModel {
-    'result': CloudDirectoryListModelResult;
-    'status': BaseStatusModel;
+    'Result': CloudDirectoryListModelResult;
+    'Status': BaseStatusModel;
 }
 export interface CloudDirectoryListModelResult {
-    'options': PaginationResponseModel;
-    'items': Array<CloudDirectoryModel>;
+    'Options': PaginationResponseModel;
+    'Items': Array<CloudDirectoryModel>;
 }
 export interface CloudDirectoryModel {
     'Name': string;
@@ -211,8 +288,8 @@ export interface CloudExtractZipCancelRequestModel {
     'JobId': string;
 }
 export interface CloudExtractZipCancelResponseBaseModel {
-    'result': CloudExtractZipCancelResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudExtractZipCancelResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudExtractZipCancelResponseModel {
     'Cancelled': boolean;
@@ -221,15 +298,15 @@ export interface CloudExtractZipStartRequestModel {
     'Key': string;
 }
 export interface CloudExtractZipStartResponseBaseModel {
-    'result': CloudExtractZipStartResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudExtractZipStartResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudExtractZipStartResponseModel {
     'JobId': string;
 }
 export interface CloudExtractZipStatusResponseBaseModel {
-    'result': CloudExtractZipStatusResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudExtractZipStatusResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudExtractZipStatusResponseModel {
     'JobId': string;
@@ -244,16 +321,16 @@ export interface CloudGetMultipartPartUrlRequestModel {
     'PartNumber': number;
 }
 export interface CloudGetMultipartPartUrlResponseBaseModel {
-    'result': CloudGetMultipartPartUrlResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudGetMultipartPartUrlResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudGetMultipartPartUrlResponseModel {
     'Url': string;
     'Expires': number;
 }
 export interface CloudListResponseBaseModel {
-    'result': CloudListResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudListResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudListResponseModel {
     'Breadcrumb': Array<CloudBreadCrumbModel>;
@@ -274,16 +351,16 @@ export interface CloudMultipartPartModel {
     'ETag': string;
 }
 export interface CloudObjectBaseModel {
-    'result': CloudObjectModel;
-    'status': BaseStatusModel;
+    'Result': CloudObjectModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudObjectListBaseModel {
-    'result': CloudObjectListModelResult;
-    'status': BaseStatusModel;
+    'Result': CloudObjectListModelResult;
+    'Status': BaseStatusModel;
 }
 export interface CloudObjectListModelResult {
-    'options': PaginationResponseModel;
-    'items': Array<CloudObjectModel>;
+    'Options': PaginationResponseModel;
+    'Items': Array<CloudObjectModel>;
 }
 export interface CloudObjectModel {
     'Name': string;
@@ -301,8 +378,8 @@ export interface CloudPathModel {
     'Url': string;
 }
 export interface CloudScanStatusResponseBaseModel {
-    'result': CloudScanStatusResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudScanStatusResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudScanStatusResponseModel {
     'Status': string;
@@ -322,15 +399,15 @@ export interface CloudUploadPartRequestModel {
     'File': File;
 }
 export interface CloudUploadPartResponseBaseModel {
-    'result': CloudUploadPartResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudUploadPartResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudUploadPartResponseModel {
     'ETag': string;
 }
 export interface CloudUserStorageUsageResponseBaseModel {
-    'result': CloudUserStorageUsageResponseModel;
-    'status': BaseStatusModel;
+    'Result': CloudUserStorageUsageResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface CloudUserStorageUsageResponseModel {
     'UsedStorageInBytes': number;
@@ -340,19 +417,19 @@ export interface CloudUserStorageUsageResponseModel {
     'MaxUploadSizeBytes': number;
 }
 export interface DefinitionGroupResponseListBaseModel {
-    'result': DefinitionGroupResponseListModelResult;
-    'status': BaseStatusModel;
+    'Result': DefinitionGroupResponseListModelResult;
+    'Status': BaseStatusModel;
 }
 export interface DefinitionGroupResponseListModelResult {
-    'options': PaginationResponseModel;
-    'items': Array<DefinitionGroupResponseModel>;
+    'Options': PaginationResponseModel;
+    'Items': Array<DefinitionGroupResponseModel>;
 }
 export interface DefinitionGroupResponseModel {
-    'id': string;
-    'code': string;
-    'description': string;
-    'isCommon': boolean;
-    'date': BaseDateModel;
+    'Id': string;
+    'Code': string;
+    'Description': string;
+    'IsCommon': boolean;
+    'Date': BaseDateModel;
 }
 export interface DirectoryConvertToEncryptedRequestModel {
     /**
@@ -399,8 +476,8 @@ export interface DirectoryRenameRequestModel {
     'Name': string;
 }
 export interface DirectoryResponseBaseModel {
-    'result': DirectoryResponseModel;
-    'status': BaseStatusModel;
+    'Result': DirectoryResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface DirectoryResponseModel {
     'Path': string;
@@ -415,8 +492,8 @@ export interface DirectoryUnlockRequestModel {
     'Path': string;
 }
 export interface DirectoryUnlockResponseBaseModel {
-    'result': DirectoryUnlockResponseModel;
-    'status': BaseStatusModel;
+    'Result': DirectoryUnlockResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface DirectoryUnlockResponseModel {
     /**
@@ -441,61 +518,129 @@ export interface DirectoryUnlockResponseModel {
     'TTL': number;
 }
 export interface InternalServerErrorResponseModel {
-    'result': any;
-    'status': InternalServerErrorResponseModelAllOfStatus;
+    'Result': any;
+    'Status': InternalServerErrorResponseModelAllOfStatus;
 }
 export interface InternalServerErrorResponseModel1 {
-    'result': string;
-    'status': InternalServerErrorResponseModelAllOfStatus;
+    'Result': string;
+    'Status': InternalServerErrorResponseModelAllOfStatus;
 }
 export interface InternalServerErrorResponseModelAllOfStatus {
-    'code'?: number;
-    'message'?: string;
+    'Code'?: number;
+    'Message'?: string;
+}
+export interface LoginRequestModel {
+    'Email': string;
+    'Password': string;
 }
 export interface PaginationResponseModel {
-    'search': string;
-    'skip': number;
-    'take': number;
-    'count': number;
+    'Search': string;
+    'Skip': number;
+    'Take': number;
+    'Count': number;
+}
+export interface PasskeyLoginBeginRequestModel {
+    'Email': string;
+}
+export interface PasskeyLoginBeginResponseBaseModel {
+    'Result': PasskeyLoginBeginResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface PasskeyLoginBeginResponseModel {
+    'Challenge': string;
+    'Options': object;
+}
+export interface PasskeyLoginFinishRequestModel {
+    'Email': string;
+    'Credential': object;
+}
+export interface PasskeyRegistrationBeginRequestModel {
+    /**
+     * Name for the passkey device
+     */
+    'DeviceName': string;
+}
+export interface PasskeyRegistrationBeginResponseBaseModel {
+    'Result': PasskeyRegistrationBeginResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface PasskeyRegistrationBeginResponseModel {
+    'Challenge': string;
+    'Options': object;
+}
+export interface PasskeyRegistrationFinishRequestModel {
+    'DeviceName': string;
+    'Credential': object;
+}
+export interface PasskeyViewBaseModel {
+    'Result': PasskeyViewModel;
+    'Status': BaseStatusModel;
+}
+export interface PasskeyViewModel {
+    'Id': string;
+    'DeviceName': string;
+    'DeviceType': string;
+    'CreatedAt': string;
+    'LastUsedAt': string;
+}
+export interface RegisterRequestModel {
+    'Email': string;
+    'Password': string;
+    'PasswordConfirmation': string;
+}
+export interface ResetPasswordRequestModel {
+    'Email': string;
+}
+export interface SessionViewBaseModel {
+    'Result': SessionViewModel;
+    'Status': BaseStatusModel;
+}
+export interface SessionViewModel {
+    'Id': string;
+    'DeviceInfo': object;
+    'IpAddress': string;
+    'CreatedAt': string;
+    'LastActivityAt': string;
+    'IsCurrent': boolean;
 }
 export interface StringResponseModel {
-    'result': string;
-    'status': BaseStatusModel;
+    'Result': string;
+    'Status': BaseStatusModel;
 }
 export interface SubscribeAsAdminRequestModel {
-    'subscriptionId': string;
-    'isTrial'?: boolean;
-    'providerSubscriptionId'?: string;
-    'userId': string;
+    'SubscriptionId': string;
+    'IsTrial'?: boolean;
+    'ProviderSubscriptionId'?: string;
+    'UserId': string;
 }
 export interface SubscribeRequestModel {
-    'subscriptionId': string;
-    'isTrial'?: boolean;
-    'providerSubscriptionId'?: string;
+    'SubscriptionId': string;
+    'IsTrial'?: boolean;
+    'ProviderSubscriptionId'?: string;
 }
 export interface SubscriptionDateModel {
-    'created': string;
-    'updated': string;
+    'Created': string;
+    'Updated': string;
 }
 export interface SubscriptionFindResponseBaseModel {
-    'result': SubscriptionFindResponseModel;
-    'status': BaseStatusModel;
+    'Result': SubscriptionFindResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface SubscriptionFindResponseModel {
-    'id': string;
-    'name': string;
-    'slug': string;
-    'description'?: string;
-    'currency': string;
-    'billingCycle': SubscriptionFindResponseModelBillingCycleEnum;
+    'Id': string;
+    'Name': string;
+    'Slug': string;
+    'Description'?: string;
+    'Currency': string;
+    'BillingCycle': SubscriptionFindResponseModelBillingCycleEnum;
     /**
      * Storage limit in bytes - 0 means unlimited
      */
-    'storageLimitBytes': number;
-    'maxObjectCount'?: number;
-    'features'?: object;
-    'status': SubscriptionFindResponseModelStatusEnum;
-    'date': SubscriptionDateModel;
+    'StorageLimitBytes': number;
+    'MaxObjectCount'?: number;
+    'Features'?: object;
+    'Status': SubscriptionFindResponseModelStatusEnum;
+    'Date': SubscriptionDateModel;
 }
 
 export const SubscriptionFindResponseModelBillingCycleEnum = {
@@ -517,28 +662,28 @@ export const SubscriptionFindResponseModelStatusEnum = {
 export type SubscriptionFindResponseModelStatusEnum = typeof SubscriptionFindResponseModelStatusEnum[keyof typeof SubscriptionFindResponseModelStatusEnum];
 
 export interface SubscriptionListResponseListBaseModel {
-    'result': SubscriptionListResponseListModelResult;
-    'status': BaseStatusModel;
+    'Result': SubscriptionListResponseListModelResult;
+    'Status': BaseStatusModel;
 }
 export interface SubscriptionListResponseListModelResult {
-    'options': PaginationResponseModel;
-    'items': Array<SubscriptionListResponseModel>;
+    'Options': PaginationResponseModel;
+    'Items': Array<SubscriptionListResponseModel>;
 }
 export interface SubscriptionListResponseModel {
-    'id': string;
-    'name': string;
-    'slug': string;
-    'description'?: string;
-    'currency': string;
-    'billingCycle': SubscriptionListResponseModelBillingCycleEnum;
+    'Id': string;
+    'Name': string;
+    'Slug': string;
+    'Description'?: string;
+    'Currency': string;
+    'BillingCycle': SubscriptionListResponseModelBillingCycleEnum;
     /**
      * Storage limit in bytes - 0 means unlimited
      */
-    'storageLimitBytes': number;
-    'maxObjectCount'?: number;
-    'features'?: object;
-    'status': SubscriptionListResponseModelStatusEnum;
-    'date': SubscriptionDateModel;
+    'StorageLimitBytes': number;
+    'MaxObjectCount'?: number;
+    'Features'?: object;
+    'Status': SubscriptionListResponseModelStatusEnum;
+    'Date': SubscriptionDateModel;
 }
 
 export const SubscriptionListResponseModelBillingCycleEnum = {
@@ -560,22 +705,22 @@ export const SubscriptionListResponseModelStatusEnum = {
 export type SubscriptionListResponseModelStatusEnum = typeof SubscriptionListResponseModelStatusEnum[keyof typeof SubscriptionListResponseModelStatusEnum];
 
 export interface SubscriptionPostBodyRequestModel {
-    'name': string;
-    'slug': string;
-    'description'?: string;
+    'Name': string;
+    'Slug': string;
+    'Description'?: string;
     /**
      * Price in cents
      */
-    'price': number;
-    'currency': string;
-    'billingCycle': SubscriptionPostBodyRequestModelBillingCycleEnum;
+    'Price': number;
+    'Currency': string;
+    'BillingCycle': SubscriptionPostBodyRequestModelBillingCycleEnum;
     /**
      * Storage limit in bytes - 0 means unlimited
      */
-    'storageLimitBytes': number;
-    'maxObjectCount'?: number;
-    'features'?: object;
-    'status': SubscriptionPostBodyRequestModelStatusEnum;
+    'StorageLimitBytes': number;
+    'MaxObjectCount'?: number;
+    'Features'?: object;
+    'Status': SubscriptionPostBodyRequestModelStatusEnum;
 }
 
 export const SubscriptionPostBodyRequestModelBillingCycleEnum = {
@@ -597,21 +742,21 @@ export const SubscriptionPostBodyRequestModelStatusEnum = {
 export type SubscriptionPostBodyRequestModelStatusEnum = typeof SubscriptionPostBodyRequestModelStatusEnum[keyof typeof SubscriptionPostBodyRequestModelStatusEnum];
 
 export interface SubscriptionPutBodyRequestModel {
-    'name': string;
-    'description'?: string;
+    'Name': string;
+    'Description'?: string;
     /**
      * Price in cents
      */
-    'price': number;
-    'currency': string;
-    'billingCycle': SubscriptionPutBodyRequestModelBillingCycleEnum;
+    'Price': number;
+    'Currency': string;
+    'BillingCycle': SubscriptionPutBodyRequestModelBillingCycleEnum;
     /**
      * Storage limit in bytes - 0 means unlimited
      */
-    'storageLimitBytes': number;
-    'maxObjectCount'?: number;
-    'features'?: object;
-    'status': SubscriptionPutBodyRequestModelStatusEnum;
+    'StorageLimitBytes': number;
+    'MaxObjectCount'?: number;
+    'Features'?: object;
+    'Status': SubscriptionPutBodyRequestModelStatusEnum;
 }
 
 export const SubscriptionPutBodyRequestModelBillingCycleEnum = {
@@ -633,20 +778,20 @@ export const SubscriptionPutBodyRequestModelStatusEnum = {
 export type SubscriptionPutBodyRequestModelStatusEnum = typeof SubscriptionPutBodyRequestModelStatusEnum[keyof typeof SubscriptionPutBodyRequestModelStatusEnum];
 
 export interface SubscriptionResponseModel {
-    'id': string;
-    'name': string;
-    'slug': string;
-    'description'?: string;
-    'currency': string;
-    'billingCycle': SubscriptionResponseModelBillingCycleEnum;
+    'Id': string;
+    'Name': string;
+    'Slug': string;
+    'Description'?: string;
+    'Currency': string;
+    'BillingCycle': SubscriptionResponseModelBillingCycleEnum;
     /**
      * Storage limit in bytes - 0 means unlimited
      */
-    'storageLimitBytes': number;
-    'maxObjectCount'?: number;
-    'features'?: object;
-    'status': SubscriptionResponseModelStatusEnum;
-    'date': SubscriptionDateModel;
+    'StorageLimitBytes': number;
+    'MaxObjectCount'?: number;
+    'Features'?: object;
+    'Status': SubscriptionResponseModelStatusEnum;
+    'Date': SubscriptionDateModel;
 }
 
 export const SubscriptionResponseModelBillingCycleEnum = {
@@ -667,25 +812,58 @@ export const SubscriptionResponseModelStatusEnum = {
 
 export type SubscriptionResponseModelStatusEnum = typeof SubscriptionResponseModelStatusEnum[keyof typeof SubscriptionResponseModelStatusEnum];
 
+export interface TwoFactorBackupCodesResponseBaseModel {
+    'Result': TwoFactorBackupCodesResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface TwoFactorBackupCodesResponseModel {
+    'BackupCodes': Array<string>;
+}
+export interface TwoFactorSetupResponseBaseModel {
+    'Result': TwoFactorSetupResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface TwoFactorSetupResponseModel {
+    'Secret': string;
+    'Issuer': string;
+    'AccountName': string;
+    'OtpAuthUrl': string;
+}
+export interface TwoFactorStatusResponseBaseModel {
+    'Result': TwoFactorStatusResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface TwoFactorStatusResponseModel {
+    'IsEnabled': boolean;
+    'Method': string;
+    'HasPasskey': boolean;
+    'BackupCodesRemaining': number;
+}
+export interface TwoFactorVerifyRequestModel {
+    /**
+     * TOTP code from authenticator app
+     */
+    'Code': string;
+}
 export interface UserDateModel {
-    'created': string;
-    'updated': string;
-    'lastLogin': string;
+    'Created': string;
+    'Updated': string;
+    'LastLogin': string;
 }
 export interface UserFindResponseBaseModel {
-    'result': UserFindResponseModel;
-    'status': BaseStatusModel;
+    'Result': UserFindResponseModel;
+    'Status': BaseStatusModel;
 }
 export interface UserFindResponseModel {
-    'id': string;
-    'email': string;
-    'fullName': string;
-    'phoneNumber': string;
-    'image': string;
-    'role': UserFindResponseModelRoleEnum;
-    'status': UserFindResponseModelStatusEnum;
-    'subscription': UserSubscriptionResponseModel;
-    'date': UserDateModel;
+    'Id': string;
+    'Email': string;
+    'FullName': string;
+    'PhoneNumber': string;
+    'Image': string;
+    'Role': UserFindResponseModelRoleEnum;
+    'Status': UserFindResponseModelStatusEnum;
+    'Subscription': UserSubscriptionResponseModel;
+    'Date': UserDateModel;
 }
 
 export const UserFindResponseModelRoleEnum = {
@@ -705,23 +883,23 @@ export const UserFindResponseModelStatusEnum = {
 export type UserFindResponseModelStatusEnum = typeof UserFindResponseModelStatusEnum[keyof typeof UserFindResponseModelStatusEnum];
 
 export interface UserListResponseListBaseModel {
-    'result': UserListResponseListModelResult;
-    'status': BaseStatusModel;
+    'Result': UserListResponseListModelResult;
+    'Status': BaseStatusModel;
 }
 export interface UserListResponseListModelResult {
-    'options': PaginationResponseModel;
-    'items': Array<UserListResponseModel>;
+    'Options': PaginationResponseModel;
+    'Items': Array<UserListResponseModel>;
 }
 export interface UserListResponseModel {
-    'id': string;
-    'email': string;
-    'fullName': string;
-    'phoneNumber': string;
-    'image': string;
-    'role': UserListResponseModelRoleEnum;
-    'status': UserListResponseModelStatusEnum;
-    'subscription': UserSubscriptionResponseModel;
-    'date': UserDateModel;
+    'Id': string;
+    'Email': string;
+    'FullName': string;
+    'PhoneNumber': string;
+    'Image': string;
+    'Role': UserListResponseModelRoleEnum;
+    'Status': UserListResponseModelStatusEnum;
+    'Subscription': UserSubscriptionResponseModel;
+    'Date': UserDateModel;
 }
 
 export const UserListResponseModelRoleEnum = {
@@ -741,13 +919,13 @@ export const UserListResponseModelStatusEnum = {
 export type UserListResponseModelStatusEnum = typeof UserListResponseModelStatusEnum[keyof typeof UserListResponseModelStatusEnum];
 
 export interface UserPostBodyRequestModel {
-    'email': string;
-    'fullName': string;
-    'phoneNumber': string;
-    'image': string;
-    'role': UserPostBodyRequestModelRoleEnum;
-    'status': UserPostBodyRequestModelStatusEnum;
-    'subscription': UserSubscriptionResponseModel;
+    'Email': string;
+    'FullName': string;
+    'PhoneNumber': string;
+    'Image': string;
+    'Role': UserPostBodyRequestModelRoleEnum;
+    'Status': UserPostBodyRequestModelStatusEnum;
+    'Subscription': UserSubscriptionResponseModel;
 }
 
 export const UserPostBodyRequestModelRoleEnum = {
@@ -767,12 +945,12 @@ export const UserPostBodyRequestModelStatusEnum = {
 export type UserPostBodyRequestModelStatusEnum = typeof UserPostBodyRequestModelStatusEnum[keyof typeof UserPostBodyRequestModelStatusEnum];
 
 export interface UserPutBodyRequestModel {
-    'fullName': string;
-    'phoneNumber': string;
-    'image': string;
-    'role': UserPutBodyRequestModelRoleEnum;
-    'status': UserPutBodyRequestModelStatusEnum;
-    'subscription': UserSubscriptionResponseModel;
+    'FullName': string;
+    'PhoneNumber': string;
+    'Image': string;
+    'Role': UserPutBodyRequestModelRoleEnum;
+    'Status': UserPutBodyRequestModelStatusEnum;
+    'Subscription': UserSubscriptionResponseModel;
 }
 
 export const UserPutBodyRequestModelRoleEnum = {
@@ -792,17 +970,17 @@ export const UserPutBodyRequestModelStatusEnum = {
 export type UserPutBodyRequestModelStatusEnum = typeof UserPutBodyRequestModelStatusEnum[keyof typeof UserPutBodyRequestModelStatusEnum];
 
 export interface UserSubscriptionResponseModel {
-    'id': string;
-    'startAt': string;
-    'endAt'?: string;
-    'isTrial': boolean;
+    'Id': string;
+    'StartAt': string;
+    'EndAt'?: string;
+    'IsTrial': boolean;
     /**
      * Price as cents
      */
-    'price': number;
-    'currency'?: string;
-    'subscription'?: SubscriptionResponseModel;
-    'date': BaseDateModel;
+    'Price': number;
+    'Currency'?: string;
+    'Subscription'?: SubscriptionResponseModel;
+    'Date': BaseDateModel;
 }
 
 /**
@@ -1060,13 +1238,174 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
     return {
         /**
          * 
-         * @param {AuthenticationSignInRequestModel} authenticationSignInRequestModel 
+         * @summary Create new API key
+         * @param {ApiKeyCreateRequestModel} apiKeyCreateRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login: async (authenticationSignInRequestModel: AuthenticationSignInRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authenticationSignInRequestModel' is not null or undefined
-            assertParamExists('login', 'authenticationSignInRequestModel', authenticationSignInRequestModel)
+        createApiKey: async (apiKeyCreateRequestModel: ApiKeyCreateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'apiKeyCreateRequestModel' is not null or undefined
+            assertParamExists('createApiKey', 'apiKeyCreateRequestModel', apiKeyCreateRequestModel)
+            const localVarPath = `/Api/Authentication/ApiKeys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(apiKeyCreateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Delete a passkey
+         * @param {string} passkeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deletePasskey: async (passkeyId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'passkeyId' is not null or undefined
+            assertParamExists('deletePasskey', 'passkeyId', passkeyId)
+            const localVarPath = `/Api/Authentication/Passkey/{passkeyId}`
+                .replace(`{${"passkeyId"}}`, encodeURIComponent(String(passkeyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get all API keys
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getApiKeys: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Authentication/ApiKeys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get registered passkeys
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPasskeys: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Authentication/Passkey`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get all active sessions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSessions: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Authentication/Sessions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Login with email and password
+         * @param {LoginRequestModel} loginRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login: async (loginRequestModel: LoginRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'loginRequestModel' is not null or undefined
+            assertParamExists('login', 'loginRequestModel', loginRequestModel)
             const localVarPath = `/Api/Authentication/Login`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1086,7 +1425,7 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(authenticationSignInRequestModel, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(loginRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1095,14 +1434,11 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * 
-         * @summary Logout and revoke refresh token
-         * @param {AuthenticationRefreshTokenRequestModel} authenticationRefreshTokenRequestModel 
+         * @summary Logout current session
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        logout: async (authenticationRefreshTokenRequestModel: AuthenticationRefreshTokenRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authenticationRefreshTokenRequestModel' is not null or undefined
-            assertParamExists('logout', 'authenticationRefreshTokenRequestModel', authenticationRefreshTokenRequestModel)
+        logout: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Authentication/Logout`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1117,12 +1453,9 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
 
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(authenticationRefreshTokenRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1131,15 +1464,75 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * 
-         * @summary Refresh access token using refresh token
-         * @param {AuthenticationRefreshTokenRequestModel} authenticationRefreshTokenRequestModel 
+         * @summary Logout all sessions
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken: async (authenticationRefreshTokenRequestModel: AuthenticationRefreshTokenRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authenticationRefreshTokenRequestModel' is not null or undefined
-            assertParamExists('refreshToken', 'authenticationRefreshTokenRequestModel', authenticationRefreshTokenRequestModel)
-            const localVarPath = `/Api/Authentication/RefreshToken`;
+        logoutAll: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Authentication/LogoutAll`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Logout all other sessions except current
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logoutOthers: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Authentication/LogoutOthers`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Begin passkey login
+         * @param {PasskeyLoginBeginRequestModel} passkeyLoginBeginRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passkeyLoginBegin: async (passkeyLoginBeginRequestModel: PasskeyLoginBeginRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'passkeyLoginBeginRequestModel' is not null or undefined
+            assertParamExists('passkeyLoginBegin', 'passkeyLoginBeginRequestModel', passkeyLoginBeginRequestModel)
+            const localVarPath = `/Api/Authentication/Passkey/Login/Begin`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1158,7 +1551,7 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(authenticationRefreshTokenRequestModel, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(passkeyLoginBeginRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1167,14 +1560,158 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * 
-         * @summary 
-         * @param {AuthenticationSignUpRequestModel} authenticationSignUpRequestModel 
+         * @summary Complete passkey login
+         * @param {PasskeyLoginFinishRequestModel} passkeyLoginFinishRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        register: async (authenticationSignUpRequestModel: AuthenticationSignUpRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authenticationSignUpRequestModel' is not null or undefined
-            assertParamExists('register', 'authenticationSignUpRequestModel', authenticationSignUpRequestModel)
+        passkeyLoginFinish: async (passkeyLoginFinishRequestModel: PasskeyLoginFinishRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'passkeyLoginFinishRequestModel' is not null or undefined
+            assertParamExists('passkeyLoginFinish', 'passkeyLoginFinishRequestModel', passkeyLoginFinishRequestModel)
+            const localVarPath = `/Api/Authentication/Passkey/Login/Finish`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(passkeyLoginFinishRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Begin passkey registration
+         * @param {PasskeyRegistrationBeginRequestModel} passkeyRegistrationBeginRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passkeyRegisterBegin: async (passkeyRegistrationBeginRequestModel: PasskeyRegistrationBeginRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'passkeyRegistrationBeginRequestModel' is not null or undefined
+            assertParamExists('passkeyRegisterBegin', 'passkeyRegistrationBeginRequestModel', passkeyRegistrationBeginRequestModel)
+            const localVarPath = `/Api/Authentication/Passkey/Register/Begin`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(passkeyRegistrationBeginRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Complete passkey registration
+         * @param {PasskeyRegistrationFinishRequestModel} passkeyRegistrationFinishRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passkeyRegisterFinish: async (passkeyRegistrationFinishRequestModel: PasskeyRegistrationFinishRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'passkeyRegistrationFinishRequestModel' is not null or undefined
+            assertParamExists('passkeyRegisterFinish', 'passkeyRegistrationFinishRequestModel', passkeyRegistrationFinishRequestModel)
+            const localVarPath = `/Api/Authentication/Passkey/Register/Finish`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(passkeyRegistrationFinishRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Regenerate backup codes
+         * @param {TwoFactorVerifyRequestModel} twoFactorVerifyRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        regenerateBackupCodes: async (twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'twoFactorVerifyRequestModel' is not null or undefined
+            assertParamExists('regenerateBackupCodes', 'twoFactorVerifyRequestModel', twoFactorVerifyRequestModel)
+            const localVarPath = `/Api/Authentication/TwoFactor/BackupCodes/Regenerate`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(twoFactorVerifyRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Register new user
+         * @param {RegisterRequestModel} registerRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        register: async (registerRequestModel: RegisterRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'registerRequestModel' is not null or undefined
+            assertParamExists('register', 'registerRequestModel', registerRequestModel)
             const localVarPath = `/Api/Authentication/Register`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1194,7 +1731,7 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(authenticationSignUpRequestModel, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(registerRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1203,13 +1740,14 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
         },
         /**
          * 
-         * @param {AuthenticationResetPasswordRequestModel} authenticationResetPasswordRequestModel 
+         * @summary Reset password and send new password via email
+         * @param {ResetPasswordRequestModel} resetPasswordRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetPassword: async (authenticationResetPasswordRequestModel: AuthenticationResetPasswordRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'authenticationResetPasswordRequestModel' is not null or undefined
-            assertParamExists('resetPassword', 'authenticationResetPasswordRequestModel', authenticationResetPasswordRequestModel)
+        resetPassword: async (resetPasswordRequestModel: ResetPasswordRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'resetPasswordRequestModel' is not null or undefined
+            assertParamExists('resetPassword', 'resetPasswordRequestModel', resetPasswordRequestModel)
             const localVarPath = `/Api/Authentication/ResetPassword`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1229,7 +1767,317 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(authenticationResetPasswordRequestModel, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(resetPasswordRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Revoke API key
+         * @param {string} apiKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        revokeApiKey: async (apiKeyId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'apiKeyId' is not null or undefined
+            assertParamExists('revokeApiKey', 'apiKeyId', apiKeyId)
+            const localVarPath = `/Api/Authentication/ApiKeys/{apiKeyId}`
+                .replace(`{${"apiKeyId"}}`, encodeURIComponent(String(apiKeyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Revoke specific session
+         * @param {string} sessionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        revokeSession: async (sessionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'sessionId' is not null or undefined
+            assertParamExists('revokeSession', 'sessionId', sessionId)
+            const localVarPath = `/Api/Authentication/Sessions/{sessionId}`
+                .replace(`{${"sessionId"}}`, encodeURIComponent(String(sessionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Rotate API key secret
+         * @param {string} apiKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateApiKey: async (apiKeyId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'apiKeyId' is not null or undefined
+            assertParamExists('rotateApiKey', 'apiKeyId', apiKeyId)
+            const localVarPath = `/Api/Authentication/ApiKeys/{apiKeyId}/Rotate`
+                .replace(`{${"apiKeyId"}}`, encodeURIComponent(String(apiKeyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Disable TOTP 2FA
+         * @param {TwoFactorVerifyRequestModel} twoFactorVerifyRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        twoFactorDisable: async (twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'twoFactorVerifyRequestModel' is not null or undefined
+            assertParamExists('twoFactorDisable', 'twoFactorVerifyRequestModel', twoFactorVerifyRequestModel)
+            const localVarPath = `/Api/Authentication/TwoFactor/TOTP/Disable`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(twoFactorVerifyRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Setup TOTP 2FA
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        twoFactorSetup: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Authentication/TwoFactor/TOTP/Setup`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get 2FA status
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        twoFactorStatus: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Authentication/TwoFactor/Status`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Verify and enable TOTP 2FA
+         * @param {TwoFactorVerifyRequestModel} twoFactorVerifyRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        twoFactorVerify: async (twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'twoFactorVerifyRequestModel' is not null or undefined
+            assertParamExists('twoFactorVerify', 'twoFactorVerifyRequestModel', twoFactorVerifyRequestModel)
+            const localVarPath = `/Api/Authentication/TwoFactor/TOTP/Verify`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(twoFactorVerifyRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update API key
+         * @param {string} apiKeyId 
+         * @param {ApiKeyUpdateRequestModel} apiKeyUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateApiKey: async (apiKeyId: string, apiKeyUpdateRequestModel: ApiKeyUpdateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'apiKeyId' is not null or undefined
+            assertParamExists('updateApiKey', 'apiKeyId', apiKeyId)
+            // verify required parameter 'apiKeyUpdateRequestModel' is not null or undefined
+            assertParamExists('updateApiKey', 'apiKeyUpdateRequestModel', apiKeyUpdateRequestModel)
+            const localVarPath = `/Api/Authentication/ApiKeys/{apiKeyId}`
+                .replace(`{${"apiKeyId"}}`, encodeURIComponent(String(apiKeyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(apiKeyUpdateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Verify 2FA code after login
+         * @param {TwoFactorVerifyRequestModel} twoFactorVerifyRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verify2FA: async (twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'twoFactorVerifyRequestModel' is not null or undefined
+            assertParamExists('verify2FA', 'twoFactorVerifyRequestModel', twoFactorVerifyRequestModel)
+            const localVarPath = `/Api/Authentication/Verify2FA`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(twoFactorVerifyRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1247,65 +2095,320 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @param {AuthenticationSignInRequestModel} authenticationSignInRequestModel 
+         * @summary Create new API key
+         * @param {ApiKeyCreateRequestModel} apiKeyCreateRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async login(authenticationSignInRequestModel: AuthenticationSignInRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.login(authenticationSignInRequestModel, options);
+        async createApiKey(apiKeyCreateRequestModel: ApiKeyCreateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiKeyCreatedResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createApiKey(apiKeyCreateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.createApiKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Delete a passkey
+         * @param {string} passkeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deletePasskey(passkeyId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deletePasskey(passkeyId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.deletePasskey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get all API keys
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getApiKeys(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiKeyViewBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getApiKeys(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.getApiKeys']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get registered passkeys
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getPasskeys(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PasskeyViewBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPasskeys(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.getPasskeys']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get all active sessions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getSessions(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SessionViewBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getSessions(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.getSessions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Login with email and password
+         * @param {LoginRequestModel} loginRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async login(loginRequestModel: LoginRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.login']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary Logout and revoke refresh token
-         * @param {AuthenticationRefreshTokenRequestModel} authenticationRefreshTokenRequestModel 
+         * @summary Logout current session
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async logout(authenticationRefreshTokenRequestModel: AuthenticationRefreshTokenRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.logout(authenticationRefreshTokenRequestModel, options);
+        async logout(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.logout(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.logout']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary Refresh access token using refresh token
-         * @param {AuthenticationRefreshTokenRequestModel} authenticationRefreshTokenRequestModel 
+         * @summary Logout all sessions
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async refreshToken(authenticationRefreshTokenRequestModel: AuthenticationRefreshTokenRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(authenticationRefreshTokenRequestModel, options);
+        async logoutAll(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.logoutAll(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.refreshToken']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.logoutAll']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @summary 
-         * @param {AuthenticationSignUpRequestModel} authenticationSignUpRequestModel 
+         * @summary Logout all other sessions except current
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async register(authenticationSignUpRequestModel: AuthenticationSignUpRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthenticationTokenResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.register(authenticationSignUpRequestModel, options);
+        async logoutOthers(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.logoutOthers(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.logoutOthers']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Begin passkey login
+         * @param {PasskeyLoginBeginRequestModel} passkeyLoginBeginRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async passkeyLoginBegin(passkeyLoginBeginRequestModel: PasskeyLoginBeginRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PasskeyLoginBeginResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.passkeyLoginBegin(passkeyLoginBeginRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.passkeyLoginBegin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Complete passkey login
+         * @param {PasskeyLoginFinishRequestModel} passkeyLoginFinishRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async passkeyLoginFinish(passkeyLoginFinishRequestModel: PasskeyLoginFinishRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.passkeyLoginFinish(passkeyLoginFinishRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.passkeyLoginFinish']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Begin passkey registration
+         * @param {PasskeyRegistrationBeginRequestModel} passkeyRegistrationBeginRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async passkeyRegisterBegin(passkeyRegistrationBeginRequestModel: PasskeyRegistrationBeginRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PasskeyRegistrationBeginResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.passkeyRegisterBegin(passkeyRegistrationBeginRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.passkeyRegisterBegin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Complete passkey registration
+         * @param {PasskeyRegistrationFinishRequestModel} passkeyRegistrationFinishRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async passkeyRegisterFinish(passkeyRegistrationFinishRequestModel: PasskeyRegistrationFinishRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PasskeyViewBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.passkeyRegisterFinish(passkeyRegistrationFinishRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.passkeyRegisterFinish']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Regenerate backup codes
+         * @param {TwoFactorVerifyRequestModel} twoFactorVerifyRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async regenerateBackupCodes(twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TwoFactorBackupCodesResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.regenerateBackupCodes(twoFactorVerifyRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.regenerateBackupCodes']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Register new user
+         * @param {RegisterRequestModel} registerRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async register(registerRequestModel: RegisterRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.register(registerRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.register']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @param {AuthenticationResetPasswordRequestModel} authenticationResetPasswordRequestModel 
+         * @summary Reset password and send new password via email
+         * @param {ResetPasswordRequestModel} resetPasswordRequestModel 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async resetPassword(authenticationResetPasswordRequestModel: AuthenticationResetPasswordRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.resetPassword(authenticationResetPasswordRequestModel, options);
+        async resetPassword(resetPasswordRequestModel: ResetPasswordRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.resetPassword(resetPasswordRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.resetPassword']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Revoke API key
+         * @param {string} apiKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async revokeApiKey(apiKeyId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.revokeApiKey(apiKeyId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.revokeApiKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Revoke specific session
+         * @param {string} sessionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async revokeSession(sessionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.revokeSession(sessionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.revokeSession']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Rotate API key secret
+         * @param {string} apiKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async rotateApiKey(apiKeyId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiKeyRotateResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateApiKey(apiKeyId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.rotateApiKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Disable TOTP 2FA
+         * @param {TwoFactorVerifyRequestModel} twoFactorVerifyRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async twoFactorDisable(twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.twoFactorDisable(twoFactorVerifyRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.twoFactorDisable']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Setup TOTP 2FA
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async twoFactorSetup(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TwoFactorSetupResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.twoFactorSetup(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.twoFactorSetup']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get 2FA status
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async twoFactorStatus(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TwoFactorStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.twoFactorStatus(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.twoFactorStatus']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Verify and enable TOTP 2FA
+         * @param {TwoFactorVerifyRequestModel} twoFactorVerifyRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async twoFactorVerify(twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TwoFactorBackupCodesResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.twoFactorVerify(twoFactorVerifyRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.twoFactorVerify']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update API key
+         * @param {string} apiKeyId 
+         * @param {ApiKeyUpdateRequestModel} apiKeyUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateApiKey(apiKeyId: string, apiKeyUpdateRequestModel: ApiKeyUpdateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ApiKeyViewBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateApiKey(apiKeyId, apiKeyUpdateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.updateApiKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Verify 2FA code after login
+         * @param {TwoFactorVerifyRequestModel} twoFactorVerifyRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async verify2FA(twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.verify2FA(twoFactorVerifyRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthenticationApi.verify2FA']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -1319,88 +2422,368 @@ export const AuthenticationApiFactory = function (configuration?: Configuration,
     return {
         /**
          * 
+         * @summary Create new API key
+         * @param {AuthenticationApiCreateApiKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createApiKey(requestParameters: AuthenticationApiCreateApiKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiKeyCreatedResponseBaseModel> {
+            return localVarFp.createApiKey(requestParameters.apiKeyCreateRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Delete a passkey
+         * @param {AuthenticationApiDeletePasskeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deletePasskey(requestParameters: AuthenticationApiDeletePasskeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.deletePasskey(requestParameters.passkeyId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get all API keys
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getApiKeys(options?: RawAxiosRequestConfig): AxiosPromise<ApiKeyViewBaseModel> {
+            return localVarFp.getApiKeys(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get registered passkeys
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPasskeys(options?: RawAxiosRequestConfig): AxiosPromise<PasskeyViewBaseModel> {
+            return localVarFp.getPasskeys(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get all active sessions
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSessions(options?: RawAxiosRequestConfig): AxiosPromise<SessionViewBaseModel> {
+            return localVarFp.getSessions(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Login with email and password
          * @param {AuthenticationApiLoginRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(requestParameters: AuthenticationApiLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseBaseModel> {
-            return localVarFp.login(requestParameters.authenticationSignInRequestModel, options).then((request) => request(axios, basePath));
+        login(requestParameters: AuthenticationApiLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthResponseBaseModel> {
+            return localVarFp.login(requestParameters.loginRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Logout and revoke refresh token
-         * @param {AuthenticationApiLogoutRequest} requestParameters Request parameters.
+         * @summary Logout current session
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        logout(requestParameters: AuthenticationApiLogoutRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
-            return localVarFp.logout(requestParameters.authenticationRefreshTokenRequestModel, options).then((request) => request(axios, basePath));
+        logout(options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.logout(options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary Refresh access token using refresh token
-         * @param {AuthenticationApiRefreshTokenRequest} requestParameters Request parameters.
+         * @summary Logout all sessions
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken(requestParameters: AuthenticationApiRefreshTokenRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseBaseModel> {
-            return localVarFp.refreshToken(requestParameters.authenticationRefreshTokenRequestModel, options).then((request) => request(axios, basePath));
+        logoutAll(options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.logoutAll(options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @summary 
+         * @summary Logout all other sessions except current
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logoutOthers(options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.logoutOthers(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Begin passkey login
+         * @param {AuthenticationApiPasskeyLoginBeginRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passkeyLoginBegin(requestParameters: AuthenticationApiPasskeyLoginBeginRequest, options?: RawAxiosRequestConfig): AxiosPromise<PasskeyLoginBeginResponseBaseModel> {
+            return localVarFp.passkeyLoginBegin(requestParameters.passkeyLoginBeginRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Complete passkey login
+         * @param {AuthenticationApiPasskeyLoginFinishRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passkeyLoginFinish(requestParameters: AuthenticationApiPasskeyLoginFinishRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthResponseBaseModel> {
+            return localVarFp.passkeyLoginFinish(requestParameters.passkeyLoginFinishRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Begin passkey registration
+         * @param {AuthenticationApiPasskeyRegisterBeginRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passkeyRegisterBegin(requestParameters: AuthenticationApiPasskeyRegisterBeginRequest, options?: RawAxiosRequestConfig): AxiosPromise<PasskeyRegistrationBeginResponseBaseModel> {
+            return localVarFp.passkeyRegisterBegin(requestParameters.passkeyRegistrationBeginRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Complete passkey registration
+         * @param {AuthenticationApiPasskeyRegisterFinishRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        passkeyRegisterFinish(requestParameters: AuthenticationApiPasskeyRegisterFinishRequest, options?: RawAxiosRequestConfig): AxiosPromise<PasskeyViewBaseModel> {
+            return localVarFp.passkeyRegisterFinish(requestParameters.passkeyRegistrationFinishRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Regenerate backup codes
+         * @param {AuthenticationApiRegenerateBackupCodesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        regenerateBackupCodes(requestParameters: AuthenticationApiRegenerateBackupCodesRequest, options?: RawAxiosRequestConfig): AxiosPromise<TwoFactorBackupCodesResponseBaseModel> {
+            return localVarFp.regenerateBackupCodes(requestParameters.twoFactorVerifyRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Register new user
          * @param {AuthenticationApiRegisterRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        register(requestParameters: AuthenticationApiRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthenticationTokenResponseBaseModel> {
-            return localVarFp.register(requestParameters.authenticationSignUpRequestModel, options).then((request) => request(axios, basePath));
+        register(requestParameters: AuthenticationApiRegisterRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthResponseBaseModel> {
+            return localVarFp.register(requestParameters.registerRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Reset password and send new password via email
          * @param {AuthenticationApiResetPasswordRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         resetPassword(requestParameters: AuthenticationApiResetPasswordRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
-            return localVarFp.resetPassword(requestParameters.authenticationResetPasswordRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.resetPassword(requestParameters.resetPasswordRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Revoke API key
+         * @param {AuthenticationApiRevokeApiKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        revokeApiKey(requestParameters: AuthenticationApiRevokeApiKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.revokeApiKey(requestParameters.apiKeyId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Revoke specific session
+         * @param {AuthenticationApiRevokeSessionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        revokeSession(requestParameters: AuthenticationApiRevokeSessionRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.revokeSession(requestParameters.sessionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Rotate API key secret
+         * @param {AuthenticationApiRotateApiKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateApiKey(requestParameters: AuthenticationApiRotateApiKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiKeyRotateResponseBaseModel> {
+            return localVarFp.rotateApiKey(requestParameters.apiKeyId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Disable TOTP 2FA
+         * @param {AuthenticationApiTwoFactorDisableRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        twoFactorDisable(requestParameters: AuthenticationApiTwoFactorDisableRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.twoFactorDisable(requestParameters.twoFactorVerifyRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Setup TOTP 2FA
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        twoFactorSetup(options?: RawAxiosRequestConfig): AxiosPromise<TwoFactorSetupResponseBaseModel> {
+            return localVarFp.twoFactorSetup(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get 2FA status
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        twoFactorStatus(options?: RawAxiosRequestConfig): AxiosPromise<TwoFactorStatusResponseBaseModel> {
+            return localVarFp.twoFactorStatus(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Verify and enable TOTP 2FA
+         * @param {AuthenticationApiTwoFactorVerifyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        twoFactorVerify(requestParameters: AuthenticationApiTwoFactorVerifyRequest, options?: RawAxiosRequestConfig): AxiosPromise<TwoFactorBackupCodesResponseBaseModel> {
+            return localVarFp.twoFactorVerify(requestParameters.twoFactorVerifyRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update API key
+         * @param {AuthenticationApiUpdateApiKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateApiKey(requestParameters: AuthenticationApiUpdateApiKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<ApiKeyViewBaseModel> {
+            return localVarFp.updateApiKey(requestParameters.apiKeyId, requestParameters.apiKeyUpdateRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Verify 2FA code after login
+         * @param {AuthenticationApiVerify2FARequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verify2FA(requestParameters: AuthenticationApiVerify2FARequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthResponseBaseModel> {
+            return localVarFp.verify2FA(requestParameters.twoFactorVerifyRequestModel, options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
+ * Request parameters for createApiKey operation in AuthenticationApi.
+ */
+export interface AuthenticationApiCreateApiKeyRequest {
+    readonly apiKeyCreateRequestModel: ApiKeyCreateRequestModel
+}
+
+/**
+ * Request parameters for deletePasskey operation in AuthenticationApi.
+ */
+export interface AuthenticationApiDeletePasskeyRequest {
+    readonly passkeyId: string
+}
+
+/**
  * Request parameters for login operation in AuthenticationApi.
  */
 export interface AuthenticationApiLoginRequest {
-    readonly authenticationSignInRequestModel: AuthenticationSignInRequestModel
+    readonly loginRequestModel: LoginRequestModel
 }
 
 /**
- * Request parameters for logout operation in AuthenticationApi.
+ * Request parameters for passkeyLoginBegin operation in AuthenticationApi.
  */
-export interface AuthenticationApiLogoutRequest {
-    readonly authenticationRefreshTokenRequestModel: AuthenticationRefreshTokenRequestModel
+export interface AuthenticationApiPasskeyLoginBeginRequest {
+    readonly passkeyLoginBeginRequestModel: PasskeyLoginBeginRequestModel
 }
 
 /**
- * Request parameters for refreshToken operation in AuthenticationApi.
+ * Request parameters for passkeyLoginFinish operation in AuthenticationApi.
  */
-export interface AuthenticationApiRefreshTokenRequest {
-    readonly authenticationRefreshTokenRequestModel: AuthenticationRefreshTokenRequestModel
+export interface AuthenticationApiPasskeyLoginFinishRequest {
+    readonly passkeyLoginFinishRequestModel: PasskeyLoginFinishRequestModel
+}
+
+/**
+ * Request parameters for passkeyRegisterBegin operation in AuthenticationApi.
+ */
+export interface AuthenticationApiPasskeyRegisterBeginRequest {
+    readonly passkeyRegistrationBeginRequestModel: PasskeyRegistrationBeginRequestModel
+}
+
+/**
+ * Request parameters for passkeyRegisterFinish operation in AuthenticationApi.
+ */
+export interface AuthenticationApiPasskeyRegisterFinishRequest {
+    readonly passkeyRegistrationFinishRequestModel: PasskeyRegistrationFinishRequestModel
+}
+
+/**
+ * Request parameters for regenerateBackupCodes operation in AuthenticationApi.
+ */
+export interface AuthenticationApiRegenerateBackupCodesRequest {
+    readonly twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel
 }
 
 /**
  * Request parameters for register operation in AuthenticationApi.
  */
 export interface AuthenticationApiRegisterRequest {
-    readonly authenticationSignUpRequestModel: AuthenticationSignUpRequestModel
+    readonly registerRequestModel: RegisterRequestModel
 }
 
 /**
  * Request parameters for resetPassword operation in AuthenticationApi.
  */
 export interface AuthenticationApiResetPasswordRequest {
-    readonly authenticationResetPasswordRequestModel: AuthenticationResetPasswordRequestModel
+    readonly resetPasswordRequestModel: ResetPasswordRequestModel
+}
+
+/**
+ * Request parameters for revokeApiKey operation in AuthenticationApi.
+ */
+export interface AuthenticationApiRevokeApiKeyRequest {
+    readonly apiKeyId: string
+}
+
+/**
+ * Request parameters for revokeSession operation in AuthenticationApi.
+ */
+export interface AuthenticationApiRevokeSessionRequest {
+    readonly sessionId: string
+}
+
+/**
+ * Request parameters for rotateApiKey operation in AuthenticationApi.
+ */
+export interface AuthenticationApiRotateApiKeyRequest {
+    readonly apiKeyId: string
+}
+
+/**
+ * Request parameters for twoFactorDisable operation in AuthenticationApi.
+ */
+export interface AuthenticationApiTwoFactorDisableRequest {
+    readonly twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel
+}
+
+/**
+ * Request parameters for twoFactorVerify operation in AuthenticationApi.
+ */
+export interface AuthenticationApiTwoFactorVerifyRequest {
+    readonly twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel
+}
+
+/**
+ * Request parameters for updateApiKey operation in AuthenticationApi.
+ */
+export interface AuthenticationApiUpdateApiKeyRequest {
+    readonly apiKeyId: string
+
+    readonly apiKeyUpdateRequestModel: ApiKeyUpdateRequestModel
+}
+
+/**
+ * Request parameters for verify2FA operation in AuthenticationApi.
+ */
+export interface AuthenticationApiVerify2FARequest {
+    readonly twoFactorVerifyRequestModel: TwoFactorVerifyRequestModel
 }
 
 /**
@@ -1409,55 +2792,269 @@ export interface AuthenticationApiResetPasswordRequest {
 export class AuthenticationApi extends BaseAPI {
     /**
      * 
+     * @summary Create new API key
+     * @param {AuthenticationApiCreateApiKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createApiKey(requestParameters: AuthenticationApiCreateApiKeyRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).createApiKey(requestParameters.apiKeyCreateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Delete a passkey
+     * @param {AuthenticationApiDeletePasskeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deletePasskey(requestParameters: AuthenticationApiDeletePasskeyRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).deletePasskey(requestParameters.passkeyId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get all API keys
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getApiKeys(options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).getApiKeys(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get registered passkeys
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getPasskeys(options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).getPasskeys(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get all active sessions
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getSessions(options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).getSessions(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Login with email and password
      * @param {AuthenticationApiLoginRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public login(requestParameters: AuthenticationApiLoginRequest, options?: RawAxiosRequestConfig) {
-        return AuthenticationApiFp(this.configuration).login(requestParameters.authenticationSignInRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return AuthenticationApiFp(this.configuration).login(requestParameters.loginRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Logout and revoke refresh token
-     * @param {AuthenticationApiLogoutRequest} requestParameters Request parameters.
+     * @summary Logout current session
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public logout(requestParameters: AuthenticationApiLogoutRequest, options?: RawAxiosRequestConfig) {
-        return AuthenticationApiFp(this.configuration).logout(requestParameters.authenticationRefreshTokenRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public logout(options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).logout(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary Refresh access token using refresh token
-     * @param {AuthenticationApiRefreshTokenRequest} requestParameters Request parameters.
+     * @summary Logout all sessions
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public refreshToken(requestParameters: AuthenticationApiRefreshTokenRequest, options?: RawAxiosRequestConfig) {
-        return AuthenticationApiFp(this.configuration).refreshToken(requestParameters.authenticationRefreshTokenRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public logoutAll(options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).logoutAll(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @summary 
+     * @summary Logout all other sessions except current
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public logoutOthers(options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).logoutOthers(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Begin passkey login
+     * @param {AuthenticationApiPasskeyLoginBeginRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public passkeyLoginBegin(requestParameters: AuthenticationApiPasskeyLoginBeginRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).passkeyLoginBegin(requestParameters.passkeyLoginBeginRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Complete passkey login
+     * @param {AuthenticationApiPasskeyLoginFinishRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public passkeyLoginFinish(requestParameters: AuthenticationApiPasskeyLoginFinishRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).passkeyLoginFinish(requestParameters.passkeyLoginFinishRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Begin passkey registration
+     * @param {AuthenticationApiPasskeyRegisterBeginRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public passkeyRegisterBegin(requestParameters: AuthenticationApiPasskeyRegisterBeginRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).passkeyRegisterBegin(requestParameters.passkeyRegistrationBeginRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Complete passkey registration
+     * @param {AuthenticationApiPasskeyRegisterFinishRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public passkeyRegisterFinish(requestParameters: AuthenticationApiPasskeyRegisterFinishRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).passkeyRegisterFinish(requestParameters.passkeyRegistrationFinishRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Regenerate backup codes
+     * @param {AuthenticationApiRegenerateBackupCodesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public regenerateBackupCodes(requestParameters: AuthenticationApiRegenerateBackupCodesRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).regenerateBackupCodes(requestParameters.twoFactorVerifyRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Register new user
      * @param {AuthenticationApiRegisterRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public register(requestParameters: AuthenticationApiRegisterRequest, options?: RawAxiosRequestConfig) {
-        return AuthenticationApiFp(this.configuration).register(requestParameters.authenticationSignUpRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return AuthenticationApiFp(this.configuration).register(requestParameters.registerRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Reset password and send new password via email
      * @param {AuthenticationApiResetPasswordRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public resetPassword(requestParameters: AuthenticationApiResetPasswordRequest, options?: RawAxiosRequestConfig) {
-        return AuthenticationApiFp(this.configuration).resetPassword(requestParameters.authenticationResetPasswordRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return AuthenticationApiFp(this.configuration).resetPassword(requestParameters.resetPasswordRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Revoke API key
+     * @param {AuthenticationApiRevokeApiKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public revokeApiKey(requestParameters: AuthenticationApiRevokeApiKeyRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).revokeApiKey(requestParameters.apiKeyId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Revoke specific session
+     * @param {AuthenticationApiRevokeSessionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public revokeSession(requestParameters: AuthenticationApiRevokeSessionRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).revokeSession(requestParameters.sessionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Rotate API key secret
+     * @param {AuthenticationApiRotateApiKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public rotateApiKey(requestParameters: AuthenticationApiRotateApiKeyRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).rotateApiKey(requestParameters.apiKeyId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Disable TOTP 2FA
+     * @param {AuthenticationApiTwoFactorDisableRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public twoFactorDisable(requestParameters: AuthenticationApiTwoFactorDisableRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).twoFactorDisable(requestParameters.twoFactorVerifyRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Setup TOTP 2FA
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public twoFactorSetup(options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).twoFactorSetup(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get 2FA status
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public twoFactorStatus(options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).twoFactorStatus(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Verify and enable TOTP 2FA
+     * @param {AuthenticationApiTwoFactorVerifyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public twoFactorVerify(requestParameters: AuthenticationApiTwoFactorVerifyRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).twoFactorVerify(requestParameters.twoFactorVerifyRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update API key
+     * @param {AuthenticationApiUpdateApiKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateApiKey(requestParameters: AuthenticationApiUpdateApiKeyRequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).updateApiKey(requestParameters.apiKeyId, requestParameters.apiKeyUpdateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Verify 2FA code after login
+     * @param {AuthenticationApiVerify2FARequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public verify2FA(requestParameters: AuthenticationApiVerify2FARequest, options?: RawAxiosRequestConfig) {
+        return AuthenticationApiFp(this.configuration).verify2FA(requestParameters.twoFactorVerifyRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -2128,15 +3725,15 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             if (search !== undefined) {
-                localVarQueryParameter['search'] = search;
+                localVarQueryParameter['Search'] = search;
             }
 
             if (skip !== undefined) {
-                localVarQueryParameter['skip'] = skip;
+                localVarQueryParameter['Skip'] = skip;
             }
 
             if (take !== undefined) {
-                localVarQueryParameter['take'] = take;
+                localVarQueryParameter['Take'] = take;
             }
 
             if (path !== undefined) {
@@ -2194,15 +3791,15 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             if (search !== undefined) {
-                localVarQueryParameter['search'] = search;
+                localVarQueryParameter['Search'] = search;
             }
 
             if (skip !== undefined) {
-                localVarQueryParameter['skip'] = skip;
+                localVarQueryParameter['Skip'] = skip;
             }
 
             if (take !== undefined) {
-                localVarQueryParameter['take'] = take;
+                localVarQueryParameter['Take'] = take;
             }
 
             if (path !== undefined) {
@@ -2254,15 +3851,15 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             if (search !== undefined) {
-                localVarQueryParameter['search'] = search;
+                localVarQueryParameter['Search'] = search;
             }
 
             if (skip !== undefined) {
-                localVarQueryParameter['skip'] = skip;
+                localVarQueryParameter['Skip'] = skip;
             }
 
             if (take !== undefined) {
-                localVarQueryParameter['take'] = take;
+                localVarQueryParameter['Take'] = take;
             }
 
             if (path !== undefined) {
@@ -2318,15 +3915,15 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             if (search !== undefined) {
-                localVarQueryParameter['search'] = search;
+                localVarQueryParameter['Search'] = search;
             }
 
             if (skip !== undefined) {
-                localVarQueryParameter['skip'] = skip;
+                localVarQueryParameter['Skip'] = skip;
             }
 
             if (take !== undefined) {
-                localVarQueryParameter['take'] = take;
+                localVarQueryParameter['Take'] = take;
             }
 
             if (path !== undefined) {
@@ -4191,15 +5788,15 @@ export const DefinitionApiAxiosParamCreator = function (configuration?: Configur
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             if (search !== undefined) {
-                localVarQueryParameter['search'] = search;
+                localVarQueryParameter['Search'] = search;
             }
 
             if (skip !== undefined) {
-                localVarQueryParameter['skip'] = skip;
+                localVarQueryParameter['Skip'] = skip;
             }
 
             if (take !== undefined) {
-                localVarQueryParameter['take'] = take;
+                localVarQueryParameter['Take'] = take;
             }
 
 
@@ -4239,15 +5836,15 @@ export const DefinitionApiAxiosParamCreator = function (configuration?: Configur
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             if (search !== undefined) {
-                localVarQueryParameter['search'] = search;
+                localVarQueryParameter['Search'] = search;
             }
 
             if (skip !== undefined) {
-                localVarQueryParameter['skip'] = skip;
+                localVarQueryParameter['Skip'] = skip;
             }
 
             if (take !== undefined) {
-                localVarQueryParameter['take'] = take;
+                localVarQueryParameter['Take'] = take;
             }
 
 
@@ -4631,7 +6228,7 @@ export const SubscriptionApiAxiosParamCreator = function (configuration?: Config
             // verify required parameter 'id' is not null or undefined
             assertParamExists('_delete', 'id', id)
             const localVarPath = `/Api/Subscription/Delete/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -4749,7 +6346,7 @@ export const SubscriptionApiAxiosParamCreator = function (configuration?: Config
             // verify required parameter 'subscriptionPutBodyRequestModel' is not null or undefined
             assertParamExists('edit', 'subscriptionPutBodyRequestModel', subscriptionPutBodyRequestModel)
             const localVarPath = `/Api/Subscription/Edit/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -4789,7 +6386,7 @@ export const SubscriptionApiAxiosParamCreator = function (configuration?: Config
             // verify required parameter 'id' is not null or undefined
             assertParamExists('find', 'id', id)
             const localVarPath = `/Api/Subscription/Find/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -4931,7 +6528,7 @@ export const SubscriptionApiAxiosParamCreator = function (configuration?: Config
             // verify required parameter 'id' is not null or undefined
             assertParamExists('unsubscribe', 'id', id)
             const localVarPath = `/Api/Subscription/Unsubscribe/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5387,7 +6984,7 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
             // verify required parameter 'id' is not null or undefined
             assertParamExists('_delete', 'id', id)
             const localVarPath = `/Api/User/Delete/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5466,7 +7063,7 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
             // verify required parameter 'userPutBodyRequestModel' is not null or undefined
             assertParamExists('edit', 'userPutBodyRequestModel', userPutBodyRequestModel)
             const localVarPath = `/Api/User/Edit/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5506,7 +7103,7 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
             // verify required parameter 'id' is not null or undefined
             assertParamExists('find', 'id', id)
             const localVarPath = `/Api/User/Find/{id}`
-                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5559,15 +7156,15 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
             if (search !== undefined) {
-                localVarQueryParameter['search'] = search;
+                localVarQueryParameter['Search'] = search;
             }
 
             if (skip !== undefined) {
-                localVarQueryParameter['skip'] = skip;
+                localVarQueryParameter['Skip'] = skip;
             }
 
             if (take !== undefined) {
-                localVarQueryParameter['take'] = take;
+                localVarQueryParameter['Take'] = take;
             }
 
 

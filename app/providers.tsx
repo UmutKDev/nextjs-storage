@@ -3,6 +3,7 @@
 import React from "react";
 import { SessionProvider, useSession } from "next-auth/react";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { setClientToken } from "@/Service/Instance";
 import { Toaster } from "react-hot-toast";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -52,14 +53,22 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 }
 
 function AuthTokenSync() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    const token = session?.accessToken ?? session?.user?.accessToken ?? null;
-    setClientToken(token);
-    // clear token on unmount if needed
-    return () => setClientToken(null);
-  }, [session]);
+    // If we have a session ID, set it for API calls
+    const sessionId = session?.sessionId ?? session?.user?.sessionId ?? null;
+    setClientToken(sessionId);
+
+    // Check for 2FA requirement
+    if (status === "authenticated" && session?.requiresTwoFactor) {
+      // Avoid infinite redirect if we are already on 2fa page
+      if (window.location.pathname !== "/auth/2fa") {
+        router.push("/auth/2fa");
+      }
+    }
+  }, [session, status, router]);
 
   return null;
 }

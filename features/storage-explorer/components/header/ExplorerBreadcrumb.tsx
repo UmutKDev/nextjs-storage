@@ -7,5 +7,5 @@ import { useExplorerQuery } from "../../contexts/ExplorerQueryContext";
 export default function ExplorerBreadcrumb() {
   const { breadcrumbQuery } = useExplorerQuery();
 
-  return <Breadcrumb items={breadcrumbQuery.data?.items ?? []} />;
+  return <Breadcrumb items={breadcrumbQuery.data?.Items ?? []} />;
 }

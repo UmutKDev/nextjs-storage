@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, Loader2, Mail, Phone, Shield } from "lucide-react";
+import PasskeyManager from "@/components/Authentication/PasskeyManager";
+import TwoFactorManager from "@/components/Authentication/TwoFactorManager";
 import { useMutation } from "@tanstack/react-query";
 import useAccountProfile from "@/hooks/useAccountProfile";
 import { accountApiFactory } from "@/Service/Factories";
@@ -75,18 +77,18 @@ export default function AccountPage() {
     useState<AccountPutBodyRequestModel | null>(null);
   const [passwordForm, setPasswordForm] =
     useState<AccountChangePasswordRequestModel>({
-      current_password: "",
-      new_password: "",
-      new_password_confirmation: "",
+      CurrentPassword: "",
+      NewPassword: "",
+      NewPasswordConfirmation: "",
     });
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const initialProfileValues = useMemo(
     () => ({
-      fullName: profile?.fullName ?? "",
-      phoneNumber: profile?.phoneNumber ?? "",
+      FullName: profile?.FullName ?? "",
+      PhoneNumber: profile?.PhoneNumber ?? "",
     }),
-    [profile?.fullName, profile?.phoneNumber],
+    [profile?.FullName, profile?.PhoneNumber],
   );
 
   const profileForm = profileFormDraft ?? initialProfileValues;
@@ -109,9 +111,9 @@ export default function AccountPage() {
       }),
     onSuccess: () => {
       setPasswordForm({
-        current_password: "",
-        new_password: "",
-        new_password_confirmation: "",
+        CurrentPassword: "",
+        NewPassword: "",
+        NewPasswordConfirmation: "",
       });
     },
   });
@@ -129,7 +131,7 @@ export default function AccountPage() {
   const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!profile) return;
-    if (passwordForm.new_password !== passwordForm.new_password_confirmation) {
+    if (passwordForm.NewPassword !== passwordForm.NewPasswordConfirmation) {
       setPasswordError("Yeni şifreler eşleşmiyor.");
       return;
     }
@@ -142,26 +144,26 @@ export default function AccountPage() {
   };
 
   const subscriptionInfo = useMemo(() => {
-    if (!profile?.subscription) return null;
-    const subscription = profile.subscription;
-    const plan = subscription.subscription;
+    if (!profile?.Subscription) return null;
+    const subscription = profile.Subscription;
+    const plan = subscription.Subscription;
 
     return {
-      name: plan?.name ?? "Özel Plan",
+      name: plan?.Name ?? "Özel Plan",
       status:
-        plan?.status === "ACTIVE"
+        plan?.Status === "ACTIVE"
           ? "Aktif"
-          : plan?.status === "INACTIVE"
+          : plan?.Status === "INACTIVE"
             ? "Pasif"
             : "Bilinmiyor",
-      endAt: subscription.endAt,
-      startAt: subscription.startAt,
-      storageLimit: plan?.storageLimitBytes,
-      billingCycle: plan?.billingCycle
-        ? (BILLING_LABELS[plan.billingCycle] ?? plan.billingCycle)
+      endAt: subscription.EndAt,
+      startAt: subscription.StartAt,
+      storageLimit: plan?.StorageLimitBytes,
+      billingCycle: plan?.BillingCycle
+        ? (BILLING_LABELS[plan.BillingCycle] ?? plan.BillingCycle)
         : undefined,
     };
-  }, [profile?.subscription]);
+  }, [profile?.Subscription]);
 
   const handleProfileFieldChange = (
     field: keyof AccountPutBodyRequestModel,
@@ -202,39 +204,39 @@ export default function AccountPage() {
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Avatar className="h-14 w-14 border">
-            <AvatarImage src={data.image || ""} alt={data.fullName} />
+            <AvatarImage src={data.Image || ""} alt={data.FullName} />
             <AvatarFallback>
-              {data.fullName?.[0]?.toUpperCase() ||
-                data.email?.[0]?.toUpperCase() ||
+              {data.FullName?.[0]?.toUpperCase() ||
+                data.Email?.[0]?.toUpperCase() ||
                 "U"}
             </AvatarFallback>
           </Avatar>
           <div>
             <div className="flex items-center gap-2">
               <p className="text-lg font-semibold leading-none">
-                {data.fullName}
+                {data.FullName}
               </p>
               <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                {ROLE_LABELS[data.role] ?? data.role}
+                {ROLE_LABELS[data.Role] ?? data.Role}
               </span>
             </div>
             <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
               <Mail className="h-4 w-4 text-muted-foreground/70" />
-              {data.email}
+              {data.Email}
             </p>
             <p className="text-sm text-muted-foreground flex items-center gap-1">
               <Phone className="h-4 w-4 text-muted-foreground/70" />
-              {data.phoneNumber || "-"}
+              {data.PhoneNumber || "-"}
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2 pt-2">
           <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-500">
-            {STATUS_LABELS[data.status] ?? data.status}
+            {STATUS_LABELS[data.Status] ?? data.Status}
           </span>
           <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            ID: {data.id}
+            ID: {data.Id}
           </span>
         </div>
       </div>
@@ -298,9 +300,9 @@ export default function AccountPage() {
                   <div className="flex flex-wrap gap-2">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${
-                        profile?.subscription?.subscription?.status === "ACTIVE"
+                        profile?.Subscription?.Subscription?.Status === "ACTIVE"
                           ? "bg-emerald-500/10 text-emerald-500"
-                          : profile?.subscription?.subscription?.status ===
+                          : profile?.Subscription?.Subscription?.Status ===
                               "INACTIVE"
                             ? "bg-amber-500/10 text-amber-600"
                             : "bg-muted/10 text-muted-foreground"
@@ -346,13 +348,26 @@ export default function AccountPage() {
                     <Shield className="h-4 w-4 text-blue-500" />
                     Hesap durumu:{" "}
                     <span className="font-semibold">
-                      {STATUS_LABELS[profile.status] ?? profile.status}
+                      {STATUS_LABELS[profile.Status] ?? profile.Status}
                     </span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <p>Oluşturulma: {formatDate(profile.date?.created)}</p>
-                    <p>Son giriş: {formatDate(profile.date?.lastLogin)}</p>
-                    <p>Son güncelleme: {formatDate(profile.date?.updated)}</p>
+                    <p>Oluşturulma: {formatDate(profile.Date?.Created)}</p>
+                    <p>Son giriş: {formatDate(profile.Date?.LastLogin)}</p>
+                    <p>Son güncelleme: {formatDate(profile.Date?.Updated)}</p>
+                  </div>
+
+                  <div className="mt-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Passkey & 2FA</CardTitle>
+                        <CardDescription>Passkey ve 2FA yönetimi</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <TwoFactorManager />
+                        <PasskeyManager />
+                      </CardContent>
+                    </Card>
                   </div>
                 </>
               ) : (
@@ -379,11 +394,11 @@ export default function AccountPage() {
                     <Label htmlFor="fullName">Ad Soyad</Label>
                     <Input
                       id="fullName"
-                      name="fullName"
+                      name="FullName"
                       placeholder="Adınızı girin"
-                      value={profileForm.fullName}
+                      value={profileForm.FullName}
                       onChange={(e) =>
-                        handleProfileFieldChange("fullName", e.target.value)
+                        handleProfileFieldChange("FullName", e.target.value)
                       }
                       disabled={disabledForms || !profile}
                       required
@@ -393,12 +408,12 @@ export default function AccountPage() {
                     <Label htmlFor="phoneNumber">Telefon</Label>
                     <Input
                       id="phoneNumber"
-                      name="phoneNumber"
+                      name="PhoneNumber"
                       type="tel"
                       placeholder="+90 555 000 00 00"
-                      value={profileForm.phoneNumber}
+                      value={profileForm.PhoneNumber}
                       onChange={(e) =>
-                        handleProfileFieldChange("phoneNumber", e.target.value)
+                        handleProfileFieldChange("PhoneNumber", e.target.value)
                       }
                       disabled={disabledForms || !profile}
                     />
@@ -409,7 +424,7 @@ export default function AccountPage() {
                   <Input
                     id="email"
                     type="email"
-                    value={profile?.email ?? ""}
+                    value={profile?.Email ?? ""}
                     disabled
                   />
                   <p className="text-xs text-muted-foreground">
@@ -448,11 +463,11 @@ export default function AccountPage() {
                     <Input
                       id="currentPassword"
                       type="password"
-                      value={passwordForm.current_password}
+                      value={passwordForm.CurrentPassword}
                       onChange={(e) =>
                         setPasswordForm((prev) => ({
                           ...prev,
-                          current_password: e.target.value,
+                          CurrentPassword: e.target.value,
                         }))
                       }
                       disabled={disabledForms || !profile}
@@ -465,11 +480,11 @@ export default function AccountPage() {
                       <Input
                         id="newPassword"
                         type="password"
-                        value={passwordForm.new_password}
+                        value={passwordForm.NewPassword}
                         onChange={(e) =>
                           setPasswordForm((prev) => ({
                             ...prev,
-                            new_password: e.target.value,
+                            NewPassword: e.target.value,
                           }))
                         }
                         disabled={disabledForms || !profile}
@@ -483,11 +498,11 @@ export default function AccountPage() {
                       <Input
                         id="newPasswordConfirm"
                         type="password"
-                        value={passwordForm.new_password_confirmation}
+                        value={passwordForm.NewPasswordConfirmation}
                         onChange={(e) =>
                           setPasswordForm((prev) => ({
                             ...prev,
-                            new_password_confirmation: e.target.value,
+                            NewPasswordConfirmation: e.target.value,
                           }))
                         }
                         disabled={disabledForms || !profile}

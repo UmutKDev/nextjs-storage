@@ -7,7 +7,7 @@ import type { ExplorerDirectory, ExplorerFile } from "../types/explorer.types";
 
 const dedupeByKey = <T extends { Prefix?: string; Path?: { Key?: string } }>(
   entries: T[],
-  getKey: (entry: T) => string | undefined
+  getKey: (entry: T) => string | undefined,
 ) => {
   const seenKeys = new Set<string>();
   return entries.filter((entry) => {
@@ -24,13 +24,13 @@ export function useExplorerFiltering() {
 
   const objectItems = React.useMemo<ExplorerFile[]>(() => {
     const allEntries =
-      objectsQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+      objectsQuery.data?.pages?.flatMap((page) => page?.Items ?? []) ?? [];
     return dedupeByKey(allEntries, (entry) => entry.Path?.Key);
   }, [objectsQuery.data]);
 
   const directoryItems = React.useMemo<ExplorerDirectory[]>(() => {
     const allEntries =
-      directoriesQuery.data?.pages?.flatMap((page) => page?.items ?? []) ?? [];
+      directoriesQuery.data?.pages?.flatMap((page) => page?.Items ?? []) ?? [];
     return dedupeByKey(allEntries, (entry) => entry.Prefix);
   }, [directoriesQuery.data]);
 
@@ -38,7 +38,7 @@ export function useExplorerFiltering() {
     if (!searchQuery) return objectItems;
     const query = searchQuery.toLowerCase();
     return objectItems.filter((entry) =>
-      entry.Name?.toLowerCase().includes(query)
+      entry.Name?.toLowerCase().includes(query),
     );
   }, [objectItems, searchQuery]);
 

@@ -4,14 +4,16 @@ import "next-auth";
 declare module "next-auth" {
   interface User {
     id?: string;
-    accessToken?: string;
-    refreshToken?: string;
+    sessionId?: string;
+    expiresAt?: string;
+    requiresTwoFactor?: boolean;
+    role?: string;
   }
 
   interface Session {
-    accessToken?: string;
-    accessTokenExpires?: number;
-    refreshToken?: string;
+    sessionId?: string;
+    expiresAt?: string;
+    requiresTwoFactor?: boolean;
     error?: string | null;
     user?: User;
   }
@@ -19,9 +21,9 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    accessToken?: string;
-    accessTokenExpires?: number;
-    refreshToken?: string;
+    sessionId?: string;
+    expiresAt?: string;
+    requiresTwoFactor?: boolean;
     id?: string;
   }
 }

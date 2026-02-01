@@ -16,14 +16,14 @@ export default function useAccountProfile() {
 
   const accountProfileQueryKey = useMemo(
     () => createAccountProfileQueryKey(),
-    []
+    [],
   );
 
   const accountProfileQuery = useQuery({
     queryKey: accountProfileQueryKey,
     queryFn: async ({ signal }) => {
       const res = await accountApiFactory.profile({ signal });
-      return res.data?.result;
+      return res.data?.Result;
     },
     enabled: status === "authenticated",
     staleTime: 60 * 1000,
@@ -40,7 +40,7 @@ export default function useAccountProfile() {
           query.queryKey[0] === ACCOUNT_PROFILE_QUERY_KEY[0] &&
           query.queryKey[1] === ACCOUNT_PROFILE_QUERY_KEY[1],
       }),
-    [queryClient]
+    [queryClient],
   );
 
   return {

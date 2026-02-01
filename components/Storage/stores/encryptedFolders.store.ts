@@ -106,140 +106,142 @@ export const useEncryptedFoldersStore =
     devtools(
       persist(
         (set, get) => ({
-        encryptedPaths: new Set(),
-        passphrases: {},
-        sessionsByPath: {},
-        unlockPrompt: null,
-        setUnlockPrompt: (prompt) => set({ unlockPrompt: prompt }),
-        syncSessions: (sessions) => set({ sessionsByPath: sessions }),
-        isFolderEncrypted: (path) => {
-          const normalized = normalizeFolderPath(path);
-          if (!normalized) return false;
-          return Boolean(findEncryptedAncestor(get().encryptedPaths, normalized));
-        },
-        isFolderEncryptedExact: (path) => {
-          const normalized = normalizeFolderPath(path);
-          if (!normalized) return false;
-          return get().encryptedPaths.has(normalized);
-        },
-        isFolderUnlocked: (path) => Boolean(get().getSessionToken(path)),
-        getSessionToken: (path) => {
-          const normalized = normalizeFolderPath(path);
-          if (!normalized) return null;
-          const session = getSessionFromMap(get().sessionsByPath, normalized);
-          return session?.token ?? null;
-        },
-        getFolderPassphrase: (path) => {
-          const normalized = normalizeFolderPath(path);
-          if (!normalized) return undefined;
-          const { passphrases } = get();
-          if (passphrases[normalized]) return passphrases[normalized];
-          const segments = normalized.split("/").filter(Boolean);
-          for (let i = segments.length - 1; i > 0; i--) {
-            const parentPath = segments.slice(0, i).join("/");
-            if (passphrases[parentPath]) return passphrases[parentPath];
-          }
-          return undefined;
-        },
-        registerEncryptedPath: (path) => {
-          const normalized = normalizeFolderPath(path);
-          if (!normalized) return;
-          set((state) => {
-            if (state.encryptedPaths.has(normalized)) return state;
-            const next = new Set(state.encryptedPaths);
-            next.add(normalized);
-            return { encryptedPaths: next };
-          });
-        },
-        promptUnlock: ({ path, label, onSuccess, force }) => {
-          const normalized = normalizeFolderPath(path);
-          if (!normalized) return;
-          if (!force && get().isFolderUnlocked(normalized)) {
-            const token = get().getSessionToken(normalized);
-            if (token) onSuccess?.(token);
-            return;
-          }
-          const encryptedPath = findEncryptedAncestor(
-            get().encryptedPaths,
-            normalized,
-          );
-          const targetPath = encryptedPath ?? normalized;
-          const displayName =
-            label ||
-            normalized.split("/").filter(Boolean).pop() ||
-            normalized ||
-            "bu klasör";
-          set({ unlockPrompt: { path: targetPath, displayName, onSuccess } });
-        },
-        clearSession: (path) => {
-          const normalized = normalizeFolderPath(path);
-          if (!normalized) return;
-          sessionManager.clearSession(normalized);
-          set((state) => {
-            const next = { ...state.passphrases };
-            delete next[normalized];
-            const sessionsByPath = { ...state.sessionsByPath };
-            delete sessionsByPath[normalized];
-            return { passphrases: next, sessionsByPath };
-          });
-        },
-        clearAllSessions: () => {
-          sessionManager.clearAll();
-          set({
-            passphrases: {},
-            encryptedPaths: new Set(),
-            sessionsByPath: {},
-          });
-        },
-        unlockFolder: async (path, passphrase) => {
-          const normalized = normalizeFolderPath(path);
-          if (!normalized) throw new Error("Invalid folder path.");
+          encryptedPaths: new Set(),
+          passphrases: {},
+          sessionsByPath: {},
+          unlockPrompt: null,
+          setUnlockPrompt: (prompt) => set({ unlockPrompt: prompt }),
+          syncSessions: (sessions) => set({ sessionsByPath: sessions }),
+          isFolderEncrypted: (path) => {
+            const normalized = normalizeFolderPath(path);
+            if (!normalized) return false;
+            return Boolean(
+              findEncryptedAncestor(get().encryptedPaths, normalized),
+            );
+          },
+          isFolderEncryptedExact: (path) => {
+            const normalized = normalizeFolderPath(path);
+            if (!normalized) return false;
+            return get().encryptedPaths.has(normalized);
+          },
+          isFolderUnlocked: (path) => Boolean(get().getSessionToken(path)),
+          getSessionToken: (path) => {
+            const normalized = normalizeFolderPath(path);
+            if (!normalized) return null;
+            const session = getSessionFromMap(get().sessionsByPath, normalized);
+            return session?.token ?? null;
+          },
+          getFolderPassphrase: (path) => {
+            const normalized = normalizeFolderPath(path);
+            if (!normalized) return undefined;
+            const { passphrases } = get();
+            if (passphrases[normalized]) return passphrases[normalized];
+            const segments = normalized.split("/").filter(Boolean);
+            for (let i = segments.length - 1; i > 0; i--) {
+              const parentPath = segments.slice(0, i).join("/");
+              if (passphrases[parentPath]) return passphrases[parentPath];
+            }
+            return undefined;
+          },
+          registerEncryptedPath: (path) => {
+            const normalized = normalizeFolderPath(path);
+            if (!normalized) return;
+            set((state) => {
+              if (state.encryptedPaths.has(normalized)) return state;
+              const next = new Set(state.encryptedPaths);
+              next.add(normalized);
+              return { encryptedPaths: next };
+            });
+          },
+          promptUnlock: ({ path, label, onSuccess, force }) => {
+            const normalized = normalizeFolderPath(path);
+            if (!normalized) return;
+            if (!force && get().isFolderUnlocked(normalized)) {
+              const token = get().getSessionToken(normalized);
+              if (token) onSuccess?.(token);
+              return;
+            }
+            const encryptedPath = findEncryptedAncestor(
+              get().encryptedPaths,
+              normalized,
+            );
+            const targetPath = encryptedPath ?? normalized;
+            const displayName =
+              label ||
+              normalized.split("/").filter(Boolean).pop() ||
+              normalized ||
+              "bu klasör";
+            set({ unlockPrompt: { path: targetPath, displayName, onSuccess } });
+          },
+          clearSession: (path) => {
+            const normalized = normalizeFolderPath(path);
+            if (!normalized) return;
+            sessionManager.clearSession(normalized);
+            set((state) => {
+              const next = { ...state.passphrases };
+              delete next[normalized];
+              const sessionsByPath = { ...state.sessionsByPath };
+              delete sessionsByPath[normalized];
+              return { passphrases: next, sessionsByPath };
+            });
+          },
+          clearAllSessions: () => {
+            sessionManager.clearAll();
+            set({
+              passphrases: {},
+              encryptedPaths: new Set(),
+              sessionsByPath: {},
+            });
+          },
+          unlockFolder: async (path, passphrase) => {
+            const normalized = normalizeFolderPath(path);
+            if (!normalized) throw new Error("Invalid folder path.");
 
-          const response = await cloudApiFactory.directoryUnlock({
-            xFolderPassphrase: passphrase,
-            directoryUnlockRequestModel: {
-              Path: normalized,
-            },
-          });
+            const response = await cloudApiFactory.directoryUnlock({
+              xFolderPassphrase: passphrase,
+              directoryUnlockRequestModel: {
+                Path: normalized,
+              },
+            });
 
-          const result = response.data?.result;
-          if (!result) throw new Error("No result returned from server.");
+            const result = response.data?.Result;
+            if (!result) throw new Error("No result returned from server.");
 
-          const { SessionToken, ExpiresAt, EncryptedFolderPath } = result;
-          if (!SessionToken) throw new Error("No session token returned.");
+            const { SessionToken, ExpiresAt, EncryptedFolderPath } = result;
+            if (!SessionToken) throw new Error("No session token returned.");
 
-          const targetPath = EncryptedFolderPath || normalized;
+            const targetPath = EncryptedFolderPath || normalized;
 
-          sessionManager.setSession(
-            targetPath,
-            SessionToken,
-            ExpiresAt ?? Date.now() / 1000 + 900,
-          );
+            sessionManager.setSession(
+              targetPath,
+              SessionToken,
+              ExpiresAt ?? Date.now() / 1000 + 900,
+            );
 
-          set((state) => {
-            const nextPassphrases = {
-              ...state.passphrases,
-              [targetPath]: passphrase,
-            };
-            const nextPaths = new Set(state.encryptedPaths);
-            nextPaths.add(targetPath);
-            const sessionsByPath = sessionManager.getAllSessions();
-            return {
-              passphrases: nextPassphrases,
-              encryptedPaths: nextPaths,
-              sessionsByPath,
-            };
-          });
+            set((state) => {
+              const nextPassphrases = {
+                ...state.passphrases,
+                [targetPath]: passphrase,
+              };
+              const nextPaths = new Set(state.encryptedPaths);
+              nextPaths.add(targetPath);
+              const sessionsByPath = sessionManager.getAllSessions();
+              return {
+                passphrases: nextPassphrases,
+                encryptedPaths: nextPaths,
+                sessionsByPath,
+              };
+            });
 
-          return SessionToken;
-        },
-        refetchManifest: async () => {},
-      }),
-      persistConfig,
+            return SessionToken;
+          },
+          refetchManifest: async () => {},
+        }),
+        persistConfig,
+      ),
+      { name: "EncryptedFoldersStore" },
     ),
-    { name: "EncryptedFoldersStore" },
-  ),
-);
+  );
 
 export function useEncryptedFolders(): EncryptedFoldersState;
 export function useEncryptedFolders<T>(

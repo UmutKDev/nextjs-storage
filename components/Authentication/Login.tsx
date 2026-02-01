@@ -10,7 +10,8 @@ import Link from "next/link";
 import { useAuthForm } from "./AuthFormProvider";
 
 export const Login = () => {
-  const { values, handleChange, submit, loading, error } = useAuthForm();
+  const { values, handleChange, submit, loading, error, loginWithPasskey } =
+    useAuthForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +38,17 @@ export const Login = () => {
               required
             />
           </div>
+          {/* <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" onClick={async () => {
+              try {
+                await loginWithPasskey();
+              } catch (err) {
+                console.error(err);
+              }
+            }} disabled={loading}>
+              Passkey ile giriş
+            </Button>
+          </div> */}
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Şifre</Label>
