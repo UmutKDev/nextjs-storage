@@ -37,14 +37,21 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const creds = (credentials ?? {}) as RawCredentials & { passkey?: string };
+          const creds = (credentials ?? {}) as RawCredentials & {
+            passkey?: string;
+          };
 
           // Passkey login flow: frontend handles WebAuthn and sends credential JSON
           if (creds.passkey) {
             if (!creds.email) {
-              throw new Error("E-posta (Email) passkey ile giriş için gerekli.");
+              throw new Error(
+                "E-posta (Email) passkey ile giriş için gerekli.",
+              );
             }
-            const parsed = typeof creds.passkey === "string" ? JSON.parse(creds.passkey) : creds.passkey;
+            const parsed =
+              typeof creds.passkey === "string"
+                ? JSON.parse(creds.passkey)
+                : creds.passkey;
             const res = await authenticationApiFactory.passkeyLoginFinish({
               passkeyLoginFinishRequestModel: {
                 Email: creds.email,
@@ -52,7 +59,9 @@ export const authOptions: NextAuthOptions = {
               },
             });
 
-            const authData = res.data?.Result as unknown as AuthResponseModel | undefined;
+            const authData = res.data?.Result as unknown as
+              | AuthResponseModel
+              | undefined;
             if (!authData || !authData.SessionId) {
               throw new Error("Passkey ile giriş başarısız.");
             }

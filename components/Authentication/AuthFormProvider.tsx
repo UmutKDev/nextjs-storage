@@ -81,10 +81,13 @@ export default function AuthFormProvider({
     try {
       // Dynamic import the browser helpers
       const swa = await import("@simplewebauthn/browser");
-      if (!swa.browserSupportsWebAuthn()) throw new Error("Tarayıcı passkey desteklemiyor");
+      if (!swa.browserSupportsWebAuthn())
+        throw new Error("Tarayıcı passkey desteklemiyor");
 
       // Begin passkey login
-      const beginRes = await (await import("@/Service/Factories")).authenticationApiFactory.passkeyLoginBegin({
+      const beginRes = await (
+        await import("@/Service/Factories")
+      ).authenticationApiFactory.passkeyLoginBegin({
         passkeyLoginBeginRequestModel: { Email: values.email },
       });
 

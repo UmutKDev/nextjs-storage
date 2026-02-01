@@ -27,7 +27,8 @@ export default function PasskeyManager() {
     mutationFn: async (name: string) => {
       // dynamic import to avoid dependency if not installed
       const swa = await import("@simplewebauthn/browser");
-      if (!swa.browserSupportsWebAuthn()) throw new Error("Passkey desteklenmiyor");
+      if (!swa.browserSupportsWebAuthn())
+        throw new Error("Passkey desteklenmiyor");
 
       const beginRes = await authenticationApiFactory.passkeyRegisterBegin({
         passkeyRegistrationBeginRequestModel: { DeviceName: name },
@@ -75,13 +76,19 @@ export default function PasskeyManager() {
     }
   };
 
-  const passkeys = Array.isArray(passkeysQuery.data) ? passkeysQuery.data : (passkeysQuery.data ? [passkeysQuery.data] : []);
+  const passkeys = Array.isArray(passkeysQuery.data)
+    ? passkeysQuery.data
+    : passkeysQuery.data
+      ? [passkeysQuery.data]
+      : [];
 
   return (
     <div className="space-y-3">
       <h3 className="text-lg font-semibold">Passkey'ler</h3>
       {!supportsPasskey && (
-        <p className="text-sm text-muted-foreground">Tarayıcınız passkey desteklemiyor.</p>
+        <p className="text-sm text-muted-foreground">
+          Tarayıcınız passkey desteklemiyor.
+        </p>
       )}
 
       <div className="grid gap-2 sm:grid-cols-2">
@@ -89,10 +96,15 @@ export default function PasskeyManager() {
           placeholder="Cihaz adı (örn: iPhone)"
           value={deviceName}
           onChange={(e) => setDeviceName(e.target.value)}
-          disabled={!supportsPasskey || registerMutation.status === 'pending'}
+          disabled={!supportsPasskey || registerMutation.status === "pending"}
         />
-        <Button onClick={handleRegister} disabled={!supportsPasskey || registerMutation.status === 'pending'}>
-          {registerMutation.status === 'pending' ? "Kayıt yapılıyor..." : "Yeni Passkey Ekle"}
+        <Button
+          onClick={handleRegister}
+          disabled={!supportsPasskey || registerMutation.status === "pending"}
+        >
+          {registerMutation.status === "pending"
+            ? "Kayıt yapılıyor..."
+            : "Yeni Passkey Ekle"}
         </Button>
       </div>
 
@@ -103,16 +115,27 @@ export default function PasskeyManager() {
             <li key={p.Id} className="flex items-center justify-between">
               <div>
                 <div className="font-medium">{p.DeviceName}</div>
-                <div className="text-xs text-muted-foreground">{p.DeviceType} · Son kullanım: {p.LastUsedAt ? new Date(p.LastUsedAt).toLocaleString() : "-"}</div>
+                <div className="text-xs text-muted-foreground">
+                  {p.DeviceType} · Son kullanım:{" "}
+                  {p.LastUsedAt ? new Date(p.LastUsedAt).toLocaleString() : "-"}
+                </div>
               </div>
               <div>
-                <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(p.Id)}>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => deleteMutation.mutate(p.Id)}
+                >
                   Sil
                 </Button>
               </div>
             </li>
           ))}
-          {!passkeys.length && <li className="text-sm text-muted-foreground">Kayıtlı passkey yok.</li>}
+          {!passkeys.length && (
+            <li className="text-sm text-muted-foreground">
+              Kayıtlı passkey yok.
+            </li>
+          )}
         </ul>
       </div>
     </div>

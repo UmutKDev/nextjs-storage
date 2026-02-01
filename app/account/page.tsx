@@ -361,7 +361,9 @@ export default function AccountPage() {
                     <Card>
                       <CardHeader>
                         <CardTitle>Passkey & 2FA</CardTitle>
-                        <CardDescription>Passkey ve 2FA yönetimi</CardDescription>
+                        <CardDescription>
+                          Passkey ve 2FA yönetimi
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <TwoFactorManager />

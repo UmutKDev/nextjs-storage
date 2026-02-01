@@ -75,32 +75,67 @@ export default function TwoFactorManager() {
         <p className="text-sm text-muted-foreground">Yükleniyor...</p>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm">Durum: {statusQuery.data?.IsEnabled ? "Etkin" : "Devre Dışı"}</p>
+          <p className="text-sm">
+            Durum: {statusQuery.data?.IsEnabled ? "Etkin" : "Devre Dışı"}
+          </p>
 
           {!statusQuery.data?.IsEnabled ? (
             <div>
-              <Button onClick={() => setupMutation.mutate()} disabled={setupMutation.status === 'pending'}>
-                {setupMutation.status === 'pending' ? "Hazırlanıyor..." : "2FA Kur"}
+              <Button
+                onClick={() => setupMutation.mutate()}
+                disabled={setupMutation.status === "pending"}
+              >
+                {setupMutation.status === "pending"
+                  ? "Hazırlanıyor..."
+                  : "2FA Kur"}
               </Button>
 
               {setupData && (
                 <div className="mt-3">
                   <QRCodeCanvas value={setupData.OtpAuthUrl} size={160} />
-                  <p className="text-sm text-muted-foreground mt-2">Secret: <code>{setupData.Secret}</code></p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Secret: <code>{setupData.Secret}</code>
+                  </p>
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    <Input placeholder="6 haneli kod" value={code} onChange={(e) => setCode(e.target.value)} />
-                    <Button onClick={() => verifyMutation.mutate(code)} disabled={verifyMutation.status === 'pending'}>Doğrula</Button>
+                    <Input
+                      placeholder="6 haneli kod"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                    />
+                    <Button
+                      onClick={() => verifyMutation.mutate(code)}
+                      disabled={verifyMutation.status === "pending"}
+                    >
+                      Doğrula
+                    </Button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Yedek kodlarınız: {statusQuery.data?.BackupCodesRemaining ?? 0} kaldı</p>
+              <p className="text-sm text-muted-foreground">
+                Yedek kodlarınız: {statusQuery.data?.BackupCodesRemaining ?? 0}{" "}
+                kaldı
+              </p>
               <div className="grid gap-2 sm:grid-cols-2">
-                <Input placeholder="Mevcut kod" value={code} onChange={(e) => setCode(e.target.value)} />
-                <Button onClick={() => disableMutation.mutate(code)} disabled={disableMutation.status === 'pending'}>2FA Devre Dışı Bırak</Button>
-                <Button onClick={() => regenMutation.mutate(code)} disabled={regenMutation.status === 'pending'}>Yedek Kodları Yenile</Button>
+                <Input
+                  placeholder="Mevcut kod"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+                <Button
+                  onClick={() => disableMutation.mutate(code)}
+                  disabled={disableMutation.status === "pending"}
+                >
+                  2FA Devre Dışı Bırak
+                </Button>
+                <Button
+                  onClick={() => regenMutation.mutate(code)}
+                  disabled={regenMutation.status === "pending"}
+                >
+                  Yedek Kodları Yenile
+                </Button>
               </div>
             </div>
           )}
