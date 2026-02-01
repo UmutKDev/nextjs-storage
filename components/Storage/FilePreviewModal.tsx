@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  Share2,
 } from "lucide-react";
 import LazyPreview from "./LazyPreview";
 import { Button } from "@/components/ui/button";
@@ -90,8 +91,10 @@ export default function FilePreviewModal({
     Boolean(scaledDownloadUrl) &&
     isImageFile(file ?? undefined) &&
     scaledDownloadUrl !== downloadUrl;
+  const displayName = file?.Metadata?.Originalfilename ?? file?.Name ?? "";
 
-  const isMedia = React.useCallback((f: CloudObjectModel) => {
+  const isMedia = React.useCallback((f?: CloudObjectModel | null) => {
+    if (!f) return false;
     const ext = f.Extension?.toLowerCase();
     return [
       "jpg",
@@ -143,6 +146,24 @@ export default function FilePreviewModal({
     [downloadFileName]
   );
 
+  const handleShare = React.useCallback(async () => {
+    if (!downloadUrl) return;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: displayName,
+          url: downloadUrl,
+        });
+        return;
+      }
+      await navigator.clipboard.writeText(downloadUrl);
+      toast.success("Bağlantı kopyalandı");
+    } catch (error) {
+      console.error(error);
+      toast.error("Paylaşım başarısız");
+    }
+  }, [downloadUrl, displayName]);
+
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") handleNext();
@@ -172,10 +193,7 @@ export default function FilePreviewModal({
     };
   }, []);
 
-  if (!file) return null;
-
   const isMediaPreview = isMedia(file);
-  const displayName = file.Metadata?.Originalfilename ?? file.Name;
   const mobileMeta = (() => {
     const size = humanFileSize(file?.Size);
     const rawWidth = file?.Metadata?.Width;
@@ -256,6 +274,21 @@ export default function FilePreviewModal({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              ) : null}
+
+              {downloadUrl ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  title="Paylaş"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleShare();
+                  }}
+                >
+                  <Share2 size={18} />
+                </Button>
               ) : null}
 
               <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />

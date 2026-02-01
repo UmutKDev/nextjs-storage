@@ -84,7 +84,6 @@ const persistConfig = {
   name: "encrypted-folders",
   partialize: (state: EncryptedFoldersState) => ({
     encryptedPaths: Array.from(state.encryptedPaths),
-    passphrases: state.passphrases,
   }),
   merge: (
     persisted: unknown,
@@ -92,12 +91,11 @@ const persistConfig = {
   ): EncryptedFoldersState => {
     const data = persisted as {
       encryptedPaths?: string[];
-      passphrases?: Record<string, string>;
     };
     return {
       ...current,
       encryptedPaths: new Set(data?.encryptedPaths ?? []),
-      passphrases: data?.passphrases ?? {},
+      passphrases: {},
     };
   },
   ...(storage ? { storage } : {}),

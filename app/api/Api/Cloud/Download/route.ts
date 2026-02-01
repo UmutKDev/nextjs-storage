@@ -16,9 +16,8 @@ export async function GET(req: NextRequest) {
   }
 
   const folderSession =
-    searchParams.get("folderSession") ||
-    searchParams.get("x-folder-session") ||
-    searchParams.get("X-Folder-Session");
+    req.headers.get("x-folder-session") ||
+    req.headers.get("X-Folder-Session");
 
   const upstreamParams = new URLSearchParams(searchParams);
   upstreamParams.set("Key", key);
@@ -46,6 +45,7 @@ export async function GET(req: NextRequest) {
   const upstream = await fetch(upstreamUrl, { headers });
   const responseHeaders = new Headers(upstream.headers);
   responseHeaders.delete("set-cookie");
+  responseHeaders.set("Cache-Control", "private, no-store");
 
   return new NextResponse(upstream.body, {
     status: upstream.status,

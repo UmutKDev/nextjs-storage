@@ -105,8 +105,6 @@ const authenticateWithBackend = async (credentials: RawCredentials) => {
       },
     });
 
-    console.log(loginRes);
-
     const tokens = loginRes.data?.result;
     if (!tokens) {
       throw new Error("Kimlik doğrulama yanıtı alınamadı.");

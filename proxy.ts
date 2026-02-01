@@ -26,14 +26,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const res = NextResponse.next();
-
-  if (token) {
-    res.headers.set("Authorization", `Bearer ${token.accessToken}`);
-    req.headers.set("Authorization", `Bearer ${token.accessToken}`);
-  }
-
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {
