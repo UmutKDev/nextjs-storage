@@ -1,7 +1,38 @@
 declare module "@simplewebauthn/browser" {
   export function browserSupportsWebAuthn(): boolean;
-  export function startRegistration(options: any): Promise<any>;
-  export function startAuthentication(options: any): Promise<any>;
+  // Options come from the server API as generic objects
+  export function startRegistration(
+    options: object,
+  ): Promise<RegistrationResponseJSON>;
+  export function startAuthentication(
+    options: object,
+  ): Promise<AuthenticationResponseJSON>;
+
+  // WebAuthn response types
+  interface RegistrationResponseJSON {
+    id: string;
+    rawId: string;
+    response: {
+      clientDataJSON: string;
+      attestationObject: string;
+      transports?: string[];
+    };
+    type: string;
+    clientExtensionResults: Record<string, unknown>;
+  }
+
+  interface AuthenticationResponseJSON {
+    id: string;
+    rawId: string;
+    response: {
+      clientDataJSON: string;
+      authenticatorData: string;
+      signature: string;
+      userHandle?: string;
+    };
+    type: string;
+    clientExtensionResults: Record<string, unknown>;
+  }
 }
 
 declare module "qrcode.react" {

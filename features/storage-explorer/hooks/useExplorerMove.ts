@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import toast from "react-hot-toast";
 import { cloudApiFactory } from "@/Service/Factories";
 import { createIdempotencyKey } from "@/lib/idempotency";
 import { useExplorerQuery } from "../contexts/ExplorerQueryContext";
@@ -82,13 +81,11 @@ export function useExplorerMove() {
           },
           moveOptions
         );
-        toast.success("Moved successfully");
         replaceSelectedItemKeys(new Set());
         await Promise.all([invalidateObjects(), invalidateDirectories()]);
         return true;
       } catch (error) {
         console.error(error);
-        toast.error("Failed to move item");
         return false;
       }
     },

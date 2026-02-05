@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from "react";
 import { cloudApiFactory } from "@/Service/Factories";
-import toast from "react-hot-toast";
 import type { AxiosProgressEvent } from "axios";
 import { isAxiosError } from "axios";
 import useCloudList from "./useCloudList";
@@ -72,7 +71,6 @@ export function useFileUpload(currentPath: string | null) {
         isCurrentLocked ||
         (isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath))
       ) {
-        toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
         return;
       }
       const sessionToken = getSessionToken(currentPath || "");
@@ -218,8 +216,6 @@ export function useFileUpload(currentPath: string | null) {
           invalidates.invalidateObjects(),
           invalidatesUsage(),
         ]);
-
-        toast.success(`Uploaded ${file.name}`);
       } catch (err: unknown) {
         // Cleanup on server if possible
         if (uploadId && finalKey) {
@@ -259,7 +255,6 @@ export function useFileUpload(currentPath: string | null) {
             status: "failed",
             error: msg,
           });
-          toast.error(`Failed ${file.name}`);
         }
       } finally {
         delete controllersRef.current[id];
@@ -283,7 +278,6 @@ export function useFileUpload(currentPath: string | null) {
         isCurrentLocked ||
         (isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath))
       ) {
-        toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
         return;
       }
       files.forEach(uploadFile);

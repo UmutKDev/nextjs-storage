@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import toast from "react-hot-toast";
 import { isAxiosError } from "axios";
 import type { CloudDirectoryModel } from "@/Service/Generates/api";
 import { cloudApiFactory } from "@/Service/Factories";
@@ -42,22 +41,18 @@ export function useExplorerFolderActions() {
 
   const createFolder = React.useCallback(async () => {
     if (isExplorerLocked) {
-      toast.error("Sifrelenmis klasor kilitli. Klasor olusturamazsiniz.");
       return;
     }
     const name = folderNameInput.trim();
     if (!name) {
-      toast.error("Folder name required");
       return;
     }
     if (name.includes("/")) {
-      toast.error("Folder name cannot contain '/'");
       return;
     }
 
     if (isNewFolderEncrypted) {
       if (newFolderPassphrase.length < 8) {
-        toast.error("Parola en az 8 karakter olmalı");
         return;
       }
     }
@@ -89,19 +84,11 @@ export function useExplorerFolderActions() {
 
       await Promise.all([invalidateDirectories()]);
 
-      toast.success(
-        isNewFolderEncrypted ? "Şifreli klasör oluşturuldu" : "Folder created"
-      );
       setFolderNameInput("");
       setIsNewFolderEncrypted(false);
       setNewFolderPassphrase("");
     } catch (error) {
       console.error(error);
-      if (isAxiosError(error) && error.response?.status === 409) {
-        toast.error("Bu isimde klasör zaten var");
-      } else {
-        toast.error("Failed to create folder");
-      }
     } finally {
       setIsCreatingFolder(false);
     }
@@ -125,11 +112,9 @@ export function useExplorerFolderActions() {
     (directory: CloudDirectoryModel) => {
       const normalizedPath = normalizeFolderPath(directory.Prefix);
       if (!normalizedPath) {
-        toast.error("Klasör yolu bulunamadı");
         return;
       }
       if (isFolderEncrypted(normalizedPath) || directory.IsEncrypted) {
-        toast.error("Bu klasör zaten şifreli");
         return;
       }
       setConvertTargetFolder(directory);
@@ -142,12 +127,10 @@ export function useExplorerFolderActions() {
     if (!convertTargetFolder) return;
     const normalizedPath = normalizeFolderPath(convertTargetFolder.Prefix);
     if (!normalizedPath) {
-      toast.error("Klasör yolu bulunamadı");
       return;
     }
     const passphrase = convertPassphrase.trim();
     if (passphrase.length < 8) {
-      toast.error("Parola en az 8 karakter olmalı");
       return;
     }
 
@@ -160,7 +143,7 @@ export function useExplorerFolderActions() {
         xFolderPassphrase: passphrase,
         xFolderSession: getSessionToken(normalizedPath) || undefined,
       });
-      toast.success("Klasör şifreli hale getirildi");
+      // Folder converted to encrypted
       closeConvertModal();
       await Promise.all([
         invalidateDirectories(),
@@ -170,9 +153,9 @@ export function useExplorerFolderActions() {
     } catch (error) {
       console.error(error);
       if (isAxiosError(error) && error.response?.status === 409) {
-        toast.error("Klasör zaten şifreli görünüyor");
+        // Folder already encrypted
       } else {
-        toast.error("Klasör şifrelenemedi");
+        // Folder encryption failed
       }
     } finally {
       setIsConvertingFolder(false);
@@ -243,7 +226,7 @@ export function useExplorerFolderActions() {
             });
           }
 
-          toast.success("Klasör yeniden adlandırıldı");
+          // Folder renamed successfully
           setRenameTargetFolder(null);
           setRenameValue("");
           await Promise.all([
@@ -253,7 +236,7 @@ export function useExplorerFolderActions() {
           ]);
         } catch (error) {
           console.error(error);
-          toast.error("Klasör yeniden adlandırılamadı");
+          // Folder rename failed
         } finally {
           setIsRenamingFolder(false);
         }
@@ -261,7 +244,7 @@ export function useExplorerFolderActions() {
 
       if (isEncryptedTarget) {
         if (!normalizedPath) {
-          toast.error("Klasör yolu bulunamadı");
+          // Folder path not found
           return;
         }
         const passphrase =
@@ -301,11 +284,11 @@ export function useExplorerFolderActions() {
     if (!renameTargetFolder) return;
     const trimmed = renameValue.trim();
     if (!trimmed) {
-      toast.error("Klasör adı gerekli");
+      // Folder name required
       return;
     }
     if (trimmed.includes("/")) {
-      toast.error("Klasör adı '/' içeremez");
+      // Folder name cannot contain '/'
       return;
     }
 

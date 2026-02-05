@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import toast from "react-hot-toast";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useExplorerQuery } from "./ExplorerQueryContext";
@@ -20,13 +19,6 @@ type ExplorerUploadContextValue = {
 
 const ExplorerUploadContext =
   React.createContext<ExplorerUploadContextValue | null>(null);
-
-const humanFileSize = (bytes?: number) => {
-  if (!bytes || bytes === 0) return "0 B";
-  const index = Math.floor(Math.log(bytes) / Math.log(1024));
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  return (bytes / Math.pow(1024, index)).toFixed(1) + " " + sizes[index];
-};
 
 const isFileDragEvent = (event: React.DragEvent) =>
   Array.from(event.dataTransfer.types || []).includes("Files");
@@ -56,18 +48,14 @@ export function ExplorerUploadProvider({
           }
         });
         if (rejectedFiles.length > 0) {
-          toast.error(
-            `${rejectedFiles.length} dosya çok büyük. Maksimum ${humanFileSize(
-              maxUploadBytes
-            )}.`
-          );
+          // Files too large: ${rejectedFiles.length} files exceeded max size ${humanFileSize(maxUploadBytes)}
         }
         if (allowedFiles.length > 0) handleFiles(allowedFiles);
       } else {
         handleFiles(files);
       }
     },
-    [handleFiles, maxUploadBytes]
+    [handleFiles, maxUploadBytes],
   );
 
   const trackFileDragEnter = React.useCallback((event: React.DragEvent) => {
@@ -108,19 +96,19 @@ export function ExplorerUploadProvider({
       if (!droppedFiles || droppedFiles.length === 0) return;
       queueUploadFiles(Array.from(droppedFiles));
     },
-    [queueUploadFiles]
+    [queueUploadFiles],
   );
 
   const activeUploads = React.useMemo(
     () => uploads.filter((upload) => upload.status === "uploading"),
-    [uploads]
+    [uploads],
   );
 
   const aggregatedUploadProgress = React.useMemo(() => {
     if (activeUploads.length === 0) return 0;
     const total = activeUploads.reduce(
       (sum, upload) => sum + upload.progress,
-      0
+      0,
     );
     return Math.round(total / activeUploads.length);
   }, [activeUploads]);
@@ -147,7 +135,7 @@ export function ExplorerUploadProvider({
       trackFileDragLeave,
       trackFileDragOver,
       uploads,
-    ]
+    ],
   );
 
   return (
@@ -161,7 +149,7 @@ export function useExplorerUpload() {
   const context = React.useContext(ExplorerUploadContext);
   if (!context) {
     throw new Error(
-      "useExplorerUpload must be used within ExplorerUploadProvider"
+      "useExplorerUpload must be used within ExplorerUploadProvider",
     );
   }
   return context;

@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { useStorage } from "./StorageProvider";
 import { useFileUpload, type UploadItem } from "@/hooks/useFileUpload";
-import toast from "react-hot-toast";
 import { useEncryptedFolders } from "./stores/encryptedFolders.store";
 
 // Helper component for rendering a list of uploads
@@ -139,7 +138,6 @@ export default function FileUpload() {
 
   const openFilePicker = () => {
     if (isUploadBlocked) {
-      toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
       return;
     }
     filePickerRef.current?.click();
@@ -147,7 +145,6 @@ export default function FileUpload() {
 
   const onFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (isUploadBlocked) {
-      toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
       if (filePickerRef.current) filePickerRef.current.value = "";
       return;
     }
@@ -193,7 +190,6 @@ export default function FileUpload() {
   const onDropFiles = (event: React.DragEvent) => {
     event.preventDefault();
     if (isUploadBlocked) {
-      toast.error("Sifrelenmis klasor kilitli. Dosya yukleme devre disi.");
       return;
     }
     const droppedFiles = event.dataTransfer.files;

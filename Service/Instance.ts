@@ -28,8 +28,15 @@ const onError = (error: AxiosError<any>) => {
 
     // Handle Authentication Errors
     if (status === 401) {
-      if (!window.location.pathname.startsWith("/authentication")) {
-        window.location.href = "/authentication";
+      // Avoid infinite loops if we are already trying to login/logout
+      if (
+        !window.location.pathname.startsWith("/authentication") &&
+        !window.location.pathname.startsWith("/api/auth")
+      ) {
+        // Import dynamically to avoid build-time issues if used in non-browser context unexpectedly
+        import("next-auth/react").then(({ signOut }) => {
+          signOut({ callbackUrl: "/authentication" });
+        });
       }
       return Promise.reject(error);
     }

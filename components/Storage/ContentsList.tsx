@@ -12,7 +12,6 @@ import { Trash2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useStorage } from "./StorageProvider";
 import { cloudApiFactory } from "@/Service/Factories";
-import toast from "react-hot-toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import EditFileModal from "./EditFileModal";
 import { motion } from "framer-motion";
@@ -71,7 +70,7 @@ export default function ContentsList({
 
   async function performDelete(file: CloudObject) {
     const key = file?.Path?.Key;
-    if (!key) return toast.error("Unable to delete: missing key");
+    if (!key) return;
     const sessionToken = getSessionToken(key || currentPath);
     const sessionOptions = sessionToken
       ? { headers: { "x-folder-session": sessionToken } }
@@ -122,7 +121,6 @@ export default function ContentsList({
       );
 
       // success — keep optimistic state and refresh other queries that may be affected
-      toast.success("Deleted");
       await invalidateUsage();
       await invalidatesObjects.invalidateObjects();
     } catch (err) {
@@ -134,7 +132,6 @@ export default function ContentsList({
         console.error("Rollback failed", rollbackErr);
       }
       console.error(err);
-      toast.error("Delete failed");
     } finally {
       setDeleting((s) => ({ ...s, [key]: false }));
     }
@@ -145,7 +142,7 @@ export default function ContentsList({
     payload: { name?: string; metadata?: Record<string, string> },
   ) {
     const key = file?.Path?.Key;
-    if (!key) return toast.error("Unable to update: missing key");
+    if (!key) return;
     const sessionToken = getSessionToken(key || currentPath);
     const sessionOptions = sessionToken
       ? { headers: { "x-folder-session": sessionToken } }
@@ -226,7 +223,6 @@ export default function ContentsList({
         sessionOptions,
       );
 
-      toast.success("Updated");
       await invalidateUsage();
       await invalidatesObjects.invalidateObjects();
     } catch (err) {
@@ -238,7 +234,6 @@ export default function ContentsList({
         console.error("Rollback failed", rollbackErr);
       }
       console.error(err);
-      toast.error("Update failed");
     } finally {
       // done
     }

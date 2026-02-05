@@ -2,152 +2,159 @@ import {
   accountApiFactory,
   authenticationApiFactory,
 } from "@/Service/Factories";
-import type { AuthResponseModel } from "@/Service/Generates/api";
 import NextAuth, { type NextAuthOptions } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import CredentialsProvider from "next-auth/providers/credentials";
 
-// Types
-type RawCredentials = {
-  email?: string;
-  password?: string;
-};
-
-// Error normalization
-const normalizeAuthError = (error: unknown, fallback: string) => {
-  if (error instanceof Error) return error;
-  if (typeof error === "string") return new Error(error);
-  // Enhance this to look into Axios error response if available
-  // @ts-ignore - Check if it's an axios error
-  if (error?.response?.data?.message) {
-    // @ts-ignore
-    return new Error(error.response.data.message);
-  }
-  return new Error(fallback);
-};
+/**
+ * Authentication Flow:
+ *
+ * 1. POST /Authentication/Login/Check
+ *    - Check if user exists and has 2FA enabled
+ *    - Response: { Exists, HasPasskey, HasTwoFactor, TwoFactorMethod, AvailableMethods }
+ *
+ * 2. POST /Authentication/Login (or Passkey/Login/Finish)
+ *    - Authenticate with credentials
+ *    - Response: { SessionId, ExpiresAt, RequiresTwoFactor }
+ *    - If RequiresTwoFactor=true, session is pending 2FA verification
+ *
+ * 3. POST /Authentication/Verify2FA (if RequiresTwoFactor=true)
+ *    - Verify TOTP or backup code
+ *    - Response: { SessionId, ExpiresAt, RequiresTwoFactor: false }
+ */
 
 export const authOptions: NextAuthOptions = {
-  // Use JWT strategy because we need to persist the opaque session ID in the cookie
   session: { strategy: "jwt" },
+  pages: {
+    signIn: "/authentication",
+    error: "/authentication",
+  },
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
+        twoFactorCode: { label: "2FA Code", type: "text" },
+        passkey: { label: "Passkey", type: "text" },
       },
       async authorize(credentials) {
-        try {
-          const creds = (credentials ?? {}) as RawCredentials & {
-            passkey?: string;
-          };
+        if (!credentials) {
+          throw new Error("Giriş bilgileri eksik.");
+        }
 
-          // Passkey login flow: frontend handles WebAuthn and sends credential JSON
-          if (creds.passkey) {
-            if (!creds.email) {
-              throw new Error(
-                "E-posta (Email) passkey ile giriş için gerekli.",
-              );
-            }
-            const parsed =
-              typeof creds.passkey === "string"
-                ? JSON.parse(creds.passkey)
-                : creds.passkey;
-            const res = await authenticationApiFactory.passkeyLoginFinish({
-              passkeyLoginFinishRequestModel: {
-                Email: creds.email,
-                Credential: parsed,
-              },
-            });
+        const { email, password, twoFactorCode, passkey } = credentials;
 
-            const authData = res.data?.Result as unknown as
-              | AuthResponseModel
-              | undefined;
-            if (!authData || !authData.SessionId) {
-              throw new Error("Passkey ile giriş başarısız.");
-            }
-
-            return {
-              id: authData.SessionId,
-              sessionId: authData.SessionId,
-              expiresAt: authData.ExpiresAt,
-              requiresTwoFactor: authData.RequiresTwoFactor,
-            };
+        // --- Passkey Login Flow ---
+        if (passkey) {
+          if (!email) {
+            throw new Error("Passkey girişi için e-posta gereklidir.");
           }
 
-          if (!creds.email || !creds.password) {
-            throw new Error("E-posta ve şifre gereklidir.");
-          }
+          const credentialJson =
+            typeof passkey === "string" ? JSON.parse(passkey) : passkey;
 
-          // Call the new Login endpoint
-          const response = await authenticationApiFactory.login({
-            loginRequestModel: {
-              Email: creds.email,
-              Password: creds.password,
+          const res = await authenticationApiFactory.passkeyLoginFinish({
+            passkeyLoginFinishRequestModel: {
+              Email: email,
+              Credential: credentialJson,
             },
           });
 
-          const baseResponse = response.data;
-
-          if (!baseResponse.Result) {
-            throw new Error("Sunucudan geçerli bir yanıt alınamadı.");
-          }
-
-          const authData = baseResponse.Result as unknown as AuthResponseModel;
-
-          if (!authData.SessionId) {
-            throw new Error("Oturum kimliği alınamadı.");
+          const result = res.data?.Result;
+          if (!result?.SessionId) {
+            throw new Error("Passkey doğrulaması başarısız.");
           }
 
           return {
-            id: authData.SessionId,
-            sessionId: authData.SessionId,
-            expiresAt: authData.ExpiresAt,
-            requiresTwoFactor: authData.RequiresTwoFactor,
+            id: result.SessionId,
+            sessionId: result.SessionId,
+            expiresAt: result.ExpiresAt,
           };
-        } catch (error: any) {
-          console.error("Login failed:", error);
-          throw normalizeAuthError(error, "Giriş işlemi başarısız oldu.");
         }
+
+        // --- Standard Email/Password Login Flow ---
+        if (!email || !password) {
+          throw new Error("E-posta ve şifre zorunludur.");
+        }
+
+        const res = await authenticationApiFactory.login({
+          loginRequestModel: {
+            Email: email,
+            Password: password,
+          },
+        });
+
+        const result = res.data?.Result;
+        if (!result?.SessionId) {
+          throw new Error(
+            "Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.",
+          );
+        }
+
+        // If 2FA is required and code is provided, verify it
+        if (twoFactorCode) {
+          console.log("first");
+          const verifyRes = await authenticationApiFactory.verify2FA(
+            {
+              twoFactorVerifyRequestModel: { Code: twoFactorCode },
+            },
+            {
+              headers: { "X-Session-Id": result.SessionId },
+            },
+          );
+
+          const verifyResult = verifyRes.data?.Result;
+          if (!verifyResult.SessionId) {
+            throw new Error("2FA kodu hatalı.");
+          }
+
+          // 2FA verified successfully
+          return {
+            id: verifyResult.SessionId,
+            sessionId: verifyResult.SessionId,
+            expiresAt: verifyResult.ExpiresAt,
+            requiresTwoFactor: false,
+          };
+        }
+
+        // Return session - if RequiresTwoFactor is true, user will be redirected to /authentication/2fa
+        return {
+          id: result.SessionId,
+          sessionId: result.SessionId,
+          expiresAt: result.ExpiresAt,
+        };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      // Allow updating session from client (e.g. after 2FA verification if we handle it client-side)
+      // Handle session.update() calls (e.g., after 2FA verification)
       if (trigger === "update" && session) {
         return { ...token, ...session };
       }
 
-      // Initial sign in - properties come from the object returned by authorize()
+      // Initial sign in - copy user data to token
       if (user) {
         token.sessionId = user.sessionId;
         token.expiresAt = user.expiresAt;
         token.requiresTwoFactor = user.requiresTwoFactor;
-        // User.id is already set
       }
 
       return token;
     },
     async session({ session, token }) {
-      // Pass token data to session
       session.sessionId = token.sessionId;
       session.expiresAt = token.expiresAt;
       session.requiresTwoFactor = token.requiresTwoFactor;
 
-      // If we have a session ID and NOT requiresTwoFactor, try to fetch profile
-      // If requiresTwoFactor is true, the user is technically not fully logged in yet
+      // Only fetch profile if session is fully authenticated (2FA passed or not required)
       if (session.sessionId && !session.requiresTwoFactor) {
         try {
-          // Fetch user profile using the session ID in header
           const profileRes = await accountApiFactory.profile({
-            headers: {
-              "X-Session-Id": session.sessionId,
-            },
+            headers: { "X-Session-Id": session.sessionId },
           });
 
-          // profileRes.data is AccountProfileResponseBaseModel { Result: AccountProfileResponseModel, ... }
-          const profile = profileRes.data.Result as any; // Cast if needed
-
+          const profile = profileRes.data.Result;
           if (profile) {
             session.user = {
               id: profile.Id,
@@ -157,9 +164,8 @@ export const authOptions: NextAuthOptions = {
               role: profile.Role,
             };
           }
-        } catch (error) {
-          console.error("Failed to fetch profile in session callback", error);
-          // Don't fail the session entirely, but user info might be missing
+        } catch {
+          // Profile fetch failed - session might be invalid
         }
       }
 
@@ -168,21 +174,20 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signOut({ token }) {
+      // Notify backend to invalidate session
       if (token.sessionId) {
         try {
           await authenticationApiFactory.logout({
-            headers: {
-              "X-Session-Id": token.sessionId,
-            },
+            headers: { "X-Session-Id": token.sessionId },
           });
-        } catch (error) {
-          // Ignore logout errors
+        } catch {
+          // Backend logout failed - ignore
         }
       }
     },
   },
+  debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };

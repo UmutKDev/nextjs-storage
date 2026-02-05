@@ -1,7 +1,14 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { Login } from "@/components/Authentication/Login";
-import AuthFormProvider from "@/components/Authentication/AuthFormProvider";
-import { Cloud } from "lucide-react";
+import { Cloud, Loader2 } from "lucide-react";
+
+function LoginFallback() {
+  return (
+    <div className="flex items-center justify-center py-8">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
 
 export default function LoginForm() {
   return (
@@ -33,19 +40,9 @@ export default function LoginForm() {
             </p>
           </div>
 
-          <AuthFormProvider>
+          <Suspense fallback={<LoginFallback />}>
             <Login />
-          </AuthFormProvider>
-
-          <p className="px-8 text-center text-sm text-muted-foreground">
-            Hesabınız yok mu?{" "}
-            <Link
-              href="/register"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Kayıt Ol
-            </Link>
-          </p>
+          </Suspense>
         </div>
       </div>
     </div>

@@ -4,40 +4,48 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { QRCodeCanvas } from "qrcode.react";
-import toast from "react-hot-toast";
-import { authenticationApiFactory } from "@/Service/Factories";
+import { accountSecurityApiFactory } from "@/Service/Factories";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import type {
+  TwoFactorSetupResponseModel,
+  TwoFactorStatusResponseModel,
+  TwoFactorBackupCodesResponseModel,
+} from "@/Service/Generates/api";
 
 export default function TwoFactorManager() {
-  const [setupData, setSetupData] = useState<any | null>(null);
+  const [setupData, setSetupData] =
+    useState<TwoFactorSetupResponseModel | null>(null);
   const [code, setCode] = useState("");
 
-  const statusQuery = useQuery<any>({
+  const statusQuery = useQuery<TwoFactorStatusResponseModel | undefined>({
     queryKey: ["auth", "2fa", "status"],
     queryFn: async () => {
-      const res = await authenticationApiFactory.twoFactorStatus();
+      const res = await accountSecurityApiFactory.twoFactorStatus();
       return res.data?.Result;
     },
     staleTime: 30_000,
   });
 
-  const setupMutation = useMutation<any, Error, void>({
+  const setupMutation = useMutation<
+    TwoFactorSetupResponseModel | undefined,
+    Error,
+    void
+  >({
     mutationFn: async () => {
-      const res = await authenticationApiFactory.twoFactorSetup();
+      const res = await accountSecurityApiFactory.twoFactorSetup();
       return res.data?.Result;
     },
-    onSuccess: (data) => setSetupData(data),
+    onSuccess: (data) => setSetupData(data ?? null),
   });
 
-  const verifyMutation = useMutation<any, Error, string>({
+  const verifyMutation = useMutation<unknown, Error, string>({
     mutationFn: async (verificationCode: string) => {
-      const res = await authenticationApiFactory.twoFactorVerify({
+      const res = await accountSecurityApiFactory.twoFactorVerify({
         twoFactorVerifyRequestModel: { Code: verificationCode },
       });
       return res.data?.Result;
     },
-    onSuccess: (data) => {
-      toast.success("2FA etkinleştirildi");
+    onSuccess: () => {
       setSetupData(null);
       statusQuery.refetch();
     },
@@ -45,16 +53,20 @@ export default function TwoFactorManager() {
 
   const disableMutation = useMutation<void, Error, string>({
     mutationFn: async (verificationCode: string) => {
-      await authenticationApiFactory.twoFactorDisable({
+      await accountSecurityApiFactory.twoFactorDisable({
         twoFactorVerifyRequestModel: { Code: verificationCode },
       });
     },
     onSuccess: () => statusQuery.refetch(),
   });
 
-  const regenMutation = useMutation<any, Error, string>({
+  const regenMutation = useMutation<
+    TwoFactorBackupCodesResponseModel | undefined,
+    Error,
+    string
+  >({
     mutationFn: async (verificationCode: string) => {
-      const res = await authenticationApiFactory.regenerateBackupCodes({
+      const res = await accountSecurityApiFactory.regenerateBackupCodes({
         twoFactorVerifyRequestModel: { Code: verificationCode },
       });
       return res.data?.Result;

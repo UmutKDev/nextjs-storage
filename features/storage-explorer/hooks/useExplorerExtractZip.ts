@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import toast from "react-hot-toast";
 import { cloudApiFactory } from "@/Service/Factories";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -130,7 +129,6 @@ export function useExplorerExtractZip() {
             await invalidatePath(parentPath);
           }
           scheduleJobCleanup(key);
-          toast.success("Zip çıkarma tamamlandı");
           extractToastStateRef.current[key] = "completed";
         }
 
@@ -138,8 +136,6 @@ export function useExplorerExtractZip() {
           result.State === "failed" &&
           extractToastStateRef.current[key] !== "failed"
         ) {
-          const reason = result.FailedReason || "Zip çıkarılamadı";
-          toast.error(reason);
           scheduleJobCleanup(key);
           extractToastStateRef.current[key] = "failed";
         }
@@ -148,7 +144,6 @@ export function useExplorerExtractZip() {
           result.State === "cancelled" &&
           extractToastStateRef.current[key] !== "cancelled"
         ) {
-          toast.success("Zip çıkarma iptal edildi");
           scheduleJobCleanup(key);
           extractToastStateRef.current[key] = "cancelled";
         }
@@ -184,7 +179,6 @@ export function useExplorerExtractZip() {
     async (file: CloudObjectModel) => {
       const key = file.Path?.Key;
       if (!key) {
-        toast.error("Zip key missing");
         return;
       }
 
@@ -204,7 +198,6 @@ export function useExplorerExtractZip() {
         );
         const jobId = response.data?.Result?.JobId;
         if (!jobId) {
-          toast.error("Extract jobId missing");
           updateExtractJob(key, { state: "failed" });
           scheduleJobCleanup(key);
           extractToastStateRef.current[key] = "failed";
@@ -214,7 +207,6 @@ export function useExplorerExtractZip() {
         await fetchZipExtractionStatus(key, jobId);
       } catch (error) {
         console.error(error);
-        toast.error("Zip çıkarma başlatılamadı");
         updateExtractJob(key, { state: "failed" });
         scheduleJobCleanup(key);
         extractToastStateRef.current[key] = "failed";
@@ -241,11 +233,9 @@ export function useExplorerExtractZip() {
         });
         updateExtractJob(key, { state: "cancelled" });
         scheduleJobCleanup(key);
-        toast.success("Zip çıkarma iptal edildi");
         extractToastStateRef.current[key] = "cancelled";
       } catch (error) {
         console.error(error);
-        toast.error("Zip çıkarma iptal edilemedi");
       }
     },
     [extractJobs, scheduleJobCleanup, updateExtractJob],

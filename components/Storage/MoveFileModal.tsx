@@ -175,7 +175,7 @@ export default function MoveFileModal({
                   No folders found
                 </div>
               ) : (
-                directories.map((dir: any) => {
+                directories.map((dir: CloudDirectoryModel) => {
                   const normalized = normalizeFolderPath(dir.Prefix);
                   const segments = dir.Prefix?.split("/").filter(Boolean) ?? [];
                   const name = segments[segments.length - 1] || dir.Name || "";

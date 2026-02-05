@@ -3,7 +3,6 @@
 import React from "react";
 import { useSession } from "next-auth/react";
 import { isAxiosError } from "axios";
-import toast from "react-hot-toast";
 
 import UnlockEncryptedFolderModal from "./UnlockEncryptedFolderModal";
 import { sessionManager } from "@/lib/SessionManager";
@@ -73,7 +72,7 @@ export default function EncryptedFoldersProvider({
               new CustomEvent("session-expired", { detail: { path } }),
             );
           }
-          toast.error(`Session expired for ${path}`);
+          // Session expired for ${path}
         }
       });
     };
@@ -87,7 +86,6 @@ export default function EncryptedFoldersProvider({
       if (!unlockPrompt) return;
       try {
         const token = await unlockFolder(unlockPrompt.path, passphrase);
-        toast.success("Folder unlocked");
         unlockPrompt.onSuccess?.(token);
         setUnlockPrompt(null);
       } catch (error) {

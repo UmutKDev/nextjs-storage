@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import toast from "react-hot-toast";
 import type {
   CloudDirectoryModel,
   CloudObjectModel,
@@ -141,7 +140,6 @@ export function useExplorerDelete() {
           await Promise.all(encryptedDirectories.map(deleteEncryptedDirectory));
         }
 
-        toast.success("Deleted selected items");
         replaceSelectedItemKeys(new Set());
         await Promise.all([
           invalidateObjects(),
@@ -150,7 +148,6 @@ export function useExplorerDelete() {
         ]);
       } catch (error) {
         console.error(error);
-        toast.error("Failed to delete items");
       }
     },
     [
@@ -235,7 +232,7 @@ export function useExplorerDelete() {
             deleteOptions
           );
         }
-        toast.success("Deleted successfully");
+        // Deleted successfully
         await Promise.all([
           invalidateObjects(),
           invalidateDirectories(),
@@ -243,7 +240,6 @@ export function useExplorerDelete() {
         ]);
       } catch (error) {
         console.error(error);
-        toast.error("Failed to delete");
       } finally {
         setDeletingStatusByKey((previous) => ({ ...previous, [key]: false }));
         setItemPendingDeletion(null);

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import toast from "react-hot-toast";
 import { useExplorerSelection } from "./ExplorerSelectionContext";
 import { useExplorerSelectionRange } from "./ExplorerSelectionRangeContext";
 import { useExplorerItemNavigation } from "./ExplorerNavigationContext";
@@ -145,7 +144,7 @@ export function ExplorerKeyboardProvider({
         if (!clipboardState?.keys.length) return;
         event.preventDefault();
         if (clipboardState.mode === "copy") {
-          toast.error("Copy is not supported yet");
+          // Copy is not supported yet
           return;
         }
         const activeKey = selectionAnchorKey ?? getActiveKey();

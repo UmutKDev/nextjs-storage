@@ -2,7 +2,6 @@
 
 import React from "react";
 import { X, Edit3, Plus } from "lucide-react";
-import toast from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { CloudObjectModel } from "@/Service/Generates";
 import BaseDialog from "./BaseDialog";
@@ -87,7 +86,6 @@ export default function EditFileModal({
   async function handleSubmit() {
     // validate name
     if (!name || !name.trim()) {
-      toast.error("Name cannot be empty");
       return;
     }
     if (!file) return onClose();

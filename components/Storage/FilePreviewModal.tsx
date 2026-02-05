@@ -19,7 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import toast from "react-hot-toast";
 import BaseDialog from "./BaseDialog";
 
 import type { CloudObjectModel } from "@/Service/Generates/api";
@@ -140,7 +139,6 @@ export default function FilePreviewModal({
         await downloadWithRetry({ url, filename: downloadFileName });
       } catch (error) {
         console.error(error);
-        toast.error("Download failed");
       }
     },
     [downloadFileName]
@@ -157,10 +155,8 @@ export default function FilePreviewModal({
         return;
       }
       await navigator.clipboard.writeText(downloadUrl);
-      toast.success("Bağlantı kopyalandı");
     } catch (error) {
       console.error(error);
-      toast.error("Paylaşım başarısız");
     }
   }, [downloadUrl, displayName]);
 
