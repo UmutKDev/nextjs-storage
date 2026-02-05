@@ -70,7 +70,7 @@ export default function EditFileModal({
     // Hide default model metadata fields from the editable list
     const DEFAULT_KEYS = ["Originalfilename", "Width", "Height"];
     const keys = Object.keys(meta || {}).filter(
-      (k) => !DEFAULT_KEYS.includes(k)
+      (k) => !DEFAULT_KEYS.includes(k),
     );
     if (keys.length === 0) setPairs([]);
     else
@@ -79,7 +79,7 @@ export default function EditFileModal({
           id: String(idCounter.current++),
           key: k,
           value: String(meta[k]),
-        }))
+        })),
       );
   }, [open, file]);
 
@@ -160,9 +160,7 @@ export default function EditFileModal({
 
         <div className="mt-2 space-y-2">
           {pairs.length === 0 ? (
-            <div className="text-xs text-muted-foreground">
-              No metadata set
-            </div>
+            <div className="text-xs text-muted-foreground">No metadata set</div>
           ) : (
             pairs.map((p) => (
               <div key={p.id} className="flex gap-2">
@@ -173,8 +171,8 @@ export default function EditFileModal({
                     onChange={(e) =>
                       setPairs((s) =>
                         s.map((r) =>
-                          r.id === p.id ? { ...r, key: e.target.value } : r
-                        )
+                          r.id === p.id ? { ...r, key: e.target.value } : r,
+                        ),
                       )
                     }
                   />
@@ -186,8 +184,8 @@ export default function EditFileModal({
                     onChange={(e) =>
                       setPairs((s) =>
                         s.map((r) =>
-                          r.id === p.id ? { ...r, value: e.target.value } : r
-                        )
+                          r.id === p.id ? { ...r, value: e.target.value } : r,
+                        ),
                       )
                     }
                   />

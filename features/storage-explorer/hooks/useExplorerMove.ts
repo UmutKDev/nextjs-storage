@@ -26,10 +26,10 @@ export function useExplorerMove() {
     async function updateItemsLocation(
       sourceKeys: string[],
       destinationKey: string,
-      options?: MoveItemsOptions
+      options?: MoveItemsOptions,
     ): Promise<boolean> {
       const normalizedDestination = normalizeFolderPath(
-        destinationKey === "/" ? "" : destinationKey
+        destinationKey === "/" ? "" : destinationKey,
       );
       const destinationEncrypted =
         normalizedDestination && isFolderEncrypted(normalizedDestination);
@@ -79,7 +79,7 @@ export function useExplorerMove() {
               DestinationKey: destinationKey === "" ? "/" : destinationKey,
             },
           },
-          moveOptions
+          moveOptions,
         );
         replaceSelectedItemKeys(new Set());
         await Promise.all([invalidateObjects(), invalidateDirectories()]);
@@ -97,7 +97,7 @@ export function useExplorerMove() {
       isFolderUnlocked,
       replaceSelectedItemKeys,
       requestFolderUnlock,
-    ]
+    ],
   );
 
   return { updateItemsLocation };

@@ -29,15 +29,13 @@ export default function EncryptedFoldersProvider({
     unlockFolder,
     clearAllSessions,
     syncSessions,
-  } = useEncryptedFolders(
-    (state) => ({
-      unlockPrompt: state.unlockPrompt,
-      setUnlockPrompt: state.setUnlockPrompt,
-      unlockFolder: state.unlockFolder,
-      clearAllSessions: state.clearAllSessions,
-      syncSessions: state.syncSessions,
-    }),
-  );
+  } = useEncryptedFolders((state) => ({
+    unlockPrompt: state.unlockPrompt,
+    setUnlockPrompt: state.setUnlockPrompt,
+    unlockFolder: state.unlockFolder,
+    clearAllSessions: state.clearAllSessions,
+    syncSessions: state.syncSessions,
+  }));
 
   React.useEffect(() => {
     syncSessions(sessionManager.getAllSessions());

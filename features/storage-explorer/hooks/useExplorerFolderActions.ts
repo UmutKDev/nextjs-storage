@@ -120,7 +120,7 @@ export function useExplorerFolderActions() {
       setConvertTargetFolder(directory);
       setConvertPassphrase("");
     },
-    [isFolderEncrypted]
+    [isFolderEncrypted],
   );
 
   const convertFolderToEncrypted = React.useCallback(async () => {
@@ -175,16 +175,19 @@ export function useExplorerFolderActions() {
     setRenameValue("");
   }, []);
 
-  const requestRenameFolder = React.useCallback((directory: CloudDirectoryModel) => {
-    setRenameTargetFolder(directory);
-    setRenameValue(getFolderNameFromPrefix(directory.Prefix));
-  }, []);
+  const requestRenameFolder = React.useCallback(
+    (directory: CloudDirectoryModel) => {
+      setRenameTargetFolder(directory);
+      setRenameValue(getFolderNameFromPrefix(directory.Prefix));
+    },
+    [],
+  );
 
   const updateFolderName = React.useCallback(
     async (
       directory: CloudDirectoryModel,
       newName: string,
-      passphraseOverride?: string
+      passphraseOverride?: string,
     ) => {
       const prefix = directory.Prefix ?? "";
       const normalizedPath = normalizeFolderPath(prefix);
@@ -192,7 +195,7 @@ export function useExplorerFolderActions() {
         getFolderNameFromPrefix(prefix) || directory.Name || "bu klasör";
       const isEncryptedTarget = Boolean(
         normalizedPath &&
-          (isFolderEncryptedExact(normalizedPath) || directory.IsEncrypted)
+        (isFolderEncryptedExact(normalizedPath) || directory.IsEncrypted),
       );
 
       const updateFolderNameRequest = async (passphrase?: string) => {
@@ -277,7 +280,7 @@ export function useExplorerFolderActions() {
       isFolderEncryptedExact,
       refetchManifest,
       requestFolderUnlock,
-    ]
+    ],
   );
 
   const updateFolderNameFromModal = React.useCallback(async () => {
@@ -306,9 +309,9 @@ export function useExplorerFolderActions() {
     : "";
   const renameIsEncrypted = Boolean(
     renameTargetFolder &&
-      renameNormalizedPath &&
-      (isFolderEncryptedExact(renameNormalizedPath) ||
-        renameTargetFolder.IsEncrypted)
+    renameNormalizedPath &&
+    (isFolderEncryptedExact(renameNormalizedPath) ||
+      renameTargetFolder.IsEncrypted),
   );
   const renameCurrentName = renameTargetFolder
     ? getFolderNameFromPrefix(renameTargetFolder.Prefix)

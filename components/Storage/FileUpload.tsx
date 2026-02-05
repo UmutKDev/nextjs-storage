@@ -124,7 +124,7 @@ export default function FileUpload() {
   );
   const isUploadBlocked =
     isCurrentLocked ||
-    isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath);
+    (isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath));
   const [rejectedFiles, setRejectedFiles] = useState<
     { name: string; size: number; reason: string }[]
   >([]);

@@ -46,7 +46,7 @@ export function useExplorerDelete() {
       if (
         !skipConfirm &&
         !confirm(
-          `Are you sure you want to delete ${selectedItemKeys.size} items?`
+          `Are you sure you want to delete ${selectedItemKeys.size} items?`,
         )
       ) {
         return;
@@ -54,10 +54,10 @@ export function useExplorerDelete() {
 
       try {
         const selectedFiles = objectItems.filter(
-          (entry) => entry.Path?.Key && selectedItemKeys.has(entry.Path.Key)
+          (entry) => entry.Path?.Key && selectedItemKeys.has(entry.Path.Key),
         );
         const selectedDirectories = directoryItems.filter(
-          (entry) => entry.Prefix && selectedItemKeys.has(entry.Prefix)
+          (entry) => entry.Prefix && selectedItemKeys.has(entry.Prefix),
         );
 
         const encryptedDirectories: CloudDirectoryModel[] = [];
@@ -81,7 +81,9 @@ export function useExplorerDelete() {
           });
 
           if (missingPassphrase) {
-            const normalizedPath = normalizeFolderPath(missingPassphrase.Prefix);
+            const normalizedPath = normalizeFolderPath(
+              missingPassphrase.Prefix,
+            );
             if (normalizedPath) {
               requestFolderUnlock({
                 path: normalizedPath,
@@ -116,13 +118,13 @@ export function useExplorerDelete() {
                 ],
               },
             },
-            bulkDeleteOptions
+            bulkDeleteOptions,
           );
         }
 
         if (encryptedDirectories.length > 0) {
           const deleteEncryptedDirectory = async (
-            directory: CloudDirectoryModel
+            directory: CloudDirectoryModel,
           ) => {
             const normalizedPath = normalizeFolderPath(directory.Prefix);
             if (!normalizedPath) return;
@@ -163,7 +165,7 @@ export function useExplorerDelete() {
       replaceSelectedItemKeys,
       requestFolderUnlock,
       selectedItemKeys,
-    ]
+    ],
   );
 
   const deleteItem = React.useCallback(
@@ -187,13 +189,16 @@ export function useExplorerDelete() {
           const encryptedPath =
             normalizedPath && isFolderEncrypted(normalizedPath);
           const shouldTreatAsEncrypted = Boolean(
-            encryptedPath || (directory.IsEncrypted && normalizedPath)
+            encryptedPath || (directory.IsEncrypted && normalizedPath),
           );
 
           if (shouldTreatAsEncrypted && normalizedPath) {
             const passphrase = getFolderPassphrase(normalizedPath);
             if (!passphrase) {
-              setDeletingStatusByKey((previous) => ({ ...previous, [key]: false }));
+              setDeletingStatusByKey((previous) => ({
+                ...previous,
+                [key]: false,
+              }));
               requestFolderUnlock({
                 path: normalizedPath,
                 label: getItemDisplayName(entry),
@@ -218,7 +223,7 @@ export function useExplorerDelete() {
                   Items: [{ Key: key, IsDirectory: true }],
                 },
               },
-              deleteOptions
+              deleteOptions,
             );
           }
         } else {
@@ -229,7 +234,7 @@ export function useExplorerDelete() {
                 Items: [{ Key: key, IsDirectory: isDirectory }],
               },
             },
-            deleteOptions
+            deleteOptions,
           );
         }
         // Deleted successfully
@@ -253,7 +258,7 @@ export function useExplorerDelete() {
       invalidateUsage,
       isFolderEncrypted,
       requestFolderUnlock,
-    ]
+    ],
   );
 
   return {

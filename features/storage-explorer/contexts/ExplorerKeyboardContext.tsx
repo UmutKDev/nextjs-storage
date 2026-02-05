@@ -152,11 +152,11 @@ export function ExplorerKeyboardProvider({
         const destinationKey =
           activeEntry?.type === "folder"
             ? ((activeEntry.item as Directory).Prefix ?? currentPath ?? "")
-            : currentPath ?? "";
+            : (currentPath ?? "");
         void updateItemsLocation(clipboardState.keys, destinationKey).then(
           (moved) => {
             if (moved) clearClipboard();
-          }
+          },
         );
         return;
       }
@@ -175,7 +175,7 @@ export function ExplorerKeyboardProvider({
         const currentIndex = activeKey ? orderedKeys.indexOf(activeKey) : -1;
         const nextIndex = Math.min(
           Math.max(currentIndex + direction, 0),
-          orderedKeys.length - 1
+          orderedKeys.length - 1,
         );
         const nextKey = orderedKeys[nextIndex];
         if (!nextKey) return;
@@ -209,7 +209,7 @@ export function ExplorerKeyboardProvider({
       selectionAnchorKey,
       setClipboardState,
       updateItemsLocation,
-    ]
+    ],
   );
 
   const registerKeyListeners = React.useCallback(() => {
@@ -241,7 +241,7 @@ export function ExplorerKeyboardProvider({
       registerKeyListeners,
       selectionAnchorKey,
       unregisterKeyListeners,
-    ]
+    ],
   );
 
   return (

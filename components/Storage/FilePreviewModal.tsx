@@ -45,15 +45,13 @@ function formatOriginalSize(file: CloudObjectModel) {
   const height = rawHeight ? Number(rawHeight) : null;
   const hasDims =
     width && height && Number.isFinite(width) && Number.isFinite(height);
-  const dims = hasDims
-    ? `${Math.round(width)}x${Math.round(height)}`
-    : null;
+  const dims = hasDims ? `${Math.round(width)}x${Math.round(height)}` : null;
   return `Orijinal boyut: ${size}${dims ? ` • ${dims}` : ""}`;
 }
 
 function formatScaledSize(
   file: CloudObjectModel,
-  options?: { isFullScreen?: boolean }
+  options?: { isFullScreen?: boolean },
 ) {
   if (!isImageFile(file)) return "Ölçekli boyut: —";
   const scaled = getScaledImageDimensions(file, {
@@ -141,7 +139,7 @@ export default function FilePreviewModal({
         console.error(error);
       }
     },
-    [downloadFileName]
+    [downloadFileName],
   );
 
   const handleShare = React.useCallback(async () => {
@@ -220,186 +218,182 @@ export default function FilePreviewModal({
           : "sm:h-auto sm:max-h-[90vh] sm:min-h-[500px] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl sm:rounded-xl"
       }`}
     >
-          <div className="flex items-center justify-between p-3 border-b border-border/40 shrink-0 gap-4 bg-muted/5 hidden sm:flex">
-            <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-              <div className="flex flex-col min-w-0">
-                <div
-                  className="text-sm font-semibold truncate text-foreground"
-                  title={file.Metadata?.Originalfilename ?? file.Name}
-                >
-                  {displayName}
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="uppercase font-medium tracking-wide text-[10px] bg-muted px-1.5 rounded-sm">
-                    {file.Extension}
-                  </span>
-                </div>
-              </div>
+      <div className="flex items-center justify-between p-3 border-b border-border/40 shrink-0 gap-4 bg-muted/5 hidden sm:flex">
+        <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+          <div className="flex flex-col min-w-0">
+            <div
+              className="text-sm font-semibold truncate text-foreground"
+              title={file.Metadata?.Originalfilename ?? file.Name}
+            >
+              {displayName}
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {downloadUrl ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      title="İndir"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <DownloadCloud size={18} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleDownload(downloadUrl);
-                      }}
-                    >
-                      Orijinal
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      disabled={!hasScaledDownload}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleDownload(scaledDownloadUrl ?? downloadUrl);
-                      }}
-                    >
-                      Ölçekli
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null}
-
-              {downloadUrl ? (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="uppercase font-medium tracking-wide text-[10px] bg-muted px-1.5 rounded-sm">
+                {file.Extension}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {downloadUrl ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  title="Paylaş"
+                  title="İndir"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DownloadCloud size={18} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    void handleShare();
+                    void handleDownload(downloadUrl);
                   }}
                 >
-                  <Share2 size={18} />
-                </Button>
-              ) : null}
+                  Orijinal
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={!hasScaledDownload}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleDownload(scaledDownloadUrl ?? downloadUrl);
+                  }}
+                >
+                  Ölçekli
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
 
-              <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                onClick={() => onDelete?.(file)}
-                title="Sil"
-              >
-                <Trash2 size={18} />
-              </Button>
-
-              <div className="h-6 w-px bg-border/60 mx-1" />
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                onClick={() => setIsFullScreen(!isFullScreen)}
-                title={isFullScreen ? "Küçült" : "Tam Ekran"}
-              >
-                {isFullScreen ? (
-                  <Minimize2 size={18} />
-                ) : (
-                  <Maximize2 size={18} />
-                )}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                onClick={onClose}
-              >
-                <X size={18} />
-              </Button>
-            </div>
-          </div>
-
-          <div
-            className={`absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 p-3 sm:hidden ${
-              isMediaPreview ? "text-white" : "text-foreground"
-            }`}
-          >
-            <div className="min-w-0">
-              <div className="text-sm font-medium truncate" title={displayName}>
-                {displayName}
-              </div>
-              <div
-                className={`text-xs ${
-                  isMediaPreview ? "text-white/70" : "text-muted-foreground"
-                }`}
-              >
-                {mobileMeta}
-              </div>
-            </div>
+          {downloadUrl ? (
             <Button
               variant="ghost"
               size="icon"
-              className={`h-9 w-9 ${
-                isMediaPreview
-                  ? "text-white hover:text-white hover:bg-white/10"
-                  : "text-foreground hover:text-foreground hover:bg-muted"
-              }`}
-              onClick={onClose}
-              title="Kapat"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              title="Paylaş"
+              onClick={(e) => {
+                e.stopPropagation();
+                void handleShare();
+              }}
             >
-              <X size={20} />
+              <Share2 size={18} />
             </Button>
+          ) : null}
+
+          <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            onClick={() => onDelete?.(file)}
+            title="Sil"
+          >
+            <Trash2 size={18} />
+          </Button>
+
+          <div className="h-6 w-px bg-border/60 mx-1" />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={() => setIsFullScreen(!isFullScreen)}
+            title={isFullScreen ? "Küçült" : "Tam Ekran"}
+          >
+            {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={onClose}
+          >
+            <X size={18} />
+          </Button>
+        </div>
+      </div>
+
+      <div
+        className={`absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 p-3 sm:hidden ${
+          isMediaPreview ? "text-white" : "text-foreground"
+        }`}
+      >
+        <div className="min-w-0">
+          <div className="text-sm font-medium truncate" title={displayName}>
+            {displayName}
           </div>
-
-          <div className="relative flex-1 min-h-0 flex flex-col group">
-            {hasPrev && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrev();
-                }}
-                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
-                title="Previous"
-              >
-                <ChevronLeft size={28} />
-              </button>
-            )}
-
-            {hasNext && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNext();
-                }}
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
-                title="Next"
-              >
-                <ChevronRight size={28} />
-              </button>
-            )}
-
-            <div className="p-0 pt-14 sm:pt-4 sm:p-4 overflow-hidden sm:overflow-auto flex-1 flex flex-col">
-              <LazyPreview file={file} isFullScreen={isFullScreen} />
-            </div>
+          <div
+            className={`text-xs ${
+              isMediaPreview ? "text-white/70" : "text-muted-foreground"
+            }`}
+          >
+            {mobileMeta}
           </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-9 w-9 ${
+            isMediaPreview
+              ? "text-white hover:text-white hover:bg-white/10"
+              : "text-foreground hover:text-foreground hover:bg-muted"
+          }`}
+          onClick={onClose}
+          title="Kapat"
+        >
+          <X size={20} />
+        </Button>
+      </div>
 
-          <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10 text-xs text-muted-foreground shrink-0 hidden sm:flex">
-            <div>{formatOriginalSize(file)}</div>
-            <div>{formatScaledSize(file, { isFullScreen })}</div>
-            <div>
-              Değiştirilme:{" "}
-              {file.LastModified
-                ? new Date(file.LastModified).toLocaleString()
-                : "—"}
-            </div>
-          </div>
+      <div className="relative flex-1 min-h-0 flex flex-col group">
+        {hasPrev && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+            title="Previous"
+          >
+            <ChevronLeft size={28} />
+          </button>
+        )}
+
+        {hasNext && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+            title="Next"
+          >
+            <ChevronRight size={28} />
+          </button>
+        )}
+
+        <div className="p-0 pt-14 sm:pt-4 sm:p-4 overflow-hidden sm:overflow-auto flex-1 flex flex-col">
+          <LazyPreview file={file} isFullScreen={isFullScreen} />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10 text-xs text-muted-foreground shrink-0 hidden sm:flex">
+        <div>{formatOriginalSize(file)}</div>
+        <div>{formatScaledSize(file, { isFullScreen })}</div>
+        <div>
+          Değiştirilme:{" "}
+          {file.LastModified
+            ? new Date(file.LastModified).toLocaleString()
+            : "—"}
+        </div>
+      </div>
     </BaseDialog>
   );
 }
