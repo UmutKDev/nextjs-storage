@@ -9,9 +9,11 @@ const INFINITE_LOAD_ROOT_MARGIN = "200px";
 export function useExplorerInfiniteLoad({
   objectItems,
   directoryItems,
+  scrollContainerRef,
 }: {
   objectItems: ExplorerFile[];
   directoryItems: ExplorerDirectory[];
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const { objectsQuery, directoriesQuery } = useExplorerQuery();
   const totalFiles = React.useMemo(() => {
@@ -65,18 +67,19 @@ export function useExplorerInfiniteLoad({
 
   React.useEffect(() => {
     const node = loadMoreTriggerRef.current;
-    if (!node) return;
+    const scrollContainer = scrollContainerRef.current;
+    if (!node || !scrollContainer) return;
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (!entry?.isIntersecting) return;
         loadMore();
       },
-      { rootMargin: INFINITE_LOAD_ROOT_MARGIN },
+      { root: scrollContainer, rootMargin: INFINITE_LOAD_ROOT_MARGIN },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [loadMore, scrollContainerRef]);
 
   return {
     loadMoreTriggerRef,

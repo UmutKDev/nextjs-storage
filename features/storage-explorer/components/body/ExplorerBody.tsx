@@ -46,6 +46,7 @@ export default function ExplorerBody() {
   } = useExplorerInfiniteLoad({
     objectItems,
     directoryItems,
+    scrollContainerRef,
   });
 
   const isLoading =
