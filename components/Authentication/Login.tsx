@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2,
   KeyRound,
@@ -11,6 +12,7 @@ import {
   Mail,
   ArrowLeft,
   Lock,
+  Shield,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -18,14 +20,45 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { authenticationApiFactory } from "@/Service/Factories";
+import { cn } from "@/lib/utils";
 
 type LoginStep = "EMAIL" | "CHOICE" | "PASSWORD";
+
+const stepOrder: LoginStep[] = ["EMAIL", "CHOICE", "PASSWORD"];
+
+const slideVariants = {
+  enter: (dir: number) => ({
+    x: dir > 0 ? 40 : -40,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (dir: number) => ({
+    x: dir > 0 ? -40 : 40,
+    opacity: 0,
+  }),
+};
+
+const slideTransition = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 30,
+};
+
+const inputClassName =
+  "pl-10 h-11 rounded-xl border-white/[0.08] bg-white/[0.04] text-white placeholder:text-zinc-500 focus-visible:border-violet-500/50 focus-visible:ring-violet-500/20 transition-colors";
+
+const gradientButtonClassName =
+  "w-full h-11 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-medium hover:from-violet-500 hover:to-blue-500 transition-all duration-300 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 active:scale-[0.98] border-0";
 
 export const Login = () => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const [step, setStep] = useState<LoginStep>("EMAIL");
+  const [direction, setDirection] = useState<1 | -1>(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
@@ -62,6 +95,7 @@ export const Login = () => {
       setHasTwoFactor(has2FA);
 
       // If user has Passkey, show choice. Otherwise go to password.
+      setDirection(1);
       if (hasPasskeyEnabled) {
         setStep("CHOICE");
       } else {
@@ -154,25 +188,60 @@ export const Login = () => {
     }
   };
 
+  const visibleSteps = stepOrder.filter(
+    (s) => s !== "CHOICE" || hasPasskey
+  );
+  const currentStepIndex = stepOrder.indexOf(step);
+
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center gap-2 py-1">
+      {visibleSteps.map((s) => (
+        <motion.div
+          key={s}
+          className={cn(
+            "h-1.5 rounded-full transition-colors duration-300",
+            step === s
+              ? "bg-white w-6"
+              : currentStepIndex > stepOrder.indexOf(s)
+                ? "bg-white/40 w-1.5"
+                : "bg-white/15 w-1.5"
+          )}
+          layout
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        />
+      ))}
+    </div>
+  );
+
   const renderEmailStep = () => (
     <form onSubmit={handleEmailSubmit} className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="email">E-posta Adresi</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="isim@ornek.com"
-          autoCapitalize="none"
-          autoComplete="email"
-          autoCorrect="off"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoFocus
-          disabled={loading}
-        />
+        <Label htmlFor="email" className="text-sm font-medium text-zinc-300">
+          E-posta Adresi
+        </Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="isim@ornek.com"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect="off"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoFocus
+            disabled={loading}
+            className={inputClassName}
+          />
+        </div>
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button
+        type="submit"
+        className={gradientButtonClassName}
+        disabled={loading}
+      >
         {loading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
@@ -184,118 +253,164 @@ export const Login = () => {
 
   const renderChoiceStep = () => (
     <div className="grid gap-4">
-      <div className="flex flex-col items-center justify-center space-y-2 border-b pb-4">
-        <div className="flex items-center space-x-2 text-muted-foreground">
+      <div className="flex flex-col items-center justify-center space-y-2 border-b border-white/[0.08] pb-4">
+        <div className="flex items-center space-x-2 text-zinc-400">
           <Mail className="h-4 w-4" />
-          <span>{email}</span>
+          <span className="text-sm">{email}</span>
         </div>
-        <Button
-          variant="link"
-          size="sm"
-          className="h-auto p-0 text-xs text-primary"
-          onClick={() => setStep("EMAIL")}
+        <button
+          className="text-xs font-medium text-violet-400 hover:text-violet-300 transition-colors"
+          onClick={() => {
+            setDirection(-1);
+            setStep("EMAIL");
+          }}
           type="button"
         >
           Değiştir
-        </Button>
+        </button>
       </div>
 
       <div className="grid gap-3">
-        <Button
-          variant="outline"
-          className="w-full h-11 justify-start px-4"
-          onClick={() => setStep("PASSWORD")}
+        <motion.button
+          onClick={() => {
+            setDirection(1);
+            setStep("PASSWORD");
+          }}
+          className="flex w-full items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3.5 text-sm text-white transition-colors hover:bg-white/[0.06] hover:border-white/[0.12]"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <Lock className="mr-2 h-4 w-4" />
-          Şifre ile devam et
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full h-11 justify-start px-4"
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06]">
+            <Lock className="h-4 w-4 text-zinc-400" />
+          </div>
+          <div className="text-left">
+            <div className="font-medium">Şifre ile devam et</div>
+            <div className="text-xs text-zinc-500">
+              Şifrenizi kullanarak giriş yapın
+            </div>
+          </div>
+        </motion.button>
+
+        <motion.button
           onClick={handlePasskeyLogin}
           disabled={loading}
+          className="flex w-full items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3.5 text-sm text-white transition-colors hover:bg-white/[0.06] hover:border-white/[0.12] disabled:opacity-50 disabled:pointer-events-none"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
         >
-          {loading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <KeyRound className="mr-2 h-4 w-4" />
-          )}
-          Passkey ile devam et
-        </Button>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06]">
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+            ) : (
+              <KeyRound className="h-4 w-4 text-zinc-400" />
+            )}
+          </div>
+          <div className="text-left">
+            <div className="font-medium">Passkey ile devam et</div>
+            <div className="text-xs text-zinc-500">
+              Biyometrik veya güvenlik anahtarı kullanın
+            </div>
+          </div>
+        </motion.button>
       </div>
     </div>
   );
 
   const renderPasswordStep = () => (
     <form onSubmit={handlePasswordLogin} className="grid gap-4">
-      <div className="flex items-center justify-between border-b pb-4 mb-2">
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+      <div className="flex items-center justify-between border-b border-white/[0.08] pb-4 mb-2">
+        <div className="flex items-center space-x-2 text-sm text-zinc-400">
           <Mail className="h-4 w-4" />
           <span>{email}</span>
         </div>
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="sm"
+          className="flex items-center text-sm text-zinc-400 hover:text-white transition-colors"
           onClick={() => {
-            // If user has passkey, go back to CHOICE, otherwise EMAIL
             if (hasPasskey) {
+              setDirection(-1);
               setStep("CHOICE");
             } else {
+              setDirection(-1);
               setStep("EMAIL");
             }
           }}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Geri
-        </Button>
+        </button>
       </div>
 
       <div className="grid gap-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password">Şifre</Label>
+          <Label
+            htmlFor="password"
+            className="text-sm font-medium text-zinc-300"
+          >
+            Şifre
+          </Label>
           <Link
             href="/forgot-password"
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            className="text-sm font-medium text-zinc-400 hover:text-violet-400 transition-colors"
           >
             Şifremi unuttum?
           </Link>
         </div>
-        <Input
-          id="password"
-          type="password"
-          autoCapitalize="none"
-          autoComplete="current-password"
-          disabled={loading}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoFocus
-        />
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+          <Input
+            id="password"
+            type="password"
+            autoCapitalize="none"
+            autoComplete="current-password"
+            disabled={loading}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoFocus
+            className={inputClassName}
+          />
+        </div>
       </div>
 
       {hasTwoFactor && (
-        <div className="grid gap-2">
-          <Label htmlFor="twoFactorCode">2FA Kodu</Label>
-          <Input
-            id="twoFactorCode"
-            type="text"
-            placeholder="000000"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            disabled={loading}
-            value={twoFactorCode}
-            onChange={(e) => setTwoFactorCode(e.target.value)}
-            maxLength={6}
-            className="text-center tracking-widest"
-          />
-        </div>
+        <motion.div
+          className="grid gap-2"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Label
+            htmlFor="twoFactorCode"
+            className="text-sm font-medium text-zinc-300"
+          >
+            2FA Kodu
+          </Label>
+          <div className="relative">
+            <Shield className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+            <Input
+              id="twoFactorCode"
+              type="text"
+              placeholder="000000"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              disabled={loading}
+              value={twoFactorCode}
+              onChange={(e) => setTwoFactorCode(e.target.value)}
+              maxLength={6}
+              className={cn(
+                inputClassName,
+                "text-center tracking-widest pl-10"
+              )}
+            />
+          </div>
+        </motion.div>
       )}
 
       <Button
         type="submit"
         disabled={loading || (hasTwoFactor && !twoFactorCode)}
-        className="w-full"
+        className={gradientButtonClassName}
       >
         {loading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -309,30 +424,98 @@ export const Login = () => {
   );
 
   return (
-    <div className="grid gap-6">
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Hata</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {step === "EMAIL" && renderEmailStep()}
-      {step === "CHOICE" && renderChoiceStep()}
-      {step === "PASSWORD" && renderPasswordStep()}
-
-      {step === "EMAIL" && (
-        <p className="px-8 text-center text-sm text-muted-foreground">
-          Hesabınız yok mu?{" "}
-          <Link
-            href="/register"
-            className="underline underline-offset-4 hover:text-primary font-medium"
+    <div className="grid gap-5">
+      {/* Error alert */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
           >
-            Kayıt Ol
-          </Link>
-        </p>
-      )}
+            <Alert
+              variant="destructive"
+              className="border-red-500/30 bg-red-500/10 backdrop-blur-sm"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Hata</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Step indicator */}
+      {renderStepIndicator()}
+
+      {/* Step content with transitions */}
+      <AnimatePresence mode="wait" custom={direction}>
+        {step === "EMAIL" && (
+          <motion.div
+            key="email"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={slideTransition}
+          >
+            {renderEmailStep()}
+          </motion.div>
+        )}
+
+        {step === "CHOICE" && (
+          <motion.div
+            key="choice"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={slideTransition}
+          >
+            {renderChoiceStep()}
+          </motion.div>
+        )}
+
+        {step === "PASSWORD" && (
+          <motion.div
+            key="password"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={slideTransition}
+          >
+            {renderPasswordStep()}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Register link */}
+      <AnimatePresence>
+        {step === "EMAIL" && (
+          <motion.p
+            key="register-link"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="text-center text-sm text-zinc-500"
+          >
+            Hesabınız yok mu?{" "}
+            <Link
+              href="/register"
+              className="font-medium text-violet-400 hover:text-violet-300 transition-colors"
+            >
+              Kayıt Ol
+            </Link>
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
