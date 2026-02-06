@@ -101,9 +101,7 @@ export default function LoginForm() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
         >
-          <div className="mb-4 text-4xl font-serif text-white/20">
-            &ldquo;
-          </div>
+          <div className="mb-4 text-4xl font-serif text-white/20">&ldquo;</div>
           <blockquote className="space-y-4">
             <p className="text-lg font-light leading-relaxed text-white/90">
               Bu platform sayesinde tüm dosyalarım güvende ve her an elimin
@@ -171,7 +169,12 @@ export default function LoginForm() {
           className="relative z-10 w-full max-w-[420px] rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 sm:p-8 shadow-2xl backdrop-blur-xl"
           initial={{ opacity: 0, y: 20, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+            delay: 0.1,
+          }}
         >
           {/* Inner glow overlay */}
           <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.05] to-transparent" />

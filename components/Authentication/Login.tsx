@@ -188,9 +188,7 @@ export const Login = () => {
     }
   };
 
-  const visibleSteps = stepOrder.filter(
-    (s) => s !== "CHOICE" || hasPasskey
-  );
+  const visibleSteps = stepOrder.filter((s) => s !== "CHOICE" || hasPasskey);
   const currentStepIndex = stepOrder.indexOf(step);
 
   const renderStepIndicator = () => (
@@ -204,7 +202,7 @@ export const Login = () => {
               ? "bg-white w-6"
               : currentStepIndex > stepOrder.indexOf(s)
                 ? "bg-white/40 w-1.5"
-                : "bg-white/15 w-1.5"
+                : "bg-white/15 w-1.5",
           )}
           layout
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -400,7 +398,7 @@ export const Login = () => {
               maxLength={6}
               className={cn(
                 inputClassName,
-                "text-center tracking-widest pl-10"
+                "text-center tracking-widest pl-10",
               )}
             />
           </div>
