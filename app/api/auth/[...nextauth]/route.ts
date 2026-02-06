@@ -92,8 +92,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         // If 2FA is required and code is provided, verify it
-        if (twoFactorCode) {
-          console.log("first");
+        if (
+          !!twoFactorCode &&
+          twoFactorCode.length > 0 &&
+          twoFactorCode !== "undefined"
+        ) {
           const verifyRes = await authenticationApiFactory.verify2FA(
             {
               twoFactorVerifyRequestModel: { Code: twoFactorCode },
