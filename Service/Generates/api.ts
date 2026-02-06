@@ -608,6 +608,14 @@ export interface PasskeyViewBaseModel {
     'Result': PasskeyViewModel;
     'Status': BaseStatusModel;
 }
+export interface PasskeyViewListBaseModel {
+    'Result': PasskeyViewListModelResult;
+    'Status': BaseStatusModel;
+}
+export interface PasskeyViewListModelResult {
+    'Options': PaginationResponseModel;
+    'Items': Array<PasskeyViewModel>;
+}
 export interface PasskeyViewModel {
     'Id': string;
     'DeviceName': string;
@@ -1953,7 +1961,7 @@ export const AccountSecurityApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getPasskeys(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PasskeyViewBaseModel>> {
+        async getPasskeys(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PasskeyViewListBaseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getPasskeys(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AccountSecurityApi.getPasskeys']?.[localVarOperationServerIndex]?.url;
@@ -2181,7 +2189,7 @@ export const AccountSecurityApiFactory = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPasskeys(options?: RawAxiosRequestConfig): AxiosPromise<PasskeyViewBaseModel> {
+        getPasskeys(options?: RawAxiosRequestConfig): AxiosPromise<PasskeyViewListBaseModel> {
             return localVarFp.getPasskeys(options).then((request) => request(axios, basePath));
         },
         /**
