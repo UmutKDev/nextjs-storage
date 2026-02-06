@@ -313,12 +313,12 @@ export default function TwoFactorManager() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border rounded-xl bg-muted/30">
                 <div className="space-y-1">
                   <p className="font-semibold text-sm">Yedek Kodlar</p>
-                  <p className="text-xs text-muted-foreground max-w-[200px]">
+                  {/* <p className="text-xs text-muted-foreground max-w-[200px]">
                     Kalan geçerli kod sayısı:{" "}
                     <span className="font-semibold text-foreground">
                       {statusQuery.data?.RecoveryCodesLeft ?? 0}
                     </span>
-                  </p>
+                  </p> */}
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-2">
