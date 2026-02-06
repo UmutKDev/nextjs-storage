@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -48,10 +48,10 @@ const slideTransition = {
 };
 
 const inputClassName =
-  "pl-10 h-11 rounded-xl border-white/[0.08] bg-white/[0.04] text-white placeholder:text-zinc-500 focus-visible:border-violet-500/50 focus-visible:ring-violet-500/20 transition-colors";
+  "pl-10 h-11 rounded-xl border-white/[0.08] bg-white/[0.04] text-white placeholder:text-zinc-500 focus-visible:border-zinc-400/50 focus-visible:ring-zinc-400/20 transition-colors";
 
-const gradientButtonClassName =
-  "w-full h-11 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-medium hover:from-violet-500 hover:to-blue-500 transition-all duration-300 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 active:scale-[0.98] border-0";
+const primaryButtonClassName =
+  "w-full h-11 rounded-xl bg-white text-zinc-950 font-medium hover:bg-zinc-200 transition-all duration-300 shadow-lg shadow-white/10 hover:shadow-white/20 active:scale-[0.98] border-0";
 
 export const Login = () => {
   const searchParams = useSearchParams();
@@ -66,6 +66,42 @@ export const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [hasPasskey, setHasPasskey] = useState(false);
   const [hasTwoFactor, setHasTwoFactor] = useState(false);
+
+  // OTP input refs for 6 individual digit boxes
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const otpDigits = Array.from({ length: 6 }, (_, i) => twoFactorCode[i] || "");
+
+  const handleOtpChange = (index: number, value: string) => {
+    // Allow only digits
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const newDigits = [...otpDigits];
+    newDigits[index] = digit;
+    const newCode = newDigits.join("");
+    setTwoFactorCode(newCode);
+
+    // Auto-advance to next box
+    if (digit && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (e.key === "Backspace" && !otpDigits[index]?.trim() && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    setTwoFactorCode(pasted);
+    // Focus on the next empty box or last box
+    const focusIndex = Math.min(pasted.length, 5);
+    otpRefs.current[focusIndex]?.focus();
+  };
 
   // Step 1: Email Submission & Check
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -237,7 +273,7 @@ export const Login = () => {
       </div>
       <Button
         type="submit"
-        className={gradientButtonClassName}
+        className={primaryButtonClassName}
         disabled={loading}
       >
         {loading ? (
@@ -257,7 +293,7 @@ export const Login = () => {
           <span className="text-sm">{email}</span>
         </div>
         <button
-          className="text-xs font-medium text-violet-400 hover:text-violet-300 transition-colors"
+          className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
           onClick={() => {
             setDirection(-1);
             setStep("EMAIL");
@@ -349,7 +385,7 @@ export const Login = () => {
           </Label>
           <Link
             href="/forgot-password"
-            className="text-sm font-medium text-zinc-400 hover:text-violet-400 transition-colors"
+            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
           >
             Şifremi unuttum?
           </Link>
@@ -373,42 +409,53 @@ export const Login = () => {
 
       {hasTwoFactor && (
         <motion.div
-          className="grid gap-2"
+          className="grid gap-3"
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <Label
-            htmlFor="twoFactorCode"
-            className="text-sm font-medium text-zinc-300"
-          >
-            2FA Kodu
-          </Label>
-          <div className="relative">
-            <Shield className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 pointer-events-none" />
-            <Input
-              id="twoFactorCode"
-              type="text"
-              placeholder="000000"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              disabled={loading}
-              value={twoFactorCode}
-              onChange={(e) => setTwoFactorCode(e.target.value)}
-              maxLength={6}
-              className={cn(
-                inputClassName,
-                "text-center tracking-widest pl-10",
-              )}
-            />
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="h-4 w-4 text-zinc-500" />
+            <Label className="text-sm font-medium text-zinc-300">
+              Doğrulama Kodu
+            </Label>
           </div>
+          <div className="flex justify-center gap-2">
+            {otpDigits.map((digit, i) => (
+              <React.Fragment key={i}>
+                {i === 3 && (
+                  <div className="flex items-center px-1">
+                    <div className="h-px w-3 bg-white/[0.12]" />
+                  </div>
+                )}
+                <input
+                  ref={(el) => {
+                    otpRefs.current[i] = el;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete={i === 0 ? "one-time-code" : "off"}
+                  maxLength={1}
+                  value={digit.trim()}
+                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                  onPaste={i === 0 ? handleOtpPaste : undefined}
+                  disabled={loading}
+                  className="h-12 w-10 rounded-lg border border-white/[0.08] bg-white/[0.04] text-center text-lg font-medium text-white caret-white transition-all focus:border-zinc-400/50 focus:ring-1 focus:ring-zinc-400/20 focus:outline-none disabled:opacity-50"
+                />
+              </React.Fragment>
+            ))}
+          </div>
+          <p className="text-center text-xs text-zinc-500">
+            Authenticator uygulamanızdaki 6 haneli kodu girin
+          </p>
         </motion.div>
       )}
 
       <Button
         type="submit"
-        disabled={loading || (hasTwoFactor && !twoFactorCode)}
-        className={gradientButtonClassName}
+        disabled={loading || (hasTwoFactor && twoFactorCode.length < 6)}
+        className={primaryButtonClassName}
       >
         {loading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -507,7 +554,7 @@ export const Login = () => {
             Hesabınız yok mu?{" "}
             <Link
               href="/register"
-              className="font-medium text-violet-400 hover:text-violet-300 transition-colors"
+              className="font-medium text-zinc-300 hover:text-white transition-colors"
             >
               Kayıt Ol
             </Link>

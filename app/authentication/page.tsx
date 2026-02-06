@@ -18,24 +18,23 @@ export default function LoginForm() {
     <div className="relative grid min-h-screen lg:grid-cols-2">
       {/* ========== LEFT PANEL ========== */}
       <div className="relative hidden h-full flex-col bg-zinc-950 p-10 text-white lg:flex overflow-hidden">
-        {/* Layer 1: Radial gradient mesh */}
+        {/* Layer 1: Subtle radial glow from center */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse at 20% 50%, rgba(120, 119, 198, 0.15), transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(255, 119, 198, 0.12), transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(78, 154, 241, 0.1), transparent 50%)",
+              "radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.05), transparent 70%)",
           }}
         />
 
-        {/* Layer 2: Slow-spinning conic gradient */}
-        <motion.div
-          className="absolute inset-0 opacity-30"
+        {/* Layer 2: Fine grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
           style={{
-            background:
-              "conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(120, 119, 198, 0.3) 60deg, transparent 120deg, rgba(78, 154, 241, 0.2) 180deg, transparent 240deg, rgba(255, 119, 198, 0.15) 300deg, transparent 360deg)",
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
           }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
         />
 
         {/* Layer 3: Dot pattern overlay */}
@@ -48,9 +47,38 @@ export default function LoginForm() {
           }}
         />
 
-        {/* Floating decorative shapes */}
+        {/* Concentric circles - cloud hub visual */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-40 w-40 rounded-full border border-white/[0.06]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-72 w-72 rounded-full border border-white/[0.04]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[28rem] w-[28rem] rounded-full border border-white/[0.03]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[40rem] w-[40rem] rounded-full border border-white/[0.02]" />
+        </div>
+
+        {/* Animated horizontal glow lines - data flow */}
         <motion.div
-          className="absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-violet-500/10 blur-3xl"
+          className="absolute top-[35%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          animate={{ opacity: [0.3, 0.8, 0.3] }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute top-[65%] left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.07] to-transparent"
+          animate={{ opacity: [0.2, 0.6, 0.2] }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1.5,
+          }}
+        />
+
+        {/* Floating decorative shapes - grayscale */}
+        <motion.div
+          className="absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-white/[0.03] blur-3xl"
           animate={{ y: [0, -30, 0], x: [0, 15, 0] }}
           transition={{
             duration: 8,
@@ -59,23 +87,13 @@ export default function LoginForm() {
           }}
         />
         <motion.div
-          className="absolute bottom-1/3 right-1/4 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl"
+          className="absolute bottom-1/3 right-1/4 h-48 w-48 rounded-full bg-white/[0.02] blur-3xl"
           animate={{ y: [0, 20, 0], x: [0, -10, 0] }}
           transition={{
             duration: 10,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 2,
-          }}
-        />
-        <motion.div
-          className="absolute top-2/3 left-1/2 h-56 w-56 rounded-full bg-pink-500/8 blur-3xl"
-          animate={{ y: [0, -20, 0] }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 4,
           }}
         />
 
@@ -101,14 +119,16 @@ export default function LoginForm() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
         >
-          <div className="mb-4 text-4xl font-serif text-white/20">&ldquo;</div>
+          <div className="mb-4 text-4xl font-serif text-white/20">
+            &ldquo;
+          </div>
           <blockquote className="space-y-4">
             <p className="text-lg font-light leading-relaxed text-white/90">
               Bu platform sayesinde tüm dosyalarım güvende ve her an elimin
               altında. İş akışımı inanılmaz hızlandırdı.
             </p>
             <footer className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center text-sm font-semibold">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-zinc-400 to-zinc-600 flex items-center justify-center text-sm font-semibold text-white">
                 SD
               </div>
               <div>
@@ -129,7 +149,7 @@ export default function LoginForm() {
 
         {/* Mobile floating shapes */}
         <motion.div
-          className="absolute top-1/4 -left-20 h-40 w-40 rounded-full bg-violet-500/8 blur-3xl lg:hidden"
+          className="absolute top-1/4 -left-20 h-40 w-40 rounded-full bg-white/[0.03] blur-3xl lg:hidden"
           animate={{ y: [0, -15, 0] }}
           transition={{
             duration: 8,
@@ -138,7 +158,7 @@ export default function LoginForm() {
           }}
         />
         <motion.div
-          className="absolute bottom-1/4 -right-20 h-32 w-32 rounded-full bg-blue-500/8 blur-3xl lg:hidden"
+          className="absolute bottom-1/4 -right-20 h-32 w-32 rounded-full bg-white/[0.02] blur-3xl lg:hidden"
           animate={{ y: [0, 10, 0] }}
           transition={{
             duration: 10,
