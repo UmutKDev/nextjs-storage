@@ -5,34 +5,19 @@ import { useExplorerQuery } from "../contexts/ExplorerQueryContext";
 import { useExplorerUI } from "../contexts/ExplorerUIContext";
 import type { ExplorerDirectory, ExplorerFile } from "../types/explorer.types";
 
-const dedupeByKey = <T extends { Prefix?: string; Path?: { Key?: string } }>(
-  entries: T[],
-  getKey: (entry: T) => string | undefined,
-) => {
-  const seenKeys = new Set<string>();
-  return entries.filter((entry) => {
-    const key = getKey(entry);
-    if (!key || seenKeys.has(key)) return false;
-    seenKeys.add(key);
-    return true;
-  });
-};
-
 export function useExplorerFiltering() {
   const { objectsQuery, directoriesQuery } = useExplorerQuery();
   const { searchQuery } = useExplorerUI();
 
-  const objectItems = React.useMemo<ExplorerFile[]>(() => {
-    const allEntries =
-      objectsQuery.data?.pages?.flatMap((page) => page?.Items ?? []) ?? [];
-    return dedupeByKey(allEntries, (entry) => entry.Path?.Key);
-  }, [objectsQuery.data]);
+  const objectItems = React.useMemo<ExplorerFile[]>(
+    () => objectsQuery.data?.Items ?? [],
+    [objectsQuery.data],
+  );
 
-  const directoryItems = React.useMemo<ExplorerDirectory[]>(() => {
-    const allEntries =
-      directoriesQuery.data?.pages?.flatMap((page) => page?.Items ?? []) ?? [];
-    return dedupeByKey(allEntries, (entry) => entry.Prefix);
-  }, [directoriesQuery.data]);
+  const directoryItems = React.useMemo<ExplorerDirectory[]>(
+    () => directoriesQuery.data?.Items ?? [],
+    [directoriesQuery.data],
+  );
 
   const filteredObjectItems = React.useMemo(() => {
     if (!searchQuery) return objectItems;

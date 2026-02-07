@@ -43,7 +43,6 @@ export default function MoveFileModal({
   // Fetch directories for the current path
   const { directoriesQuery } = useCloudList(currentPath, {
     enabled: open && !isManual,
-    take: 100,
   });
 
   const directories = directoriesQuery.data?.Items || [];

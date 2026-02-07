@@ -6,27 +6,15 @@ import type {
   CloudDirectoryListModelResult,
   CloudObjectListModelResult,
 } from "@/Service/Generates/api";
-import { useInfiniteCloudList } from "@/hooks/useCloudList";
-import type {
-  InfiniteData,
-  UseInfiniteQueryResult,
-  UseQueryResult,
-} from "@tanstack/react-query";
+import { useCloudList } from "@/hooks/useCloudList";
+import type { UseQueryResult } from "@tanstack/react-query";
 import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
-
-const DEFAULT_PAGE_SIZE = 50;
 
 type ExplorerQueryContextValue = {
   currentPath: string;
   breadcrumbQuery: UseQueryResult<CloudBreadCrumbListModelResult, Error>;
-  objectsQuery: UseInfiniteQueryResult<
-    InfiniteData<CloudObjectListModelResult, number>,
-    Error
-  >;
-  directoriesQuery: UseInfiniteQueryResult<
-    InfiniteData<CloudDirectoryListModelResult, number>,
-    Error
-  >;
+  objectsQuery: UseQueryResult<CloudObjectListModelResult, Error>;
+  directoriesQuery: UseQueryResult<CloudDirectoryListModelResult, Error>;
   invalidateBreadcrumb: () => Promise<void>;
   invalidateObjects: () => Promise<void>;
   invalidateDirectories: () => Promise<void>;
@@ -53,8 +41,7 @@ export function ExplorerQueryProvider({
     isFolderEncrypted(currentPath) && !isFolderUnlocked(currentPath);
 
   const { breadcrumbQuery, objectsQuery, directoriesQuery, invalidates } =
-    useInfiniteCloudList(currentPath, {
-      take: DEFAULT_PAGE_SIZE,
+    useCloudList(currentPath, {
       refetchInterval: isQueryLocked ? false : 5000,
       objectsEnabled: !isQueryLocked,
       directoriesEnabled: !isQueryLocked,
