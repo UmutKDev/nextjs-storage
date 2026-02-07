@@ -6,6 +6,7 @@ import { useThumbnailAspectRatio } from "@/components/storage-browser/hooks/useT
 import { StorageGridThumbnailProvider } from "@/components/storage-browser/contexts/StorageGridThumbnailContext";
 import { useStorageBrowserInteractions } from "@/components/storage-browser/contexts/StorageBrowserInteractionsContext";
 import { useExplorerSelection } from "@/features/storage-explorer/contexts/ExplorerSelectionContext";
+import { useExplorerContextMenuStore } from "@/features/storage-explorer/stores/explorerContextMenu.store";
 import type {
   CloudObject,
   Directory,
@@ -33,6 +34,9 @@ export const StorageGridView = ({
     useThumbnailAspectRatio();
   const { isLoading, replaceSelection } = useStorageBrowserInteractions();
   const { selectedItemKeys } = useExplorerSelection();
+  const scrollContainerRef = useExplorerContextMenuStore(
+    (state) => state.scrollContainerRef,
+  );
   const [galleryMetrics, setGalleryMetrics] = React.useState({
     rowHeight: 420,
     gap: 12,
@@ -264,6 +268,7 @@ export const StorageGridView = ({
           maxItemsPerRow={galleryMetrics.maxItemsPerRow}
           tolerance={0.2}
           className="pt-2 pb-3"
+          scrollElementRef={scrollContainerRef}
         />
       </StorageGridThumbnailProvider>
       <div

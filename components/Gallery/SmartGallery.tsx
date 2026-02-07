@@ -22,7 +22,7 @@ function computeJustifiedLayout(
   gap: number,
   targetRowHeight: number,
   tolerance: number,
-  maxItemsPerRow: number
+  maxItemsPerRow: number,
 ): { positioned: PositionedItem[]; height: number } {
   if (!containerWidth || items.length === 0) {
     return { positioned: [], height: 0 };
@@ -83,7 +83,9 @@ function computeJustifiedLayout(
     }
   });
 
-  const layoutHeight = positioned.length ? Math.max(...positioned.map((p) => p.top + p.height)) : 0;
+  const layoutHeight = positioned.length
+    ? Math.max(...positioned.map((p) => p.top + p.height))
+    : 0;
 
   return { positioned, height: layoutHeight };
 }
@@ -95,6 +97,7 @@ export default function SmartGallery({
   tolerance = 0.25,
   maxItemsPerRow = Number.POSITIVE_INFINITY,
   className,
+  scrollElementRef,
 }: {
   items: SmartGalleryItem[];
   gap?: number;
@@ -102,9 +105,14 @@ export default function SmartGallery({
   tolerance?: number;
   maxItemsPerRow?: number;
   className?: string;
+  scrollElementRef?: React.RefObject<HTMLElement | null>;
 }) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = React.useState(0);
+  const [scrollTop, setScrollTop] = React.useState(0);
+  const [viewportHeight, setViewportHeight] = React.useState(0);
+  const [containerOffsetTop, setContainerOffsetTop] = React.useState(0);
+  const rafRef = React.useRef(0);
 
   React.useEffect(() => {
     const node = containerRef.current;
@@ -114,9 +122,7 @@ export default function SmartGallery({
       const entry = entries[0];
       if (!entry) return;
       const nextWidth = entry.contentRect.width;
-      setWidth((prev) =>
-        Math.abs(prev - nextWidth) < 1 ? prev : nextWidth
-      );
+      setWidth((prev) => (Math.abs(prev - nextWidth) < 1 ? prev : nextWidth));
     });
 
     observer.observe(node);
@@ -133,8 +139,72 @@ export default function SmartGallery({
         tolerance,
         maxItemsPerRow,
       ),
-    [gap, items, maxItemsPerRow, targetRowHeight, tolerance, width]
+    [gap, items, maxItemsPerRow, targetRowHeight, tolerance, width],
   );
+
+  React.useLayoutEffect(() => {
+    const el = containerRef.current;
+    const scrollEl = scrollElementRef?.current;
+    if (!el || !scrollEl) return;
+
+    let offset = 0;
+    let current: HTMLElement | null = el;
+    while (current && current !== scrollEl) {
+      offset += current.offsetTop;
+      current = current.offsetParent as HTMLElement | null;
+    }
+    setContainerOffsetTop(offset);
+  }, [scrollElementRef, positioned.length, width]);
+
+  React.useEffect(() => {
+    const scrollEl = scrollElementRef?.current;
+    if (!scrollEl) return;
+
+    setViewportHeight(scrollEl.clientHeight);
+    setScrollTop(scrollEl.scrollTop);
+
+    const handleScroll = () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        setScrollTop(scrollEl.scrollTop);
+      });
+    };
+
+    const handleResize = (entries: ResizeObserverEntry[]) => {
+      const entry = entries[0];
+      if (entry) setViewportHeight(entry.contentRect.height);
+    };
+
+    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(scrollEl);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      scrollEl.removeEventListener("scroll", handleScroll);
+      resizeObserver.disconnect();
+    };
+  }, [scrollElementRef]);
+
+  const overscan = targetRowHeight * 2;
+  const visibleItems = React.useMemo(() => {
+    if (!scrollElementRef?.current) return positioned;
+
+    const visibleStart = scrollTop - containerOffsetTop - overscan;
+    const visibleEnd =
+      scrollTop - containerOffsetTop + viewportHeight + overscan;
+
+    return positioned.filter(
+      (item) => item.top + item.height > visibleStart && item.top < visibleEnd,
+    );
+  }, [
+    positioned,
+    scrollTop,
+    containerOffsetTop,
+    viewportHeight,
+    overscan,
+    scrollElementRef,
+  ]);
 
   const fallbackHeight = height || (items.length > 0 ? targetRowHeight : 0);
 
@@ -144,7 +214,7 @@ export default function SmartGallery({
       className={cn("relative w-full", className)}
       style={{ height: fallbackHeight }}
     >
-      {positioned.map((item) => (
+      {visibleItems.map((item) => (
         <div
           key={item.key}
           style={{
