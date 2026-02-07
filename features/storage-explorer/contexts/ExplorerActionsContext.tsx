@@ -38,70 +38,71 @@ export function ExplorerActionsProvider({
 }) {
   const { openDialog } = useDialogs();
   const { deletingStatusByKey } = useExplorerDelete();
-  const { extractJobs, createZipExtractionJob, deleteZipExtractionJob } = useExplorerExtractZip();
+  const { extractJobs, createZipExtractionJob, deleteZipExtractionJob } =
+    useExplorerExtractZip();
   const { renameItem } = useExplorerItemNavigation();
 
   const deleteItem = React.useCallback(
     (item: CloudObject | Directory) => {
       openDialog("delete-item", { item });
     },
-    [openDialog]
+    [openDialog],
   );
 
   const deleteSelection = React.useCallback(
     (count: number) => {
       openDialog("delete-selection", { count });
     },
-    [openDialog]
+    [openDialog],
   );
 
   const moveItems = React.useCallback(
     (items: string[]) => {
       openDialog("move-items", { items });
     },
-    [openDialog]
+    [openDialog],
   );
 
   const convertFolder = React.useCallback(
     (directory: Directory) => {
       openDialog("convert-folder", { directory });
     },
-    [openDialog]
+    [openDialog],
   );
 
   const extractZip = React.useCallback(
     (file: CloudObject) => {
       openDialog("extract-zip", { file });
     },
-    [openDialog]
+    [openDialog],
   );
 
   const extractZipSelection = React.useCallback(
     (files: CloudObject[]) => {
       openDialog("extract-zip-selection", { files });
     },
-    [openDialog]
+    [openDialog],
   );
 
   const cancelExtractZip = React.useCallback(
     (file: CloudObject) => {
       void deleteZipExtractionJob(file);
     },
-    [deleteZipExtractionJob]
+    [deleteZipExtractionJob],
   );
 
   const previewFile = React.useCallback(
     (file: CloudObject) => {
       openDialog("preview-file", { file });
     },
-    [openDialog]
+    [openDialog],
   );
 
   const editFile = React.useCallback(
     (file: CloudObject) => {
       openDialog("edit-file", { file });
     },
-    [openDialog]
+    [openDialog],
   );
 
   const value = React.useMemo<ExplorerActionsContextValue>(
@@ -134,7 +135,7 @@ export function ExplorerActionsProvider({
       moveItems,
       previewFile,
       renameItem,
-    ]
+    ],
   );
 
   return (
@@ -148,7 +149,7 @@ export function useExplorerActions() {
   const context = React.useContext(ExplorerActionsContext);
   if (!context) {
     throw new Error(
-      "useExplorerActions must be used within ExplorerActionsProvider"
+      "useExplorerActions must be used within ExplorerActionsProvider",
     );
   }
   return context;

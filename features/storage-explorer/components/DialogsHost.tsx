@@ -56,7 +56,9 @@ export default function DialogsHost() {
       />
       <ExtractZipSelectionDialog
         open={dialog?.type === "extract-zip-selection"}
-        payload={dialog?.type === "extract-zip-selection" ? dialog.payload : null}
+        payload={
+          dialog?.type === "extract-zip-selection" ? dialog.payload : null
+        }
         onClose={closeDialog}
       />
       <ConfirmMoveDragDialog

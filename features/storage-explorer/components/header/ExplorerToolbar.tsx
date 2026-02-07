@@ -14,7 +14,8 @@ export default function ExplorerToolbar() {
   const { viewMode, setViewMode, searchQuery, setSearchQuery } =
     useExplorerUI();
   const { selectedItemKeys, selectAllVisibleItems } = useExplorerSelection();
-  const { filteredDirectoryItems, filteredObjectItems } = useExplorerFiltering();
+  const { filteredDirectoryItems, filteredObjectItems } =
+    useExplorerFiltering();
   const { extractZipSelection } = useExplorerActions();
   const { openDialog } = useDialogs();
 
@@ -36,7 +37,11 @@ export default function ExplorerToolbar() {
       if (!key || !selectedItemKeys.has(key)) return false;
       const ext = (file.Extension || "").toLowerCase();
       if (ext === "zip") return true;
-      const name = (file.Metadata?.Originalfilename || file.Name || "").toLowerCase();
+      const name = (
+        file.Metadata?.Originalfilename ||
+        file.Name ||
+        ""
+      ).toLowerCase();
       return name.endsWith(".zip");
     });
   }, [selectedItemKeys, filteredObjectItems]);

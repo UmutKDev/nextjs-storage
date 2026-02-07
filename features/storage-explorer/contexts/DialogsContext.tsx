@@ -1,7 +1,10 @@
 "use client";
 
 import React from "react";
-import type { CloudObjectModel, CloudDirectoryModel } from "@/Service/Generates/api";
+import type {
+  CloudObjectModel,
+  CloudDirectoryModel,
+} from "@/Service/Generates/api";
 
 type DialogPayloads = {
   "create-folder": Record<string, never>;
@@ -38,7 +41,7 @@ type DialogsContextValue = {
   dialog: DialogState;
   openDialog: <T extends DialogType>(
     type: T,
-    payload: DialogPayloads[T]
+    payload: DialogPayloads[T],
   ) => void;
   closeDialog: () => void;
 };
@@ -52,7 +55,7 @@ export function DialogsProvider({ children }: { children: React.ReactNode }) {
     <T extends DialogType>(type: T, payload: DialogPayloads[T]) => {
       setDialog({ type, payload } as DialogState);
     },
-    []
+    [],
   );
 
   const closeDialog = React.useCallback(() => {
