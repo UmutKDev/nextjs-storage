@@ -20,9 +20,8 @@ type ExplorerQueryContextValue = {
   invalidateDirectories: () => Promise<void>;
 };
 
-const ExplorerQueryContext = React.createContext<ExplorerQueryContextValue | null>(
-  null
-);
+const ExplorerQueryContext =
+  React.createContext<ExplorerQueryContextValue | null>(null);
 
 export function ExplorerQueryProvider({
   currentPath,
@@ -65,7 +64,7 @@ export function ExplorerQueryProvider({
       invalidates.invalidateDirectories,
       invalidates.invalidateObjects,
       objectsQuery,
-    ]
+    ],
   );
 
   return (
@@ -78,7 +77,9 @@ export function ExplorerQueryProvider({
 export function useExplorerQuery() {
   const context = React.useContext(ExplorerQueryContext);
   if (!context) {
-    throw new Error("useExplorerQuery must be used within ExplorerQueryProvider");
+    throw new Error(
+      "useExplorerQuery must be used within ExplorerQueryProvider",
+    );
   }
   return context;
 }

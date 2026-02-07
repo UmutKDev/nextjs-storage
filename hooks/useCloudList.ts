@@ -1,10 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import {
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cloudApiFactory } from "@/Service/Factories";
 import { useSession } from "next-auth/react";
 import type {
@@ -83,13 +80,7 @@ export const createCloudDirectoriesQueryKey = (
   path: string,
   delimiter = true,
   search: string | undefined = undefined,
-) =>
-  [
-    ...CLOUD_DIRECTORIES_QUERY_KEY,
-    path,
-    delimiter,
-    search,
-  ] as const;
+) => [...CLOUD_DIRECTORIES_QUERY_KEY, path, delimiter, search] as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
@@ -125,12 +116,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
   );
 
   const directoriesQueryKey = useMemo(
-    () =>
-      createCloudDirectoriesQueryKey(
-        normalizedPath,
-        delimiter,
-        search,
-      ),
+    () => createCloudDirectoriesQueryKey(normalizedPath, delimiter, search),
     [normalizedPath, delimiter, search],
   );
 
