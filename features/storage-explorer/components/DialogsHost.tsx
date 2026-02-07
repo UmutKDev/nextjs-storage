@@ -9,6 +9,7 @@ import MoveItemsDialog from "./dialogs/MoveItemsDialog";
 import DeleteItemDialog from "./dialogs/DeleteItemDialog";
 import DeleteSelectionDialog from "./dialogs/DeleteSelectionDialog";
 import ExtractZipDialog from "./dialogs/ExtractZipDialog";
+import ExtractZipSelectionDialog from "./dialogs/ExtractZipSelectionDialog";
 import ConfirmMoveDragDialog from "./dialogs/ConfirmMoveDragDialog";
 import UploadFilesDialog from "./dialogs/UploadFilesDialog";
 import EditFileDialog from "./dialogs/EditFileDialog";
@@ -51,6 +52,11 @@ export default function DialogsHost() {
       <ExtractZipDialog
         open={dialog?.type === "extract-zip"}
         payload={dialog?.type === "extract-zip" ? dialog.payload : null}
+        onClose={closeDialog}
+      />
+      <ExtractZipSelectionDialog
+        open={dialog?.type === "extract-zip-selection"}
+        payload={dialog?.type === "extract-zip-selection" ? dialog.payload : null}
         onClose={closeDialog}
       />
       <ConfirmMoveDragDialog

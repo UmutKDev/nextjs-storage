@@ -3,7 +3,8 @@
 import React from "react";
 import { Archive } from "lucide-react";
 import ConfirmDeleteModal from "@/components/Storage/ConfirmDeleteModal";
-import { useExplorerExtractZip } from "../../hooks/useExplorerExtractZip";
+import { useExplorerActions } from "../../contexts/ExplorerActionsContext";
+import { getFileDisplayName } from "../../utils/item";
 import type { CloudObjectModel } from "@/Service/Generates/api";
 
 type ExtractZipDialogProps = {
@@ -17,7 +18,7 @@ export default function ExtractZipDialog({
   payload,
   onClose,
 }: ExtractZipDialogProps) {
-  const { createZipExtractionJob, getFileDisplayName } = useExplorerExtractZip();
+  const { createZipExtractionJob } = useExplorerActions();
   const file = payload?.file ?? null;
 
   const createExtractionJob = React.useCallback(async () => {

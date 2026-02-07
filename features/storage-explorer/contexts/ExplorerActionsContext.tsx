@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import type { CloudObjectModel } from "@/Service/Generates/api";
 import type {
   CloudObject,
   Directory,
@@ -18,7 +19,9 @@ type ExplorerActionsContextValue = {
   renameItem: (item: CloudObject | Directory) => void;
   convertFolder: (directory: Directory) => void;
   extractZip: (file: CloudObject) => void;
+  extractZipSelection: (files: CloudObject[]) => void;
   cancelExtractZip: (file: CloudObject) => void;
+  createZipExtractionJob: (file: CloudObjectModel) => Promise<void>;
   previewFile: (file: CloudObject) => void;
   editFile: (file: CloudObject) => void;
   deletingStatusByKey: Record<string, boolean>;
@@ -35,7 +38,7 @@ export function ExplorerActionsProvider({
 }) {
   const { openDialog } = useDialogs();
   const { deletingStatusByKey } = useExplorerDelete();
-  const { extractJobs, deleteZipExtractionJob } = useExplorerExtractZip();
+  const { extractJobs, createZipExtractionJob, deleteZipExtractionJob } = useExplorerExtractZip();
   const { renameItem } = useExplorerItemNavigation();
 
   const deleteItem = React.useCallback(
@@ -73,6 +76,13 @@ export function ExplorerActionsProvider({
     [openDialog]
   );
 
+  const extractZipSelection = React.useCallback(
+    (files: CloudObject[]) => {
+      openDialog("extract-zip-selection", { files });
+    },
+    [openDialog]
+  );
+
   const cancelExtractZip = React.useCallback(
     (file: CloudObject) => {
       void deleteZipExtractionJob(file);
@@ -102,7 +112,9 @@ export function ExplorerActionsProvider({
       renameItem,
       convertFolder,
       extractZip,
+      extractZipSelection,
       cancelExtractZip,
+      createZipExtractionJob,
       previewFile,
       editFile,
       deletingStatusByKey,
@@ -111,12 +123,14 @@ export function ExplorerActionsProvider({
     [
       cancelExtractZip,
       convertFolder,
+      createZipExtractionJob,
       deleteItem,
       deleteSelection,
       deletingStatusByKey,
       editFile,
       extractJobs,
       extractZip,
+      extractZipSelection,
       moveItems,
       previewFile,
       renameItem,

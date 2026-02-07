@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { FolderInput, LayoutGrid, List, Trash2 } from "lucide-react";
+import { Archive, FolderInput, LayoutGrid, List, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/Storage/SearchBar";
 import { useExplorerUI } from "../../contexts/ExplorerUIContext";
 import { useExplorerSelection } from "../../contexts/ExplorerSelectionContext";
 import { useExplorerFiltering } from "../../hooks/useExplorerFiltering";
+import { useExplorerActions } from "../../contexts/ExplorerActionsContext";
 import { useDialogs } from "../../contexts/DialogsContext";
 
 export default function ExplorerToolbar() {
@@ -14,6 +15,7 @@ export default function ExplorerToolbar() {
     useExplorerUI();
   const { selectedItemKeys, selectAllVisibleItems } = useExplorerSelection();
   const { filteredDirectoryItems, filteredObjectItems } = useExplorerFiltering();
+  const { extractZipSelection } = useExplorerActions();
   const { openDialog } = useDialogs();
 
   const selectAllVisibleItemsInView = React.useCallback(() => {
@@ -26,6 +28,18 @@ export default function ExplorerToolbar() {
     });
     selectAllVisibleItems(allKeys);
   }, [filteredDirectoryItems, filteredObjectItems, selectAllVisibleItems]);
+
+  const selectedZipFiles = React.useMemo(() => {
+    if (selectedItemKeys.size === 0) return [];
+    return filteredObjectItems.filter((file) => {
+      const key = file.Path?.Key;
+      if (!key || !selectedItemKeys.has(key)) return false;
+      const ext = (file.Extension || "").toLowerCase();
+      if (ext === "zip") return true;
+      const name = (file.Metadata?.Originalfilename || file.Name || "").toLowerCase();
+      return name.endsWith(".zip");
+    });
+  }, [selectedItemKeys, filteredObjectItems]);
 
   return (
     <div className="flex items-center gap-2 shrink-0 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar">
@@ -54,6 +68,20 @@ export default function ExplorerToolbar() {
             </span>
             <span className="sm:hidden">Taşı</span>
           </Button>
+          {selectedZipFiles.length > 0 ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => extractZipSelection(selectedZipFiles)}
+              className="shrink-0 whitespace-nowrap"
+            >
+              <Archive size={16} className="mr-2" />
+              <span className="hidden sm:inline">
+                Zip Çıkar ({selectedZipFiles.length})
+              </span>
+              <span className="sm:hidden">Zip Çıkar</span>
+            </Button>
+          ) : null}
           <Button
             size="sm"
             variant="destructive"
