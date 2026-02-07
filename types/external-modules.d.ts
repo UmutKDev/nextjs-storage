@@ -1,11 +1,13 @@
 declare module "@simplewebauthn/browser" {
   export function browserSupportsWebAuthn(): boolean;
+  export function browserSupportsWebAuthnAutofill(): Promise<boolean>;
   // Options come from the server API as generic objects
   export function startRegistration(
     options: object,
   ): Promise<RegistrationResponseJSON>;
   export function startAuthentication(
     options: object,
+    useBrowserAutofill?: boolean,
   ): Promise<AuthenticationResponseJSON>;
 
   // WebAuthn response types

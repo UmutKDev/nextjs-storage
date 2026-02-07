@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -69,6 +69,7 @@ export const Login = () => {
 
   // OTP input refs for 6 individual digit boxes
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const conditionalUIAbortRef = useRef<AbortController | null>(null);
   const otpDigits = Array.from({ length: 6 }, (_, i) => twoFactorCode[i] || "");
 
   const handleOtpChange = (index: number, value: string) => {
@@ -96,12 +97,86 @@ export const Login = () => {
 
   const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     setTwoFactorCode(pasted);
     // Focus on the next empty box or last box
     const focusIndex = Math.min(pasted.length, 5);
     otpRefs.current[focusIndex]?.focus();
   };
+
+  // Complete passkey sign-in with a credential
+  const finishPasskeySignIn = useCallback(
+    async (
+      credential: Awaited<
+        ReturnType<typeof import("@simplewebauthn/browser").startAuthentication>
+      >,
+      userEmail: string,
+    ) => {
+      const result = await signIn("credentials", {
+        email: userEmail,
+        passkey: JSON.stringify(credential),
+        redirect: false,
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      window.location.href = callbackUrl;
+    },
+    [callbackUrl],
+  );
+
+  // Conditional UI: start passkey autofill on mount
+  useEffect(() => {
+    const startConditionalUI = async () => {
+      try {
+        const swa = await import("@simplewebauthn/browser");
+        if (!swa.browserSupportsWebAuthn()) return;
+
+        const isConditionalAvailable =
+          await swa.browserSupportsWebAuthnAutofill();
+        if (!isConditionalAvailable) return;
+
+        // Abort any previous conditional UI session
+        conditionalUIAbortRef.current?.abort();
+        conditionalUIAbortRef.current = new AbortController();
+
+        // Get authentication options from server without a specific user
+        const beginRes = await authenticationApiFactory.passkeyLoginBegin({
+          passkeyLoginBeginRequestModel: { Email: "" },
+        });
+
+        const options = beginRes.data?.Result?.Options;
+        if (!options) return;
+
+        const credential = await swa.startAuthentication(options, true);
+
+        // Decode userHandle to get email
+        const userHandle = credential.response.userHandle;
+        if (!userHandle) return;
+
+        const userEmail = new TextDecoder().decode(
+          Uint8Array.from(atob(userHandle), (c) => c.charCodeAt(0)),
+        );
+
+        setEmail(userEmail);
+        setLoading(true);
+        await finishPasskeySignIn(credential, userEmail);
+      } catch {
+        // Silently ignore - conditional UI is best-effort
+      }
+    };
+
+    startConditionalUI();
+
+    return () => {
+      conditionalUIAbortRef.current?.abort();
+    };
+  }, [finishPasskeySignIn]);
 
   // Step 1: Email Submission & Check
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -112,6 +187,9 @@ export const Login = () => {
     }
     setLoading(true);
     setError(null);
+
+    // Abort conditional UI if it was running
+    conditionalUIAbortRef.current?.abort();
 
     try {
       const res = await authenticationApiFactory.loginCheck({
@@ -129,6 +207,22 @@ export const Login = () => {
       // Check if 2FA is enabled
       const has2FA = checkResult.HasTwoFactor || false;
       setHasTwoFactor(has2FA);
+
+      // If passkey is available and we have options from loginCheck, auto-trigger passkey
+      if (hasPasskeyEnabled && checkResult.PasskeyOptions) {
+        try {
+          const swa = await import("@simplewebauthn/browser");
+          if (swa.browserSupportsWebAuthn()) {
+            const credential = await swa.startAuthentication(
+              checkResult.PasskeyOptions,
+            );
+            await finishPasskeySignIn(credential, email);
+            return;
+          }
+        } catch {
+          // Passkey cancelled or failed - fall through to choice/password
+        }
+      }
 
       // If user has Passkey, show choice. Otherwise go to password.
       setDirection(1);
@@ -260,7 +354,7 @@ export const Login = () => {
             type="email"
             placeholder="isim@ornek.com"
             autoCapitalize="none"
-            autoComplete="email"
+            autoComplete="email webauthn"
             autoCorrect="off"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
