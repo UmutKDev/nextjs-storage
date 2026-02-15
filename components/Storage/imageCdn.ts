@@ -38,7 +38,7 @@ export const isImageFile = (file?: CloudObjectModel) => {
   if (!file) return false;
   const mime = (file.MimeType || "").toLowerCase();
   if (mime.startsWith("image/")) return true;
-  return IMAGE_EXTENSIONS.has(getFileExtension(file));
+  return IMAGE_EXTENSIONS.has(getFileExtension(file).toLowerCase());
 };
 
 // const buildDownloadUrl = (key: string, sessionToken?: string | null) => {
