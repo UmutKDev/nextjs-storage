@@ -386,6 +386,16 @@ export interface CloudScanStatusResponseModel {
     'Signature'?: string;
     'ScannedAt'?: string;
 }
+export interface CloudSearchResponseBaseModel {
+    'Result': CloudSearchResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudSearchResponseModel {
+    'Directories': Array<CloudDirectoryModel>;
+    'Objects': Array<CloudObjectModel>;
+    'TotalObjectCount': number;
+    'TotalDirectoryCount': number;
+}
 export interface CloudUpdateRequestModel {
     'Key': string;
     'Name'?: string;
@@ -536,10 +546,6 @@ export interface LoginCheckResponseBaseModel {
     'Status': BaseStatusModel;
 }
 export interface LoginCheckResponseModel {
-    /**
-     * Whether the user exists
-     */
-    'Exists': boolean;
     /**
      * Whether the user has passkey(s) registered
      */
@@ -4180,6 +4186,79 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
+         * @summary Search files by name
+         * @param {string} query Search query - partial filename match (case-insensitive, min 2 chars)
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] Restrict search to a specific directory path
+         * @param {string} [extension] Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        search: async (query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'query' is not null or undefined
+            assertParamExists('search', 'query', query)
+            const localVarPath = `/Api/Cloud/Search`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (search !== undefined) {
+                localVarQueryParameter['Search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['Skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['Take'] = take;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['Query'] = query;
+            }
+
+            if (path !== undefined) {
+                localVarQueryParameter['Path'] = path;
+            }
+
+            if (extension !== undefined) {
+                localVarQueryParameter['Extension'] = extension;
+            }
+
+            if (isMetadataProcessing !== undefined) {
+                localVarQueryParameter['IsMetadataProcessing'] = isMetadataProcessing;
+            }
+
+
+    
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Update an existing object by changing metadata or renaming the file (name only).
          * @summary Update object metadata or rename
          * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
@@ -4799,6 +4878,26 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
+         * @summary Search files by name
+         * @param {string} query Search query - partial filename match (case-insensitive, min 2 chars)
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] Restrict search to a specific directory path
+         * @param {string} [extension] Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async search(query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudSearchResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.search(query, search, skip, take, path, extension, isMetadataProcessing, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.search']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Update an existing object by changing metadata or renaming the file (name only).
          * @summary Update object metadata or rename
          * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
@@ -5105,6 +5204,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudScanStatusResponseBaseModel> {
             return localVarFp.scanStatus(requestParameters.key, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
+         * @summary Search files by name
+         * @param {CloudApiSearchRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudSearchResponseBaseModel> {
+            return localVarFp.search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Update an existing object by changing metadata or renaming the file (name only).
@@ -5439,6 +5548,39 @@ export interface CloudApiScanStatusRequest {
 }
 
 /**
+ * Request parameters for search operation in CloudApi.
+ */
+export interface CloudApiSearchRequest {
+    /**
+     * Search query - partial filename match (case-insensitive, min 2 chars)
+     */
+    readonly query: string
+
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
+    /**
+     * Restrict search to a specific directory path
+     */
+    readonly path?: string
+
+    /**
+     * Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
+     */
+    readonly extension?: string
+
+    readonly isMetadataProcessing?: boolean
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
  * Request parameters for update operation in CloudApi.
  */
 export interface CloudApiUpdateRequest {
@@ -5732,6 +5874,17 @@ export class CloudApi extends BaseAPI {
      */
     public scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).scanStatus(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
+     * @summary Search files by name
+     * @param {CloudApiSearchRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

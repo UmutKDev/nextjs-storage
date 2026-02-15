@@ -197,7 +197,7 @@ export const Login = () => {
       });
       const checkResult = res.data.Result;
 
-      if (!checkResult?.Exists) {
+      if (!checkResult) {
         throw new Error("Hesap bulunamadı. Lütfen kayıt olun.");
       }
 
