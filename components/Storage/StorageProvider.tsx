@@ -46,7 +46,7 @@ export default function StorageProvider({
 
       router.push(`${pathname}?${params.toString()}`);
     },
-    [searchParams, pathname, router]
+    [searchParams, pathname, router],
   );
 
   const buildPathUrl = useCallback(
@@ -63,7 +63,7 @@ export default function StorageProvider({
 
       return `${pathname}?${params.toString()}`;
     },
-    [searchParams, pathname]
+    [searchParams, pathname],
   );
 
   const reset = useCallback(() => {

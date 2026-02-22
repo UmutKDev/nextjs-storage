@@ -35,8 +35,13 @@ export const StorageListFolderRow = ({
   const { deletingStatusByKey, renameItem, convertFolder, deleteItem } =
     useExplorerActions();
   const { getDirectoryMetadata } = useDirectoryMetadata();
-  const { handleItemClick, handleItemAuxClick, updateSelection, openContextMenu, isLoading } =
-    useStorageBrowserInteractions();
+  const {
+    handleItemClick,
+    handleItemAuxClick,
+    updateSelection,
+    openContextMenu,
+    isLoading,
+  } = useStorageBrowserInteractions();
   const directoryMetadata = getDirectoryMetadata(directory);
   const isSelected = selectedItemKeys.has(directoryKey);
   const longPressTimerRef = React.useRef<number | null>(null);

@@ -105,7 +105,14 @@ export function StorageBrowserInteractionsProvider({
       handleItemAuxClick,
       openContextMenu,
     }),
-    [handleItemAuxClick, handleItemClick, isLoading, openContextMenu, replaceSelection, updateSelection],
+    [
+      handleItemAuxClick,
+      handleItemClick,
+      isLoading,
+      openContextMenu,
+      replaceSelection,
+      updateSelection,
+    ],
   );
 
   return (
