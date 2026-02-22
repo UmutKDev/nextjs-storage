@@ -100,19 +100,15 @@ export function ExplorerEncryptionProvider({
 
   React.useEffect(() => {
     if (!accessDeniedPath) {
-      console.log("[Explorer] No access denied path");
       return;
     }
 
-    console.log("[Explorer] Access denied for path:", accessDeniedPath);
     registerEncryptedPath(accessDeniedPath);
 
     if (promptedUnlockPathsRef.current.has(accessDeniedPath)) {
-      console.log("[Explorer] Already prompted for:", accessDeniedPath);
       return;
     }
 
-    console.log("[Explorer] Prompting unlock for:", accessDeniedPath);
     promptedUnlockPathsRef.current.add(accessDeniedPath);
 
     const folderName =
@@ -121,7 +117,6 @@ export function ExplorerEncryptionProvider({
       "şifreli klasör";
 
     const invalidateAccessDeniedQueries = async () => {
-      console.log("[Explorer] Successfully unlocked:", accessDeniedPath);
       await Promise.all([
         queryClient.resetQueries({ queryKey: CLOUD_DIRECTORIES_QUERY_KEY }),
         queryClient.resetQueries({ queryKey: CLOUD_OBJECTS_QUERY_KEY }),
@@ -130,7 +125,6 @@ export function ExplorerEncryptionProvider({
     };
 
     const timer = setTimeout(() => {
-      console.log("[Explorer] Opening unlock modal for:", accessDeniedPath);
       promptUnlock({
         path: accessDeniedPath,
         label: folderName,

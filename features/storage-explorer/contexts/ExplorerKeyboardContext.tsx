@@ -12,6 +12,7 @@ import {
   useExplorerClipboard,
   type ExplorerClipboardState,
 } from "../hooks/useExplorerClipboard";
+import { useHiddenFolders } from "@/components/Storage/stores/hiddenFolders.store";
 import type { Directory } from "@/components/storage-browser/types/storage-browser.types";
 
 type ExplorerKeyboardContextValue = {
@@ -48,6 +49,10 @@ export function ExplorerKeyboardProvider({
     string | null
   >(null);
   const isListenerRegisteredRef = React.useRef(false);
+  const lastShiftUpRef = React.useRef<number>(0);
+  const { promptReveal } = useHiddenFolders((state) => ({
+    promptReveal: state.promptReveal,
+  }));
 
   React.useEffect(() => {
     if (selectedItemKeys.size === 0) {
@@ -212,17 +217,36 @@ export function ExplorerKeyboardProvider({
     ],
   );
 
+  const handleKeyUp = React.useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key !== "Shift") return;
+      if (isEditableTarget(event.target)) return;
+
+      const now = Date.now();
+      const elapsed = now - lastShiftUpRef.current;
+      lastShiftUpRef.current = now;
+
+      if (elapsed > 50 && elapsed < 400) {
+        lastShiftUpRef.current = 0;
+        promptReveal({ path: currentPath || "", label: "bu dizin" });
+      }
+    },
+    [currentPath, isEditableTarget, promptReveal],
+  );
+
   const registerKeyListeners = React.useCallback(() => {
     if (isListenerRegisteredRef.current) return;
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
     isListenerRegisteredRef.current = true;
-  }, [handleKeyDown]);
+  }, [handleKeyDown, handleKeyUp]);
 
   const unregisterKeyListeners = React.useCallback(() => {
     if (!isListenerRegisteredRef.current) return;
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keyup", handleKeyUp);
     isListenerRegisteredRef.current = false;
-  }, [handleKeyDown]);
+  }, [handleKeyDown, handleKeyUp]);
 
   React.useEffect(() => {
     registerKeyListeners();

@@ -4,6 +4,7 @@ import React from "react";
 import {
   Archive,
   Eye,
+  EyeOff,
   FolderInput,
   Lock,
   Pencil,
@@ -73,6 +74,8 @@ export default function ExplorerContextMenu({
     deleteItem,
     renameItem,
     convertFolder,
+    hideFolder,
+    unhideFolder,
   } = useExplorerActions();
   const { getDirectoryMetadata } = useDirectoryMetadata();
   const { getArchiveActionState } = useArchiveExtractStatus();
@@ -191,6 +194,26 @@ export default function ExplorerContextMenu({
                 }
               >
                 Şifrele
+              </MenuItem>
+            ) : null}
+            {!directoryMetadata.isHidden ? (
+              <MenuItem
+                icon={EyeOff}
+                disabled={isLoading}
+                onClick={() => handleAction(() => hideFolder(targetDirectory))}
+              >
+                Gizle
+              </MenuItem>
+            ) : null}
+            {directoryMetadata.isHidden ? (
+              <MenuItem
+                icon={Eye}
+                disabled={isLoading}
+                onClick={() =>
+                  handleAction(() => unhideFolder(targetDirectory))
+                }
+              >
+                Gizliliği Kaldır
               </MenuItem>
             ) : null}
             <MenuItem

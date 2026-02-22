@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { Archive, FolderInput, LayoutGrid, List, Trash2 } from "lucide-react";
+import {
+  Archive,
+  EyeOff,
+  FolderInput,
+  LayoutGrid,
+  List,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/Storage/SearchBar";
 import { useExplorerUI } from "../../contexts/ExplorerUIContext";
@@ -9,6 +16,11 @@ import { useExplorerSelection } from "../../contexts/ExplorerSelectionContext";
 import { useExplorerFiltering } from "../../hooks/useExplorerFiltering";
 import { useExplorerActions } from "../../contexts/ExplorerActionsContext";
 import { useDialogs } from "../../contexts/DialogsContext";
+import { useExplorerQuery } from "../../contexts/ExplorerQueryContext";
+import { useHiddenFolders } from "@/components/Storage/stores/hiddenFolders.store";
+import { cloudDirectoriesApiFactory } from "@/Service/Factories";
+import { useQueryClient } from "@tanstack/react-query";
+import { CLOUD_DIRECTORIES_QUERY_KEY } from "@/hooks/useCloudList";
 import { isArchiveFile } from "../../utils/archive";
 
 export default function ExplorerToolbar() {
@@ -19,6 +31,14 @@ export default function ExplorerToolbar() {
     useExplorerFiltering();
   const { extractArchiveSelection, createArchive } = useExplorerActions();
   const { openDialog } = useDialogs();
+  const { currentPath } = useExplorerQuery();
+  const queryClient = useQueryClient();
+  const { isFolderRevealed, clearSession } = useHiddenFolders((state) => ({
+    isFolderRevealed: state.isFolderRevealed,
+    clearSession: state.clearSession,
+  }));
+
+  const isRevealed = isFolderRevealed(currentPath);
 
   const selectAllVisibleItemsInView = React.useCallback(() => {
     const allKeys: string[] = [];
@@ -39,6 +59,20 @@ export default function ExplorerToolbar() {
       return isArchiveFile(file);
     });
   }, [selectedItemKeys, filteredObjectItems]);
+
+  const handleConceal = React.useCallback(async () => {
+    try {
+      await cloudDirectoriesApiFactory.directoryConceal({
+        directoryConcealRequestModel: { Path: currentPath || "/" },
+      });
+      clearSession(currentPath ?? "");
+      await queryClient.invalidateQueries({
+        queryKey: CLOUD_DIRECTORIES_QUERY_KEY,
+      });
+    } catch (error) {
+      console.error("Conceal failed:", error);
+    }
+  }, [currentPath, clearSession, queryClient]);
 
   return (
     <div className="flex items-center gap-2 shrink-0 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar">
@@ -111,7 +145,18 @@ export default function ExplorerToolbar() {
           </Button>
         </div>
       ) : (
-        <div className="w-full md:w-auto">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          {isRevealed ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void handleConceal()}
+              className="shrink-0 whitespace-nowrap"
+            >
+              <EyeOff size={16} className="mr-2" />
+              <span className="hidden sm:inline">Gizle</span>
+            </Button>
+          ) : null}
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
         </div>
       )}

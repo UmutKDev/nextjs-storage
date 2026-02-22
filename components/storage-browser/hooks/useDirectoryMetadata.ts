@@ -1,8 +1,6 @@
 import React from "react";
 import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
-import type {
-  Directory,
-} from "@/components/storage-browser/types/storage-browser.types";
+import type { Directory } from "@/components/storage-browser/types/storage-browser.types";
 
 const DIRECTORY_NAME_FALLBACK = "Klasör";
 
@@ -16,6 +14,7 @@ export type DirectoryMetadata = {
   displayName: string;
   isEncrypted: boolean;
   isUnlocked: boolean;
+  isHidden: boolean;
 };
 
 export const useDirectoryMetadata = () => {
@@ -37,10 +36,9 @@ export const useDirectoryMetadata = () => {
       const isEncrypted = Boolean(
         directory.IsEncrypted || isFolderEncrypted(normalizedPath),
       );
-      const isUnlocked = isEncrypted
-        ? isFolderUnlocked(normalizedPath)
-        : true;
-      return { normalizedPath, displayName, isEncrypted, isUnlocked };
+      const isUnlocked = isEncrypted ? isFolderUnlocked(normalizedPath) : true;
+      const isHidden = Boolean(directory.IsHidden);
+      return { normalizedPath, displayName, isEncrypted, isUnlocked, isHidden };
     },
     [isFolderEncrypted, isFolderUnlocked],
   );

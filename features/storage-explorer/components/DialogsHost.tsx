@@ -5,6 +5,8 @@ import { useDialogs } from "../contexts/DialogsContext";
 import CreateFolderDialog from "./dialogs/CreateFolderDialog";
 import RenameFolderDialog from "./dialogs/RenameFolderDialog";
 import ConvertFolderDialog from "./dialogs/ConvertFolderDialog";
+import HideFolderDialog from "./dialogs/HideFolderDialog";
+import UnhideFolderDialog from "./dialogs/UnhideFolderDialog";
 import MoveItemsDialog from "./dialogs/MoveItemsDialog";
 import DeleteItemDialog from "./dialogs/DeleteItemDialog";
 import DeleteSelectionDialog from "./dialogs/DeleteSelectionDialog";
@@ -33,6 +35,16 @@ export default function DialogsHost() {
       <ConvertFolderDialog
         open={dialog?.type === "convert-folder"}
         payload={dialog?.type === "convert-folder" ? dialog.payload : null}
+        onClose={closeDialog}
+      />
+      <HideFolderDialog
+        open={dialog?.type === "hide-folder"}
+        payload={dialog?.type === "hide-folder" ? dialog.payload : null}
+        onClose={closeDialog}
+      />
+      <UnhideFolderDialog
+        open={dialog?.type === "unhide-folder"}
+        payload={dialog?.type === "unhide-folder" ? dialog.payload : null}
         onClose={closeDialog}
       />
       <MoveItemsDialog

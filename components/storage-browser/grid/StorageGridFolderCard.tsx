@@ -1,5 +1,13 @@
 import React from "react";
-import { Lock, MoreHorizontal, Pencil, Trash2, Unlock } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Lock,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Unlock,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,8 +42,14 @@ export const StorageGridFolderCard = ({
     openContextMenu,
     isLoading,
   } = useStorageBrowserInteractions();
-  const { deletingStatusByKey, renameItem, convertFolder, deleteItem } =
-    useExplorerActions();
+  const {
+    deletingStatusByKey,
+    renameItem,
+    convertFolder,
+    hideFolder,
+    unhideFolder,
+    deleteItem,
+  } = useExplorerActions();
   const directoryMetadata = getDirectoryMetadata(directory);
   const isSelected = selectedItemKeys.has(directoryKey);
   const longPressTimerRef = React.useRef<number | null>(null);
@@ -94,6 +108,7 @@ export const StorageGridFolderCard = ({
           "relative w-full h-full rounded-2xl border bg-card/80 hover:bg-muted/10 cursor-pointer overflow-hidden p-2",
           "transition-all duration-200 shadow-sm hover:-translate-y-1 hover:shadow-lg",
           isSelected && "ring-2 ring-primary/60 border-primary/40",
+          directoryMetadata.isHidden && "opacity-60",
         )}
         onClick={(event) => {
           if (longPressTriggeredRef.current) {
@@ -157,6 +172,11 @@ export const StorageGridFolderCard = ({
                   )}
                   {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
                 </span>
+              ) : directoryMetadata.isHidden ? (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">
+                  <EyeOff className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                  Gizli
+                </span>
               ) : (
                 "Klasör"
               )}
@@ -204,6 +224,38 @@ export const StorageGridFolderCard = ({
                 >
                   <Lock className="mr-2 h-4 w-4" />
                   Şifrele
+                </DropdownMenuItem>
+              ) : null}
+              {!directoryMetadata.isHidden ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) hideFolder(directory);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) hideFolder(directory);
+                  }}
+                  data-dnd-ignore
+                >
+                  <EyeOff className="mr-2 h-4 w-4" />
+                  Gizle
+                </DropdownMenuItem>
+              ) : null}
+              {directoryMetadata.isHidden ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) unhideFolder(directory);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) unhideFolder(directory);
+                  }}
+                  data-dnd-ignore
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Gizliliği Kaldır
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuItem

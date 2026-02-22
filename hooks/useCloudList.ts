@@ -10,6 +10,7 @@ import type {
 } from "@/Service/Generates/api";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
+import { useHiddenFoldersStore } from "@/components/Storage/stores/hiddenFolders.store";
 import { isAxiosError } from "axios";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,6 +107,30 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
   const queryClient = useQueryClient();
   const normalizedPath = useMemo(() => normalizePath(path), [path]);
   const sessionToken = getSessionToken(normalizedPath);
+
+  // Read hidden session token directly from Zustand store.
+  // revealFolder action updates sessionsByPath via set(), so this selector
+  // will re-evaluate and trigger a re-render when a session is added.
+  const hiddenSessionToken = useHiddenFoldersStore((state) => {
+    const { sessionsByPath } = state;
+    const keys = Object.keys(sessionsByPath);
+    if (keys.length === 0) return null;
+
+    const lookup = normalizedPath.replace(/\/+$/g, "");
+
+    // Direct match
+    if (sessionsByPath[lookup]) return sessionsByPath[lookup].token;
+
+    // Parent path traversal
+    const segments = lookup.split("/").filter(Boolean);
+    for (let i = segments.length - 1; i > 0; i--) {
+      const parentPath = segments.slice(0, i).join("/");
+      if (sessionsByPath[parentPath]) return sessionsByPath[parentPath].token;
+    }
+
+    return null;
+  });
+
   const sessionHeaders = sessionToken
     ? { "x-folder-session": sessionToken }
     : undefined;
@@ -116,8 +141,11 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
   );
 
   const directoriesQueryKey = useMemo(
-    () => createCloudDirectoriesQueryKey(normalizedPath, delimiter, search),
-    [normalizedPath, delimiter, search],
+    () => [
+      ...createCloudDirectoriesQueryKey(normalizedPath, delimiter, search),
+      hiddenSessionToken,
+    ],
+    [normalizedPath, delimiter, search, hiddenSessionToken],
   );
 
   const objectsQueryKey = useMemo(
@@ -179,6 +207,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
           delimiter,
           search,
           xFolderSession: sessionToken || undefined,
+          xHiddenSession: hiddenSessionToken || undefined,
         },
         { signal },
       ),

@@ -9,17 +9,17 @@ interface StoredSessions {
   [path: string]: SessionData;
 }
 
-const STORAGE_KEY = "encrypted_folder_sessions";
-
 export class SessionManager extends EventEmitter {
-  private static instance: SessionManager;
+  private static instances = new Map<string, SessionManager>();
   private sessions: StoredSessions = {};
+  private storageKey: string;
 
-  private constructor() {
+  private constructor(storageKey: string) {
     super();
+    this.storageKey = storageKey;
     if (typeof window !== "undefined") {
       try {
-        const stored = window.sessionStorage.getItem(STORAGE_KEY);
+        const stored = window.sessionStorage.getItem(this.storageKey);
         if (stored) {
           this.sessions = JSON.parse(stored);
         }
@@ -29,19 +29,23 @@ export class SessionManager extends EventEmitter {
     }
   }
 
-  public static getInstance(): SessionManager {
-    if (!SessionManager.instance) {
-      SessionManager.instance = new SessionManager();
+  public static getInstanceForKey(key: string): SessionManager {
+    if (!SessionManager.instances.has(key)) {
+      SessionManager.instances.set(key, new SessionManager(key));
     }
-    return SessionManager.instance;
+    return SessionManager.instances.get(key)!;
+  }
+
+  public static getInstance(): SessionManager {
+    return SessionManager.getInstanceForKey("encrypted_folder_sessions");
   }
 
   private persist() {
     if (typeof window !== "undefined") {
       try {
         window.sessionStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify(this.sessions)
+          this.storageKey,
+          JSON.stringify(this.sessions),
         );
       } catch (e) {
         console.error("Failed to save sessions", e);
@@ -107,7 +111,7 @@ export class SessionManager extends EventEmitter {
   public clearAll() {
     this.sessions = {};
     if (typeof window !== "undefined") {
-      window.sessionStorage.removeItem(STORAGE_KEY);
+      window.sessionStorage.removeItem(this.storageKey);
     }
     this.emit("change", this.sessions);
   }
@@ -118,3 +122,6 @@ export class SessionManager extends EventEmitter {
 }
 
 export const sessionManager = SessionManager.getInstance();
+export const hiddenSessionManager = SessionManager.getInstanceForKey(
+  "hidden_folder_sessions",
+);

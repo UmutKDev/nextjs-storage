@@ -23,6 +23,8 @@ type ExplorerActionsContextValue = {
   moveItems: (items: string[]) => void;
   renameItem: (item: CloudObject | Directory) => void;
   convertFolder: (directory: Directory) => void;
+  hideFolder: (directory: Directory) => void;
+  unhideFolder: (directory: Directory) => void;
   extractArchive: (file: CloudObject) => void;
   extractArchiveSelection: (files: CloudObject[]) => void;
   cancelArchiveExtraction: (file: CloudObject) => void;
@@ -92,6 +94,20 @@ export function ExplorerActionsProvider({
     [openDialog],
   );
 
+  const hideFolder = React.useCallback(
+    (directory: Directory) => {
+      openDialog("hide-folder", { directory });
+    },
+    [openDialog],
+  );
+
+  const unhideFolder = React.useCallback(
+    (directory: Directory) => {
+      openDialog("unhide-folder", { directory });
+    },
+    [openDialog],
+  );
+
   const extractArchive = React.useCallback(
     (file: CloudObject) => {
       openDialog("archive-preview-extract", { file });
@@ -141,6 +157,8 @@ export function ExplorerActionsProvider({
       moveItems,
       renameItem,
       convertFolder,
+      hideFolder,
+      unhideFolder,
       extractArchive,
       extractArchiveSelection,
       cancelArchiveExtraction,
@@ -168,10 +186,12 @@ export function ExplorerActionsProvider({
       extractArchive,
       extractArchiveSelection,
       extractJobs,
+      hideFolder,
       moveItems,
       previewFile,
       renameItem,
       startArchiveCreation,
+      unhideFolder,
     ],
   );
 

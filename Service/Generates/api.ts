@@ -483,50 +483,16 @@ export interface CloudDirectoryModel {
      * True if encrypted folder is locked (no valid session)
      */
     'IsLocked': boolean;
+    /**
+     * Whether directory is hidden
+     */
+    'IsHidden': boolean;
+    /**
+     * True if hidden folder is concealed (no valid hidden session)
+     */
+    'IsConcealed': boolean;
     'Thumbnails'?: Array<CloudObjectModel>;
 }
-export interface CloudExtractZipCancelRequestModel {
-    'JobId': string;
-}
-export interface CloudExtractZipCancelResponseBaseModel {
-    'Result': CloudExtractZipCancelResponseModel;
-    'Status': BaseStatusModel;
-}
-export interface CloudExtractZipCancelResponseModel {
-    'Cancelled': boolean;
-}
-export interface CloudExtractZipStartRequestModel {
-    'Key': string;
-}
-export interface CloudExtractZipStartResponseBaseModel {
-    'Result': CloudExtractZipStartResponseModel;
-    'Status': BaseStatusModel;
-}
-export interface CloudExtractZipStartResponseModel {
-    'JobId': string;
-}
-export interface CloudExtractZipStatusResponseBaseModel {
-    'Result': CloudExtractZipStatusResponseModel;
-    'Status': BaseStatusModel;
-}
-export interface CloudExtractZipStatusResponseModel {
-    'JobId': string;
-    'State': CloudExtractZipStatusResponseModelStateEnum;
-    'Progress'?: object;
-    'ExtractedPath'?: string;
-    'FailedReason'?: string;
-}
-
-export const CloudExtractZipStatusResponseModelStateEnum = {
-    Waiting: 'waiting',
-    Delayed: 'delayed',
-    Active: 'active',
-    Completed: 'completed',
-    Failed: 'failed'
-} as const;
-
-export type CloudExtractZipStatusResponseModelStateEnum = typeof CloudExtractZipStatusResponseModelStateEnum[keyof typeof CloudExtractZipStatusResponseModelStateEnum];
-
 export interface CloudGetMultipartPartUrlRequestModel {
     'Key': string;
     'UploadId': string;
@@ -664,6 +630,12 @@ export interface DefinitionGroupResponseModel {
     'IsCommon': boolean;
     'Date': BaseDateModel;
 }
+export interface DirectoryConcealRequestModel {
+    /**
+     * Hidden directory path to conceal
+     */
+    'Path': string;
+}
 export interface DirectoryConvertToEncryptedRequestModel {
     /**
      * Directory path to convert
@@ -692,6 +664,12 @@ export interface DirectoryDeleteRequestModel {
      */
     'Path': string;
 }
+export interface DirectoryHideRequestModel {
+    /**
+     * Directory path to hide
+     */
+    'Path': string;
+}
 export interface DirectoryLockRequestModel {
     /**
      * Encrypted directory path to lock
@@ -717,6 +695,44 @@ export interface DirectoryResponseModel {
     'IsEncrypted': boolean;
     'CreatedAt'?: string;
     'UpdatedAt'?: string;
+}
+export interface DirectoryRevealRequestModel {
+    /**
+     * Path containing hidden directories to reveal
+     */
+    'Path': string;
+}
+export interface DirectoryRevealResponseBaseModel {
+    'Result': DirectoryRevealResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface DirectoryRevealResponseModel {
+    /**
+     * Directory path that was requested for reveal
+     */
+    'Path': string;
+    /**
+     * The hidden folder path that was revealed
+     */
+    'HiddenFolderPath': string;
+    /**
+     * Session token for subsequent requests. Pass via X-Hidden-Session header.
+     */
+    'SessionToken': string;
+    /**
+     * Session expiration timestamp (Unix epoch in seconds)
+     */
+    'ExpiresAt': number;
+    /**
+     * Session TTL in seconds
+     */
+    'TTL': number;
+}
+export interface DirectoryUnhideRequestModel {
+    /**
+     * Hidden directory path to unhide
+     */
+    'Path': string;
 }
 export interface DirectoryUnlockRequestModel {
     /**
@@ -3651,10 +3667,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
          * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {string} [xHiddenSession] Session token for hidden folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        list: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        list: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3697,6 +3714,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            if (xHiddenSession != null) {
+                localVarHeaderParameter['x-hidden-session'] = String(xHiddenSession);
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -3773,10 +3793,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {string} [xHiddenSession] Session token for hidden folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listDirectories: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listDirectories: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Directories`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3815,6 +3836,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            if (xHiddenSession != null) {
+                localVarHeaderParameter['x-hidden-session'] = String(xHiddenSession);
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -3985,10 +4009,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {string} [extension] Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
          * @param {boolean} [isMetadataProcessing] 
          * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {string} [xHiddenSession] Session token for hidden folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        search: async (query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        search: async (query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'query' is not null or undefined
             assertParamExists('search', 'query', query)
             const localVarPath = `/Api/Cloud/Search`;
@@ -4037,6 +4062,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            if (xHiddenSession != null) {
+                localVarHeaderParameter['x-hidden-session'] = String(xHiddenSession);
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -4190,11 +4218,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {boolean} [delimiter] 
          * @param {boolean} [isMetadataProcessing] 
          * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {string} [xHiddenSession] Session token for hidden folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async list(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
+        async list(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, xHiddenSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.list']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4225,11 +4254,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {string} [path] 
          * @param {boolean} [delimiter] 
          * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {string} [xHiddenSession] Session token for hidden folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listDirectories(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(search, skip, take, path, delimiter, xFolderSession, options);
+        async listDirectories(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(search, skip, take, path, delimiter, xFolderSession, xHiddenSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listDirectories']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4291,11 +4321,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {string} [extension] Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
          * @param {boolean} [isMetadataProcessing] 
          * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {string} [xHiddenSession] Session token for hidden folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async search(query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudSearchResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.search(query, search, skip, take, path, extension, isMetadataProcessing, xFolderSession, options);
+        async search(query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudSearchResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.search(query, search, skip, take, path, extension, isMetadataProcessing, xFolderSession, xHiddenSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.search']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4382,7 +4413,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudListResponseBaseModel> {
-            return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns breadcrumb entries (path pieces) for the supplied path.
@@ -4402,7 +4433,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudDirectoryListBaseModel> {
-            return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
@@ -4442,7 +4473,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudSearchResponseBaseModel> {
-            return localVarFp.search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Update an existing object by changing metadata or renaming the file (name only).
@@ -4521,6 +4552,11 @@ export interface CloudApiListRequest {
      * Session token for encrypted folder access
      */
     readonly xFolderSession?: string
+
+    /**
+     * Session token for hidden folder access
+     */
+    readonly xHiddenSession?: string
 }
 
 /**
@@ -4556,6 +4592,11 @@ export interface CloudApiListDirectoriesRequest {
      * Session token for encrypted folder access
      */
     readonly xFolderSession?: string
+
+    /**
+     * Session token for hidden folder access
+     */
+    readonly xHiddenSession?: string
 }
 
 /**
@@ -4627,6 +4668,11 @@ export interface CloudApiSearchRequest {
      * Session token for encrypted folder access
      */
     readonly xFolderSession?: string
+
+    /**
+     * Session token for hidden folder access
+     */
+    readonly xHiddenSession?: string
 }
 
 /**
@@ -4692,7 +4738,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4714,7 +4760,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4758,7 +4804,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5403,6 +5449,44 @@ export class CloudArchiveApi extends BaseAPI {
 export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Invalidates the session token for hidden directories, hiding them from listings again.
+         * @summary Conceal hidden directories
+         * @param {DirectoryConcealRequestModel} directoryConcealRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryConceal: async (directoryConcealRequestModel: DirectoryConcealRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryConcealRequestModel' is not null or undefined
+            assertParamExists('directoryConceal', 'directoryConcealRequestModel', directoryConcealRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Conceal`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryConcealRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
          * @summary Convert a directory to encrypted
          * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
@@ -5591,6 +5675,50 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
             };
         },
         /**
+         * Marks a directory as hidden. Hidden directories are not shown in directory listings unless a valid hidden session token is provided. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Hide a directory
+         * @param {string} xFolderPassphrase Passphrase for hidden directory (min 8 chars)
+         * @param {DirectoryHideRequestModel} directoryHideRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryHide: async (xFolderPassphrase: string, directoryHideRequestModel: DirectoryHideRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryHide', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryHideRequestModel' is not null or undefined
+            assertParamExists('directoryHide', 'directoryHideRequestModel', directoryHideRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Hide`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryHideRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Invalidates the session token for an encrypted directory.
          * @summary Lock an encrypted directory
          * @param {DirectoryLockRequestModel} directoryLockRequestModel 
@@ -5675,6 +5803,94 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
             };
         },
         /**
+         * Validates passphrase and creates a session token for viewing hidden directories. The session token should be passed via X-Hidden-Session header in subsequent list requests.
+         * @summary Reveal hidden directories
+         * @param {string} xFolderPassphrase Passphrase for hidden directory (min 8 chars)
+         * @param {DirectoryRevealRequestModel} directoryRevealRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryReveal: async (xFolderPassphrase: string, directoryRevealRequestModel: DirectoryRevealRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryReveal', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryRevealRequestModel' is not null or undefined
+            assertParamExists('directoryReveal', 'directoryRevealRequestModel', directoryRevealRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Reveal`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryRevealRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Removes hidden status from a directory. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Unhide a directory
+         * @param {string} xFolderPassphrase Passphrase for hidden directory
+         * @param {DirectoryUnhideRequestModel} directoryUnhideRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryUnhide: async (xFolderPassphrase: string, directoryUnhideRequestModel: DirectoryUnhideRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryUnhide', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryUnhideRequestModel' is not null or undefined
+            assertParamExists('directoryUnhide', 'directoryUnhideRequestModel', directoryUnhideRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Unhide`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryUnhideRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
          * @summary Unlock an encrypted directory
          * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
@@ -5727,6 +5943,19 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
 export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CloudDirectoriesApiAxiosParamCreator(configuration)
     return {
+        /**
+         * Invalidates the session token for hidden directories, hiding them from listings again.
+         * @summary Conceal hidden directories
+         * @param {DirectoryConcealRequestModel} directoryConcealRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryConceal(directoryConcealRequestModel: DirectoryConcealRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConceal(directoryConcealRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryConceal']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
         /**
          * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
          * @summary Convert a directory to encrypted
@@ -5788,6 +6017,20 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Marks a directory as hidden. Hidden directories are not shown in directory listings unless a valid hidden session token is provided. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Hide a directory
+         * @param {string} xFolderPassphrase Passphrase for hidden directory (min 8 chars)
+         * @param {DirectoryHideRequestModel} directoryHideRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryHide(xFolderPassphrase: string, directoryHideRequestModel: DirectoryHideRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryHide(xFolderPassphrase, directoryHideRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryHide']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Invalidates the session token for an encrypted directory.
          * @summary Lock an encrypted directory
          * @param {DirectoryLockRequestModel} directoryLockRequestModel 
@@ -5816,6 +6059,34 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Validates passphrase and creates a session token for viewing hidden directories. The session token should be passed via X-Hidden-Session header in subsequent list requests.
+         * @summary Reveal hidden directories
+         * @param {string} xFolderPassphrase Passphrase for hidden directory (min 8 chars)
+         * @param {DirectoryRevealRequestModel} directoryRevealRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryReveal(xFolderPassphrase: string, directoryRevealRequestModel: DirectoryRevealRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryRevealResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryReveal(xFolderPassphrase, directoryRevealRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryReveal']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Removes hidden status from a directory. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Unhide a directory
+         * @param {string} xFolderPassphrase Passphrase for hidden directory
+         * @param {DirectoryUnhideRequestModel} directoryUnhideRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryUnhide(xFolderPassphrase: string, directoryUnhideRequestModel: DirectoryUnhideRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryUnhide(xFolderPassphrase, directoryUnhideRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryUnhide']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
          * @summary Unlock an encrypted directory
          * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
@@ -5838,6 +6109,16 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
 export const CloudDirectoriesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = CloudDirectoriesApiFp(configuration)
     return {
+        /**
+         * Invalidates the session token for hidden directories, hiding them from listings again.
+         * @summary Conceal hidden directories
+         * @param {CloudDirectoriesApiDirectoryConcealRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryConceal(requestParameters: CloudDirectoriesApiDirectoryConcealRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.directoryConceal(requestParameters.directoryConcealRequestModel, options).then((request) => request(axios, basePath));
+        },
         /**
          * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
          * @summary Convert a directory to encrypted
@@ -5879,6 +6160,16 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
             return localVarFp.directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
+         * Marks a directory as hidden. Hidden directories are not shown in directory listings unless a valid hidden session token is provided. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Hide a directory
+         * @param {CloudDirectoriesApiDirectoryHideRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryHide(requestParameters: CloudDirectoriesApiDirectoryHideRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryHide(requestParameters.xFolderPassphrase, requestParameters.directoryHideRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Invalidates the session token for an encrypted directory.
          * @summary Lock an encrypted directory
          * @param {CloudDirectoriesApiDirectoryLockRequest} requestParameters Request parameters.
@@ -5899,6 +6190,26 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
             return localVarFp.directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
+         * Validates passphrase and creates a session token for viewing hidden directories. The session token should be passed via X-Hidden-Session header in subsequent list requests.
+         * @summary Reveal hidden directories
+         * @param {CloudDirectoriesApiDirectoryRevealRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryReveal(requestParameters: CloudDirectoriesApiDirectoryRevealRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryRevealResponseBaseModel> {
+            return localVarFp.directoryReveal(requestParameters.xFolderPassphrase, requestParameters.directoryRevealRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Removes hidden status from a directory. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Unhide a directory
+         * @param {CloudDirectoriesApiDirectoryUnhideRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryUnhide(requestParameters: CloudDirectoriesApiDirectoryUnhideRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryUnhide(requestParameters.xFolderPassphrase, requestParameters.directoryUnhideRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
          * @summary Unlock an encrypted directory
          * @param {CloudDirectoriesApiDirectoryUnlockRequest} requestParameters Request parameters.
@@ -5910,6 +6221,13 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
         },
     };
 };
+
+/**
+ * Request parameters for directoryConceal operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryConcealRequest {
+    readonly directoryConcealRequestModel: DirectoryConcealRequestModel
+}
 
 /**
  * Request parameters for directoryConvertToEncrypted operation in CloudDirectoriesApi.
@@ -5980,6 +6298,18 @@ export interface CloudDirectoriesApiDirectoryDeleteRequest {
 }
 
 /**
+ * Request parameters for directoryHide operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryHideRequest {
+    /**
+     * Passphrase for hidden directory (min 8 chars)
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryHideRequestModel: DirectoryHideRequestModel
+}
+
+/**
  * Request parameters for directoryLock operation in CloudDirectoriesApi.
  */
 export interface CloudDirectoriesApiDirectoryLockRequest {
@@ -6004,6 +6334,30 @@ export interface CloudDirectoriesApiDirectoryRenameRequest {
 }
 
 /**
+ * Request parameters for directoryReveal operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryRevealRequest {
+    /**
+     * Passphrase for hidden directory (min 8 chars)
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryRevealRequestModel: DirectoryRevealRequestModel
+}
+
+/**
+ * Request parameters for directoryUnhide operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryUnhideRequest {
+    /**
+     * Passphrase for hidden directory
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryUnhideRequestModel: DirectoryUnhideRequestModel
+}
+
+/**
  * Request parameters for directoryUnlock operation in CloudDirectoriesApi.
  */
 export interface CloudDirectoriesApiDirectoryUnlockRequest {
@@ -6019,6 +6373,17 @@ export interface CloudDirectoriesApiDirectoryUnlockRequest {
  * CloudDirectoriesApi - object-oriented interface
  */
 export class CloudDirectoriesApi extends BaseAPI {
+    /**
+     * Invalidates the session token for hidden directories, hiding them from listings again.
+     * @summary Conceal hidden directories
+     * @param {CloudDirectoriesApiDirectoryConcealRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryConceal(requestParameters: CloudDirectoriesApiDirectoryConcealRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryConceal(requestParameters.directoryConcealRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
      * @summary Convert a directory to encrypted
@@ -6064,6 +6429,17 @@ export class CloudDirectoriesApi extends BaseAPI {
     }
 
     /**
+     * Marks a directory as hidden. Hidden directories are not shown in directory listings unless a valid hidden session token is provided. Provide passphrase via X-Folder-Passphrase header.
+     * @summary Hide a directory
+     * @param {CloudDirectoriesApiDirectoryHideRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryHide(requestParameters: CloudDirectoriesApiDirectoryHideRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryHide(requestParameters.xFolderPassphrase, requestParameters.directoryHideRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Invalidates the session token for an encrypted directory.
      * @summary Lock an encrypted directory
      * @param {CloudDirectoriesApiDirectoryLockRequest} requestParameters Request parameters.
@@ -6086,6 +6462,28 @@ export class CloudDirectoriesApi extends BaseAPI {
     }
 
     /**
+     * Validates passphrase and creates a session token for viewing hidden directories. The session token should be passed via X-Hidden-Session header in subsequent list requests.
+     * @summary Reveal hidden directories
+     * @param {CloudDirectoriesApiDirectoryRevealRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryReveal(requestParameters: CloudDirectoriesApiDirectoryRevealRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryReveal(requestParameters.xFolderPassphrase, requestParameters.directoryRevealRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Removes hidden status from a directory. Provide passphrase via X-Folder-Passphrase header.
+     * @summary Unhide a directory
+     * @param {CloudDirectoriesApiDirectoryUnhideRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryUnhide(requestParameters: CloudDirectoriesApiDirectoryUnhideRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryUnhide(requestParameters.xFolderPassphrase, requestParameters.directoryUnhideRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
      * @summary Unlock an encrypted directory
      * @param {CloudDirectoriesApiDirectoryUnlockRequest} requestParameters Request parameters.
@@ -6104,128 +6502,6 @@ export class CloudDirectoriesApi extends BaseAPI {
  */
 export const CloudUploadApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
-        /**
-         * Cancels a zip extraction job if it is pending or running. Use Archive/Extract/Cancel instead.
-         * @summary Cancel zip extraction (deprecated)
-         * @param {CloudExtractZipCancelRequestModel} cloudExtractZipCancelRequestModel 
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        extractZipCancel: async (cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudExtractZipCancelRequestModel' is not null or undefined
-            assertParamExists('extractZipCancel', 'cloudExtractZipCancelRequestModel', cloudExtractZipCancelRequestModel)
-            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Cancel`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudExtractZipCancelRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Starts an async job to extract a previously uploaded .zip file. Use Archive/Extract/Start instead.
-         * @summary Start zip extraction (deprecated)
-         * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        extractZipStart: async (cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudExtractZipStartRequestModel' is not null or undefined
-            assertParamExists('extractZipStart', 'cloudExtractZipStartRequestModel', cloudExtractZipStartRequestModel)
-            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Start`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            if (xFolderSession != null) {
-                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudExtractZipStartRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Returns the current status/progress of a zip extraction job. Use Archive/Extract/Status instead.
-         * @summary Get zip extraction status (deprecated)
-         * @param {string} jobId 
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        extractZipStatus: async (jobId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'jobId' is not null or undefined
-            assertParamExists('extractZipStatus', 'jobId', jobId)
-            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Status`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-            if (jobId !== undefined) {
-                localVarQueryParameter['JobId'] = jobId;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
         /**
          * Abort an ongoing multipart upload and clean up temporary state.
          * @summary Abort a multipart upload
@@ -6480,49 +6756,6 @@ export const CloudUploadApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CloudUploadApiAxiosParamCreator(configuration)
     return {
         /**
-         * Cancels a zip extraction job if it is pending or running. Use Archive/Extract/Cancel instead.
-         * @summary Cancel zip extraction (deprecated)
-         * @param {CloudExtractZipCancelRequestModel} cloudExtractZipCancelRequestModel 
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        async extractZipCancel(cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipCancelResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipCancel(cloudExtractZipCancelRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.extractZipCancel']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Starts an async job to extract a previously uploaded .zip file. Use Archive/Extract/Start instead.
-         * @summary Start zip extraction (deprecated)
-         * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        async extractZipStart(cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipStartResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipStart(cloudExtractZipStartRequestModel, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.extractZipStart']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns the current status/progress of a zip extraction job. Use Archive/Extract/Status instead.
-         * @summary Get zip extraction status (deprecated)
-         * @param {string} jobId 
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        async extractZipStatus(jobId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipStatusResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipStatus(jobId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.extractZipStatus']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Abort an ongoing multipart upload and clean up temporary state.
          * @summary Abort a multipart upload
          * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
@@ -6606,39 +6839,6 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
     const localVarFp = CloudUploadApiFp(configuration)
     return {
         /**
-         * Cancels a zip extraction job if it is pending or running. Use Archive/Extract/Cancel instead.
-         * @summary Cancel zip extraction (deprecated)
-         * @param {CloudUploadApiExtractZipCancelRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        extractZipCancel(requestParameters: CloudUploadApiExtractZipCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipCancelResponseBaseModel> {
-            return localVarFp.extractZipCancel(requestParameters.cloudExtractZipCancelRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Starts an async job to extract a previously uploaded .zip file. Use Archive/Extract/Start instead.
-         * @summary Start zip extraction (deprecated)
-         * @param {CloudUploadApiExtractZipStartRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        extractZipStart(requestParameters: CloudUploadApiExtractZipStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStartResponseBaseModel> {
-            return localVarFp.extractZipStart(requestParameters.cloudExtractZipStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns the current status/progress of a zip extraction job. Use Archive/Extract/Status instead.
-         * @summary Get zip extraction status (deprecated)
-         * @param {CloudUploadApiExtractZipStatusRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @deprecated
-         * @throws {RequiredError}
-         */
-        extractZipStatus(requestParameters: CloudUploadApiExtractZipStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStatusResponseBaseModel> {
-            return localVarFp.extractZipStatus(requestParameters.jobId, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Abort an ongoing multipart upload and clean up temporary state.
          * @summary Abort a multipart upload
          * @param {CloudUploadApiUploadAbortMultipartUploadRequest} requestParameters Request parameters.
@@ -6690,32 +6890,6 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
         },
     };
 };
-
-/**
- * Request parameters for extractZipCancel operation in CloudUploadApi.
- */
-export interface CloudUploadApiExtractZipCancelRequest {
-    readonly cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel
-}
-
-/**
- * Request parameters for extractZipStart operation in CloudUploadApi.
- */
-export interface CloudUploadApiExtractZipStartRequest {
-    readonly cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for extractZipStatus operation in CloudUploadApi.
- */
-export interface CloudUploadApiExtractZipStatusRequest {
-    readonly jobId: string
-}
 
 /**
  * Request parameters for uploadAbortMultipartUpload operation in CloudUploadApi.
@@ -6786,42 +6960,6 @@ export interface CloudUploadApiUploadPartRequest {
  * CloudUploadApi - object-oriented interface
  */
 export class CloudUploadApi extends BaseAPI {
-    /**
-     * Cancels a zip extraction job if it is pending or running. Use Archive/Extract/Cancel instead.
-     * @summary Cancel zip extraction (deprecated)
-     * @param {CloudUploadApiExtractZipCancelRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @deprecated
-     * @throws {RequiredError}
-     */
-    public extractZipCancel(requestParameters: CloudUploadApiExtractZipCancelRequest, options?: RawAxiosRequestConfig) {
-        return CloudUploadApiFp(this.configuration).extractZipCancel(requestParameters.cloudExtractZipCancelRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Starts an async job to extract a previously uploaded .zip file. Use Archive/Extract/Start instead.
-     * @summary Start zip extraction (deprecated)
-     * @param {CloudUploadApiExtractZipStartRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @deprecated
-     * @throws {RequiredError}
-     */
-    public extractZipStart(requestParameters: CloudUploadApiExtractZipStartRequest, options?: RawAxiosRequestConfig) {
-        return CloudUploadApiFp(this.configuration).extractZipStart(requestParameters.cloudExtractZipStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns the current status/progress of a zip extraction job. Use Archive/Extract/Status instead.
-     * @summary Get zip extraction status (deprecated)
-     * @param {CloudUploadApiExtractZipStatusRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @deprecated
-     * @throws {RequiredError}
-     */
-    public extractZipStatus(requestParameters: CloudUploadApiExtractZipStatusRequest, options?: RawAxiosRequestConfig) {
-        return CloudUploadApiFp(this.configuration).extractZipStatus(requestParameters.jobId, options).then((request) => request(this.axios, this.basePath));
-    }
-
     /**
      * Abort an ongoing multipart upload and clean up temporary state.
      * @summary Abort a multipart upload

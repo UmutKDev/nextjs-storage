@@ -1,5 +1,7 @@
 import React from "react";
 import {
+  Eye,
+  EyeOff,
   Folder,
   Lock,
   MoreHorizontal,
@@ -32,8 +34,14 @@ export const StorageListFolderRow = ({
   directoryKey,
 }: StorageListFolderRowProps) => {
   const { selectedItemKeys } = useExplorerSelection();
-  const { deletingStatusByKey, renameItem, convertFolder, deleteItem } =
-    useExplorerActions();
+  const {
+    deletingStatusByKey,
+    renameItem,
+    convertFolder,
+    hideFolder,
+    unhideFolder,
+    deleteItem,
+  } = useExplorerActions();
   const { getDirectoryMetadata } = useDirectoryMetadata();
   const {
     handleItemClick,
@@ -96,7 +104,10 @@ export const StorageListFolderRow = ({
       data={directory}
     >
       <div
-        className="flex items-center gap-2 md:gap-4 px-2 md:px-4 py-3 hover:bg-muted/10 cursor-pointer active:bg-muted/20"
+        className={cn(
+          "flex items-center gap-2 md:gap-4 px-2 md:px-4 py-3 hover:bg-muted/10 cursor-pointer active:bg-muted/20",
+          directoryMetadata.isHidden && "opacity-60",
+        )}
         onClick={(event) => {
           if (longPressTriggeredRef.current) {
             longPressTriggeredRef.current = false;
@@ -157,6 +168,12 @@ export const StorageListFolderRow = ({
               {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
             </div>
           ) : null}
+          {directoryMetadata.isHidden ? (
+            <div className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-600 sm:hidden">
+              <EyeOff className="h-3 w-3" />
+              Gizli
+            </div>
+          ) : null}
         </div>
         <div className="text-xs text-muted-foreground hidden sm:block">
           {directoryMetadata.isEncrypted ? (
@@ -176,6 +193,11 @@ export const StorageListFolderRow = ({
               <span className="hidden sm:inline">
                 {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
               </span>
+            </span>
+          ) : directoryMetadata.isHidden ? (
+            <span className="inline-flex items-center gap-1 font-medium text-slate-500">
+              <EyeOff className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Gizli</span>
             </span>
           ) : (
             <span className="hidden sm:inline">Klasör</span>
@@ -222,6 +244,38 @@ export const StorageListFolderRow = ({
                 >
                   <Lock className="mr-2 h-4 w-4" />
                   Şifrele
+                </DropdownMenuItem>
+              ) : null}
+              {!directoryMetadata.isHidden ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) hideFolder(directory);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) hideFolder(directory);
+                  }}
+                  data-dnd-ignore
+                >
+                  <EyeOff className="mr-2 h-4 w-4" />
+                  Gizle
+                </DropdownMenuItem>
+              ) : null}
+              {directoryMetadata.isHidden ? (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) unhideFolder(directory);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) unhideFolder(directory);
+                  }}
+                  data-dnd-ignore
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Gizliliği Kaldır
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuItem

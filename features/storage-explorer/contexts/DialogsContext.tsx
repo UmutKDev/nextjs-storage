@@ -10,6 +10,8 @@ type DialogPayloads = {
   "create-folder": Record<string, never>;
   "rename-folder": { directory: CloudDirectoryModel };
   "convert-folder": { directory: CloudDirectoryModel };
+  "hide-folder": { directory: CloudDirectoryModel };
+  "unhide-folder": { directory: CloudDirectoryModel };
   "move-items": { items: string[] };
   "delete-item": { item: CloudObjectModel | CloudDirectoryModel };
   "delete-selection": { count: number };

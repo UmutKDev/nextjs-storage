@@ -110,8 +110,6 @@ export default function PasskeyManager() {
       ? [passkeysQuery.data]
       : [];
 
-  console.log(passkeys);
-
   const getDeviceIcon = (type: string | undefined | null) => {
     if (!type) return <KeyRound className="h-5 w-5 text-purple-500" />;
     const t = type.toLowerCase();
