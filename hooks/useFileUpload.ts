@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { cloudApiFactory } from "@/Service/Factories";
+import { cloudUploadApiFactory } from "@/Service/Factories";
 import type { AxiosProgressEvent } from "axios";
 import { isAxiosError } from "axios";
 import useCloudList from "./useCloudList";
@@ -104,7 +104,7 @@ export function useFileUpload(currentPath: string | null) {
         // 1. Create Multipart Upload
         const createResp = await retryWithBackoff(
           () =>
-            cloudApiFactory.uploadCreateMultipartUpload(
+            cloudUploadApiFactory.uploadCreateMultipartUpload(
               {
                 cloudCreateMultipartUploadRequestModel: {
                   Key: key,
@@ -154,7 +154,7 @@ export function useFileUpload(currentPath: string | null) {
 
           const partResp = await retryWithBackoff(
             () =>
-              cloudApiFactory.uploadPart(
+              cloudUploadApiFactory.uploadPart(
                 {
                   contentMd5,
                   key: ensuredKey,
@@ -191,7 +191,7 @@ export function useFileUpload(currentPath: string | null) {
         const idempotencyKey = createIdempotencyKey();
         await retryWithBackoff(
           () =>
-            cloudApiFactory.uploadCompleteMultipartUpload(
+            cloudUploadApiFactory.uploadCompleteMultipartUpload(
               {
                 idempotencyKey,
                 cloudCompleteMultipartUploadRequestModel: {
@@ -222,7 +222,7 @@ export function useFileUpload(currentPath: string | null) {
           try {
             await retryWithBackoff(
               () =>
-                cloudApiFactory.uploadAbortMultipartUpload(
+                cloudUploadApiFactory.uploadAbortMultipartUpload(
                   {
                     cloudAbortMultipartUploadRequestModel: {
                       Key: finalKey!,

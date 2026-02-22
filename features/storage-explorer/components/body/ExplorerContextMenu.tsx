@@ -18,7 +18,8 @@ import type {
 import { useExplorerActions } from "../../contexts/ExplorerActionsContext";
 import { useExplorerContextMenu } from "../../stores/explorerContextMenu.store";
 import { useDirectoryMetadata } from "@/components/storage-browser/hooks/useDirectoryMetadata";
-import { useZipExtractStatus } from "@/components/storage-browser/hooks/useZipExtractStatus";
+import { useArchiveExtractStatus } from "@/components/storage-browser/hooks/useArchiveExtractStatus";
+import { isArchiveFile } from "../../utils/archive";
 
 type ExplorerContextMenuProps = {
   files: CloudObject[];
@@ -33,7 +34,12 @@ type MenuItemProps = {
   children: React.ReactNode;
 };
 
-const MenuItem = ({ icon: Icon, disabled, onClick, children }: MenuItemProps) => (
+const MenuItem = ({
+  icon: Icon,
+  disabled,
+  onClick,
+  children,
+}: MenuItemProps) => (
   <button
     type="button"
     className={cn(
@@ -59,8 +65,8 @@ export default function ExplorerContextMenu({
   const {
     deletingStatusByKey,
     extractJobs,
-    extractZip,
-    cancelExtractZip,
+    extractArchive,
+    cancelArchiveExtraction,
     previewFile,
     editFile,
     moveItems,
@@ -69,7 +75,7 @@ export default function ExplorerContextMenu({
     convertFolder,
   } = useExplorerActions();
   const { getDirectoryMetadata } = useDirectoryMetadata();
-  const { getZipActionState } = useZipExtractStatus();
+  const { getArchiveActionState } = useArchiveExtractStatus();
 
   if (!contextMenuState) return null;
 
@@ -87,19 +93,13 @@ export default function ExplorerContextMenu({
   const directoryMetadata = targetDirectory
     ? getDirectoryMetadata(targetDirectory)
     : null;
-  const zipName = (
-    targetFile?.Metadata?.Originalfilename ||
-    targetFile?.Name ||
-    ""
-  ).toLowerCase();
-  const isZipFile =
-    targetFile?.Extension?.toLowerCase() === "zip" || zipName.endsWith(".zip");
+  const isArchive = isArchiveFile(targetFile);
   const extractJob = key ? extractJobs[key] : undefined;
-  const { canStartExtraction, canCancelExtraction } = getZipActionState({
+  const { canStartExtraction, canCancelExtraction } = getArchiveActionState({
     file: targetFile,
     isLoading,
-    hasExtractHandler: Boolean(extractZip),
-    hasCancelHandler: Boolean(cancelExtractZip),
+    hasExtractHandler: Boolean(extractArchive),
+    hasCancelHandler: Boolean(cancelArchiveExtraction),
     extractJob,
   });
 
@@ -145,19 +145,21 @@ export default function ExplorerContextMenu({
             >
               Taşı
             </MenuItem>
-            {isZipFile ? (
+            {isArchive ? (
               <MenuItem
                 icon={Archive}
                 disabled={!canStartExtraction}
-                onClick={() => handleAction(() => extractZip(targetFile))}
+                onClick={() => handleAction(() => extractArchive(targetFile))}
               >
-                Zip çıkar
+                Arşiv çıkar
               </MenuItem>
             ) : null}
             {canCancelExtraction ? (
               <MenuItem
                 icon={XCircle}
-                onClick={() => handleAction(() => cancelExtractZip(targetFile))}
+                onClick={() =>
+                  handleAction(() => cancelArchiveExtraction(targetFile))
+                }
               >
                 Çıkarmayı iptal et
               </MenuItem>
@@ -184,7 +186,9 @@ export default function ExplorerContextMenu({
               <MenuItem
                 icon={Lock}
                 disabled={isLoading}
-                onClick={() => handleAction(() => convertFolder(targetDirectory))}
+                onClick={() =>
+                  handleAction(() => convertFolder(targetDirectory))
+                }
               >
                 Şifrele
               </MenuItem>

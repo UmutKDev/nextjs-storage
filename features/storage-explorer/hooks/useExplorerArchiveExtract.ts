@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { cloudApiFactory } from "@/Service/Factories";
+import { cloudArchiveApiFactory } from "@/Service/Factories";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   CLOUD_DIRECTORIES_QUERY_KEY,
@@ -10,17 +10,17 @@ import {
 import type { CloudObjectModel } from "@/Service/Generates/api";
 import { useExplorerEncryption } from "../contexts/ExplorerEncryptionContext";
 import { getParentPath, normalizeStoragePath } from "../utils/path";
-import type { ExplorerExtractJob } from "../types/explorer.types";
+import type { ArchiveExtractJob } from "../types/explorer.types";
 import { getFileDisplayName } from "../utils/item";
 
 const EXTRACT_POLL_INTERVAL_MS = 1500;
 const EXTRACT_JOB_CLEANUP_DELAY_MS = 10000;
 
-export function useExplorerExtractZip() {
+export function useExplorerArchiveExtract() {
   const queryClient = useQueryClient();
   const { getSessionToken } = useExplorerEncryption();
   const [extractJobs, setExtractJobs] = React.useState<
-    Record<string, ExplorerExtractJob>
+    Record<string, ArchiveExtractJob>
   >({});
   const extractToastStateRef = React.useRef<Record<string, string>>({});
 
@@ -64,8 +64,8 @@ export function useExplorerExtractZip() {
   const updateExtractJob = React.useCallback(
     (
       key: string,
-      update: Partial<ExplorerExtractJob> & {
-        progress?: ExplorerExtractJob["progress"];
+      update: Partial<ArchiveExtractJob> & {
+        progress?: ArchiveExtractJob["progress"];
       },
     ) => {
       setExtractJobs((previous) => {
@@ -77,6 +77,7 @@ export function useExplorerExtractZip() {
               key,
               state: update.state ?? "waiting",
               jobId: update.jobId,
+              format: update.format,
               progress: update.progress,
               extractedPath: update.extractedPath,
               failedReason: update.failedReason,
@@ -97,21 +98,52 @@ export function useExplorerExtractZip() {
     [],
   );
 
-  const fetchZipExtractionStatus = React.useCallback(
+  const fetchArchiveExtractionStatus = React.useCallback(
     async (key: string, jobId: string) => {
       try {
-        const response = await cloudApiFactory.extractZipStatus({ jobId });
+        const response = await cloudArchiveApiFactory.archiveExtractStatus({
+          jobId,
+        });
         const result = response.data?.Result;
         if (!result) return;
 
-        const progress = (result.Progress ||
-          {}) as ExplorerExtractJob["progress"];
+        setExtractJobs((previous) => {
+          const existing = previous[key];
+          const storedTotalEntries = existing?.progress?.totalEntries;
 
-        updateExtractJob(key, {
-          state: result.State,
-          progress,
-          extractedPath: result.ExtractedPath,
-          failedReason: result.FailedReason,
+          const progress: ArchiveExtractJob["progress"] = result.Progress
+            ? {
+                phase: result.Progress.Phase,
+                entriesProcessed: result.Progress.EntriesProcessed,
+                totalEntries:
+                  result.Progress.TotalEntries ?? storedTotalEntries ?? null,
+                bytesRead: result.Progress.BytesRead,
+                totalBytes: result.Progress.TotalBytes,
+                currentEntry: result.Progress.CurrentEntry,
+              }
+            : existing?.progress;
+
+          const updated: ArchiveExtractJob = existing
+            ? {
+                ...existing,
+                state: result.State,
+                format: result.Format,
+                progress,
+                extractedPath: result.ExtractedPath,
+                failedReason: result.FailedReason,
+                updatedAt: Date.now(),
+              }
+            : {
+                key,
+                state: result.State,
+                format: result.Format,
+                progress,
+                extractedPath: result.ExtractedPath,
+                failedReason: result.FailedReason,
+                updatedAt: Date.now(),
+              };
+
+          return { ...previous, [key]: updated };
         });
 
         if (
@@ -139,19 +171,11 @@ export function useExplorerExtractZip() {
           scheduleJobCleanup(key);
           extractToastStateRef.current[key] = "failed";
         }
-
-        if (
-          result.State === "cancelled" &&
-          extractToastStateRef.current[key] !== "cancelled"
-        ) {
-          scheduleJobCleanup(key);
-          extractToastStateRef.current[key] = "cancelled";
-        }
       } catch (error) {
         console.error(error);
       }
     },
-    [invalidatePath, scheduleJobCleanup, updateExtractJob],
+    [invalidatePath, scheduleJobCleanup],
   );
 
   React.useEffect(() => {
@@ -163,48 +187,58 @@ export function useExplorerExtractZip() {
     if (jobsToPoll.length === 0) return;
 
     jobsToPoll.forEach((job) => {
-      if (job.jobId) void fetchZipExtractionStatus(job.key, job.jobId);
+      if (job.jobId) void fetchArchiveExtractionStatus(job.key, job.jobId);
     });
 
     const intervalId = setInterval(() => {
       jobsToPoll.forEach((job) => {
-        if (job.jobId) void fetchZipExtractionStatus(job.key, job.jobId);
+        if (job.jobId) void fetchArchiveExtractionStatus(job.key, job.jobId);
       });
     }, EXTRACT_POLL_INTERVAL_MS);
 
     return () => clearInterval(intervalId);
-  }, [extractJobs, fetchZipExtractionStatus]);
+  }, [extractJobs, fetchArchiveExtractionStatus]);
 
-  const createZipExtractionJob = React.useCallback(
-    async (file: CloudObjectModel) => {
+  const createArchiveExtractionJob = React.useCallback(
+    async (
+      file: CloudObjectModel,
+      selectedEntries?: string[],
+      totalEntries?: number,
+    ) => {
       const key = file.Path?.Key;
       if (!key) {
         return;
       }
 
       delete extractToastStateRef.current[key];
-      updateExtractJob(key, { state: "starting" });
+      updateExtractJob(key, {
+        state: "starting",
+        progress: totalEntries ? { totalEntries } : undefined,
+      });
 
       try {
         const sessionToken = getSessionToken(key);
-        const sessionOptions = sessionToken
-          ? { headers: { "x-folder-session": sessionToken } }
-          : undefined;
-        const response = await cloudApiFactory.extractZipStart(
-          {
-            cloudExtractZipStartRequestModel: { Key: key },
+        const response = await cloudArchiveApiFactory.archiveExtractStart({
+          cloudArchiveExtractStartRequestModel: {
+            Key: key,
+            SelectedEntries: selectedEntries,
           },
-          sessionOptions,
-        );
-        const jobId = response.data?.Result?.JobId;
+          xFolderSession: sessionToken ?? undefined,
+        });
+        const result = response.data?.Result;
+        const jobId = result?.JobId;
         if (!jobId) {
           updateExtractJob(key, { state: "failed" });
           scheduleJobCleanup(key);
           extractToastStateRef.current[key] = "failed";
           return;
         }
-        updateExtractJob(key, { jobId, state: "waiting" });
-        await fetchZipExtractionStatus(key, jobId);
+        updateExtractJob(key, {
+          jobId,
+          state: "waiting",
+          format: result.Format,
+        });
+        await fetchArchiveExtractionStatus(key, jobId);
       } catch (error) {
         console.error(error);
         updateExtractJob(key, { state: "failed" });
@@ -213,14 +247,14 @@ export function useExplorerExtractZip() {
       }
     },
     [
-      fetchZipExtractionStatus,
+      fetchArchiveExtractionStatus,
       getSessionToken,
       scheduleJobCleanup,
       updateExtractJob,
     ],
   );
 
-  const deleteZipExtractionJob = React.useCallback(
+  const cancelArchiveExtractionJob = React.useCallback(
     async (file: CloudObjectModel) => {
       const key = file.Path?.Key;
       if (!key) return;
@@ -228,8 +262,8 @@ export function useExplorerExtractZip() {
       if (!job?.jobId) return;
 
       try {
-        await cloudApiFactory.extractZipCancel({
-          cloudExtractZipCancelRequestModel: { JobId: job.jobId },
+        await cloudArchiveApiFactory.archiveExtractCancel({
+          cloudArchiveExtractCancelRequestModel: { JobId: job.jobId },
         });
         updateExtractJob(key, { state: "cancelled" });
         scheduleJobCleanup(key);
@@ -243,8 +277,8 @@ export function useExplorerExtractZip() {
 
   return {
     extractJobs,
-    createZipExtractionJob,
-    deleteZipExtractionJob,
+    createArchiveExtractionJob,
+    cancelArchiveExtractionJob,
     getFileDisplayName,
   };
 }

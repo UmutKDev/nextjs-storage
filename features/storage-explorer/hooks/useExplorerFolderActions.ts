@@ -3,7 +3,7 @@
 import React from "react";
 import { isAxiosError } from "axios";
 import type { CloudDirectoryModel } from "@/Service/Generates/api";
-import { cloudApiFactory } from "@/Service/Factories";
+import { cloudDirectoriesApiFactory } from "@/Service/Factories";
 import { useExplorerEncryption } from "../contexts/ExplorerEncryptionContext";
 import { useExplorerQuery } from "../contexts/ExplorerQueryContext";
 import { getFolderNameFromPrefix, normalizeFolderPath } from "../utils/path";
@@ -68,7 +68,7 @@ export function useExplorerFolderActions() {
 
       if (isNewFolderEncrypted) {
         const path = `${prefix}${name}`.replace(/\/+/g, "/").replace(/\/$/, "");
-        await cloudApiFactory.directoryCreate({
+        await cloudDirectoriesApiFactory.directoryCreate({
           directoryCreateRequestModel: { Path: path, IsEncrypted: true },
           xFolderPassphrase: newFolderPassphrase,
           xFolderSession: sessionToken || undefined,
@@ -76,7 +76,7 @@ export function useExplorerFolderActions() {
         await refetchManifest();
       } else {
         const key = `${prefix}${name}/`;
-        await cloudApiFactory.directoryCreate({
+        await cloudDirectoriesApiFactory.directoryCreate({
           directoryCreateRequestModel: { Path: key, IsEncrypted: false },
           xFolderSession: sessionToken || undefined,
         });
@@ -136,7 +136,7 @@ export function useExplorerFolderActions() {
 
     setIsConvertingFolder(true);
     try {
-      await cloudApiFactory.directoryConvertToEncrypted({
+      await cloudDirectoriesApiFactory.directoryConvertToEncrypted({
         directoryConvertToEncryptedRequestModel: {
           Path: normalizedPath,
         },
@@ -208,7 +208,7 @@ export function useExplorerFolderActions() {
             if (!passphrase) {
               throw new Error("Klasör için parola gerekli");
             }
-            await cloudApiFactory.directoryRename({
+            await cloudDirectoriesApiFactory.directoryRename({
               directoryRenameRequestModel: {
                 Path: normalizedPath,
                 Name: newName,
@@ -220,7 +220,7 @@ export function useExplorerFolderActions() {
           } else {
             if (!normalizedPath) throw new Error("Invalid path");
 
-            await cloudApiFactory.directoryRename({
+            await cloudDirectoriesApiFactory.directoryRename({
               directoryRenameRequestModel: {
                 Path: normalizedPath,
                 Name: newName,

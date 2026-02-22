@@ -21,7 +21,9 @@ import type { CloudObject } from "@/components/storage-browser/types/storage-bro
 import { useExplorerSelection } from "@/features/storage-explorer/contexts/ExplorerSelectionContext";
 import { useExplorerActions } from "@/features/storage-explorer/contexts/ExplorerActionsContext";
 import { useStorageBrowserInteractions } from "@/components/storage-browser/contexts/StorageBrowserInteractionsContext";
-import { useZipExtractStatus } from "@/components/storage-browser/hooks/useZipExtractStatus";
+import { useArchiveExtractStatus } from "@/components/storage-browser/hooks/useArchiveExtractStatus";
+import { ArchiveJobIndicator } from "@/components/storage-browser/shared/ArchiveJobIndicator";
+import { isArchiveFile } from "@/features/storage-explorer/utils/archive";
 
 type StorageListFileRowProps = {
   file: CloudObject;
@@ -36,8 +38,9 @@ export const StorageListFileRow = ({
   const {
     deletingStatusByKey,
     extractJobs,
-    extractZip,
-    cancelExtractZip,
+    createJobs,
+    extractArchive,
+    cancelArchiveExtraction,
     previewFile,
     editFile,
     moveItems,
@@ -45,25 +48,16 @@ export const StorageListFileRow = ({
   } = useExplorerActions();
   const { handleItemClick, updateSelection, openContextMenu, isLoading } =
     useStorageBrowserInteractions();
-  const { getReadableExtractStatus, getZipActionState } =
-    useZipExtractStatus();
+  const { getArchiveActionState } = useArchiveExtractStatus();
   const isSelected = selectedItemKeys.has(fileKey);
   const extractJob = extractJobs[fileKey];
-  const extractStatusLabel = extractJob
-    ? getReadableExtractStatus(extractJob)
-    : undefined;
-  const zipName = (
-    file.Metadata?.Originalfilename ||
-    file.Name ||
-    ""
-  ).toLowerCase();
-  const isZipFile =
-    file.Extension?.toLowerCase() === "zip" || zipName.endsWith(".zip");
-  const { canStartExtraction, canCancelExtraction } = getZipActionState({
+  const createJob = createJobs[fileKey];
+  const isArchive = isArchiveFile(file);
+  const { canStartExtraction, canCancelExtraction } = getArchiveActionState({
     file,
     isLoading,
-    hasExtractHandler: Boolean(extractZip),
-    hasCancelHandler: Boolean(cancelExtractZip),
+    hasExtractHandler: Boolean(extractArchive),
+    hasCancelHandler: Boolean(cancelArchiveExtraction),
     extractJob,
   });
   const longPressTimerRef = React.useRef<number | null>(null);
@@ -168,20 +162,20 @@ export const StorageListFileRow = ({
             </span>
           </div>
           <div className="text-xs text-muted-foreground mt-1 truncate">
-            {file.MimeType ?? "—"}
+            {file.MimeType ?? "\u2014"}
           </div>
-          {extractStatusLabel ? (
-            <div className="text-[11px] text-muted-foreground mt-1 truncate">
-              {extractStatusLabel}
-            </div>
-          ) : null}
+          <ArchiveJobIndicator
+            extractJob={extractJob}
+            createJob={createJob}
+            variant="list"
+          />
         </div>
 
         <div className="flex items-center gap-2 md:gap-4 text-sm text-muted-foreground shrink-0">
           <div className="whitespace-nowrap hidden lg:block">
             {file.LastModified
               ? new Date(file.LastModified).toLocaleString()
-              : "—"}
+              : "\u2014"}
           </div>
           <div className="flex items-center gap-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
@@ -237,32 +231,32 @@ export const StorageListFileRow = ({
                   <FolderInput className="mr-2 h-4 w-4" />
                   Taşı
                 </DropdownMenuItem>
-                {isZipFile ? (
+                {isArchive ? (
                   <DropdownMenuItem
                     onSelect={(event) => {
                       event.stopPropagation();
-                      if (canStartExtraction) extractZip(file);
+                      if (canStartExtraction) extractArchive(file);
                     }}
                     onClick={(event) => {
                       event.stopPropagation();
-                      if (canStartExtraction) extractZip(file);
+                      if (canStartExtraction) extractArchive(file);
                     }}
                     disabled={!canStartExtraction}
                     data-dnd-ignore
                   >
                     <Archive className="mr-2 h-4 w-4" />
-                    Zip çıkar
+                    Arşiv çıkar
                   </DropdownMenuItem>
                 ) : null}
                 {canCancelExtraction ? (
                   <DropdownMenuItem
                     onSelect={(event) => {
                       event.stopPropagation();
-                      cancelExtractZip(file);
+                      cancelArchiveExtraction(file);
                     }}
                     onClick={(event) => {
                       event.stopPropagation();
-                      cancelExtractZip(file);
+                      cancelArchiveExtraction(file);
                     }}
                     data-dnd-ignore
                   >

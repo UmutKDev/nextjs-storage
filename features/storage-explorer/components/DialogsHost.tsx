@@ -8,8 +8,9 @@ import ConvertFolderDialog from "./dialogs/ConvertFolderDialog";
 import MoveItemsDialog from "./dialogs/MoveItemsDialog";
 import DeleteItemDialog from "./dialogs/DeleteItemDialog";
 import DeleteSelectionDialog from "./dialogs/DeleteSelectionDialog";
-import ExtractZipDialog from "./dialogs/ExtractZipDialog";
-import ExtractZipSelectionDialog from "./dialogs/ExtractZipSelectionDialog";
+import ArchivePreviewExtractDialog from "./dialogs/ArchivePreviewExtractDialog";
+import ArchiveExtractSelectionDialog from "./dialogs/ArchiveExtractSelectionDialog";
+import ArchiveCreateDialog from "./dialogs/ArchiveCreateDialog";
 import ConfirmMoveDragDialog from "./dialogs/ConfirmMoveDragDialog";
 import UploadFilesDialog from "./dialogs/UploadFilesDialog";
 import EditFileDialog from "./dialogs/EditFileDialog";
@@ -49,16 +50,23 @@ export default function DialogsHost() {
         payload={dialog?.type === "delete-selection" ? dialog.payload : null}
         onClose={closeDialog}
       />
-      <ExtractZipDialog
-        open={dialog?.type === "extract-zip"}
-        payload={dialog?.type === "extract-zip" ? dialog.payload : null}
+      <ArchivePreviewExtractDialog
+        open={dialog?.type === "archive-preview-extract"}
+        payload={
+          dialog?.type === "archive-preview-extract" ? dialog.payload : null
+        }
         onClose={closeDialog}
       />
-      <ExtractZipSelectionDialog
-        open={dialog?.type === "extract-zip-selection"}
+      <ArchiveExtractSelectionDialog
+        open={dialog?.type === "archive-extract-selection"}
         payload={
-          dialog?.type === "extract-zip-selection" ? dialog.payload : null
+          dialog?.type === "archive-extract-selection" ? dialog.payload : null
         }
+        onClose={closeDialog}
+      />
+      <ArchiveCreateDialog
+        open={dialog?.type === "archive-create"}
+        payload={dialog?.type === "archive-create" ? dialog.payload : null}
         onClose={closeDialog}
       />
       <ConfirmMoveDragDialog

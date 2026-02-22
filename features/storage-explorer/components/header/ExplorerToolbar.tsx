@@ -9,6 +9,7 @@ import { useExplorerSelection } from "../../contexts/ExplorerSelectionContext";
 import { useExplorerFiltering } from "../../hooks/useExplorerFiltering";
 import { useExplorerActions } from "../../contexts/ExplorerActionsContext";
 import { useDialogs } from "../../contexts/DialogsContext";
+import { isArchiveFile } from "../../utils/archive";
 
 export default function ExplorerToolbar() {
   const { viewMode, setViewMode, searchQuery, setSearchQuery } =
@@ -16,7 +17,7 @@ export default function ExplorerToolbar() {
   const { selectedItemKeys, selectAllVisibleItems } = useExplorerSelection();
   const { filteredDirectoryItems, filteredObjectItems } =
     useExplorerFiltering();
-  const { extractZipSelection } = useExplorerActions();
+  const { extractArchiveSelection, createArchive } = useExplorerActions();
   const { openDialog } = useDialogs();
 
   const selectAllVisibleItemsInView = React.useCallback(() => {
@@ -30,19 +31,12 @@ export default function ExplorerToolbar() {
     selectAllVisibleItems(allKeys);
   }, [filteredDirectoryItems, filteredObjectItems, selectAllVisibleItems]);
 
-  const selectedZipFiles = React.useMemo(() => {
+  const selectedArchiveFiles = React.useMemo(() => {
     if (selectedItemKeys.size === 0) return [];
     return filteredObjectItems.filter((file) => {
       const key = file.Path?.Key;
       if (!key || !selectedItemKeys.has(key)) return false;
-      const ext = (file.Extension || "").toLowerCase();
-      if (ext === "zip") return true;
-      const name = (
-        file.Metadata?.Originalfilename ||
-        file.Name ||
-        ""
-      ).toLowerCase();
-      return name.endsWith(".zip");
+      return isArchiveFile(file);
     });
   }, [selectedItemKeys, filteredObjectItems]);
 
@@ -73,20 +67,32 @@ export default function ExplorerToolbar() {
             </span>
             <span className="sm:hidden">Taşı</span>
           </Button>
-          {selectedZipFiles.length > 0 ? (
+          {selectedArchiveFiles.length > 0 ? (
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => extractZipSelection(selectedZipFiles)}
+              onClick={() => extractArchiveSelection(selectedArchiveFiles)}
               className="shrink-0 whitespace-nowrap"
             >
               <Archive size={16} className="mr-2" />
               <span className="hidden sm:inline">
-                Zip Çıkar ({selectedZipFiles.length})
+                Arşiv Çıkar ({selectedArchiveFiles.length})
               </span>
-              <span className="sm:hidden">Zip Çıkar</span>
+              <span className="sm:hidden">Arşiv Çıkar</span>
             </Button>
           ) : null}
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => createArchive(Array.from(selectedItemKeys))}
+            className="shrink-0 whitespace-nowrap"
+          >
+            <Archive size={16} className="mr-2" />
+            <span className="hidden sm:inline">
+              Arşiv Oluştur ({selectedItemKeys.size})
+            </span>
+            <span className="sm:hidden">Arşiv Oluştur</span>
+          </Button>
           <Button
             size="sm"
             variant="destructive"

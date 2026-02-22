@@ -6,6 +6,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 type StorageContextType = {
   currentPath: string; // path used as query param for cloudApiFactory.list
   setCurrentPath: (path: string) => void;
+  buildPathUrl: (path: string) => string;
   reset: () => void;
   isCurrentLocked: boolean;
   setIsCurrentLocked: (locked: boolean) => void;
@@ -48,6 +49,23 @@ export default function StorageProvider({
     [searchParams, pathname, router]
   );
 
+  const buildPathUrl = useCallback(
+    (path: string) => {
+      const normalized =
+        !path || path === "/" ? "" : path.replace(/^\/+|\/+$/g, "");
+
+      const params = new URLSearchParams(searchParams.toString());
+      if (normalized) {
+        params.set("path", normalized);
+      } else {
+        params.delete("path");
+      }
+
+      return `${pathname}?${params.toString()}`;
+    },
+    [searchParams, pathname]
+  );
+
   const reset = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("path");
@@ -59,6 +77,7 @@ export default function StorageProvider({
       value={{
         currentPath,
         setCurrentPath,
+        buildPathUrl,
         reset,
         isCurrentLocked,
         setIsCurrentLocked,

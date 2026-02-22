@@ -207,6 +207,208 @@ export interface CloudAbortMultipartUploadRequestModel {
     'Key': string;
     'UploadId': string;
 }
+export interface CloudArchiveCreateCancelRequestModel {
+    'JobId': string;
+}
+export interface CloudArchiveCreateCancelResponseBaseModel {
+    'Result': CloudArchiveCreateCancelResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudArchiveCreateCancelResponseModel {
+    'Cancelled': boolean;
+}
+export interface CloudArchiveCreateStartRequestModel {
+    /**
+     * S3 keys to include in the archive (files and/or directories)
+     */
+    'Keys': Array<string>;
+    /**
+     * Output format
+     */
+    'Format'?: CloudArchiveCreateStartRequestModelFormatEnum;
+    /**
+     * Custom output filename (without extension)
+     */
+    'OutputName'?: string;
+}
+
+export const CloudArchiveCreateStartRequestModelFormatEnum = {
+    Zip: 'zip',
+    Tar: 'tar',
+    TarGz: 'tar.gz',
+    Rar: 'rar'
+} as const;
+
+export type CloudArchiveCreateStartRequestModelFormatEnum = typeof CloudArchiveCreateStartRequestModelFormatEnum[keyof typeof CloudArchiveCreateStartRequestModelFormatEnum];
+
+export interface CloudArchiveCreateStartResponseBaseModel {
+    'Result': CloudArchiveCreateStartResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudArchiveCreateStartResponseModel {
+    'JobId': string;
+    'Format': CloudArchiveCreateStartResponseModelFormatEnum;
+    /**
+     * S3 key where the archive will be created
+     */
+    'OutputKey': string;
+}
+
+export const CloudArchiveCreateStartResponseModelFormatEnum = {
+    Zip: 'zip',
+    Tar: 'tar',
+    TarGz: 'tar.gz',
+    Rar: 'rar'
+} as const;
+
+export type CloudArchiveCreateStartResponseModelFormatEnum = typeof CloudArchiveCreateStartResponseModelFormatEnum[keyof typeof CloudArchiveCreateStartResponseModelFormatEnum];
+
+export interface CloudArchiveCreateStatusResponseBaseModel {
+    'Result': CloudArchiveCreateStatusResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudArchiveCreateStatusResponseModel {
+    'JobId': string;
+    'State': CloudArchiveCreateStatusResponseModelStateEnum;
+    'Progress'?: object;
+    'ArchiveKey'?: string;
+    'ArchiveSize'?: number;
+    'FailedReason'?: string;
+}
+
+export const CloudArchiveCreateStatusResponseModelStateEnum = {
+    Waiting: 'waiting',
+    Delayed: 'delayed',
+    Active: 'active',
+    Completed: 'completed',
+    Failed: 'failed'
+} as const;
+
+export type CloudArchiveCreateStatusResponseModelStateEnum = typeof CloudArchiveCreateStatusResponseModelStateEnum[keyof typeof CloudArchiveCreateStatusResponseModelStateEnum];
+
+export interface CloudArchiveExtractCancelRequestModel {
+    'JobId': string;
+}
+export interface CloudArchiveExtractCancelResponseBaseModel {
+    'Result': CloudArchiveExtractCancelResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudArchiveExtractCancelResponseModel {
+    'Cancelled': boolean;
+}
+export interface CloudArchiveExtractProgressModel {
+    'Phase': CloudArchiveExtractProgressModelPhaseEnum;
+    'EntriesProcessed': number;
+    'TotalEntries'?: number;
+    'BytesRead': number;
+    'TotalBytes': number;
+    'CurrentEntry'?: string;
+}
+
+export const CloudArchiveExtractProgressModelPhaseEnum = {
+    Extract: 'extract',
+    Create: 'create'
+} as const;
+
+export type CloudArchiveExtractProgressModelPhaseEnum = typeof CloudArchiveExtractProgressModelPhaseEnum[keyof typeof CloudArchiveExtractProgressModelPhaseEnum];
+
+export interface CloudArchiveExtractStartRequestModel {
+    /**
+     * Key of the archive file to extract
+     */
+    'Key': string;
+    /**
+     * Specific entry paths to extract (selective extraction). Omit for full extraction.
+     */
+    'SelectedEntries'?: Array<string>;
+}
+export interface CloudArchiveExtractStartResponseBaseModel {
+    'Result': CloudArchiveExtractStartResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudArchiveExtractStartResponseModel {
+    'JobId': string;
+    /**
+     * Detected archive format
+     */
+    'Format': CloudArchiveExtractStartResponseModelFormatEnum;
+}
+
+export const CloudArchiveExtractStartResponseModelFormatEnum = {
+    Zip: 'zip',
+    Tar: 'tar',
+    TarGz: 'tar.gz',
+    Rar: 'rar'
+} as const;
+
+export type CloudArchiveExtractStartResponseModelFormatEnum = typeof CloudArchiveExtractStartResponseModelFormatEnum[keyof typeof CloudArchiveExtractStartResponseModelFormatEnum];
+
+export interface CloudArchiveExtractStatusResponseBaseModel {
+    'Result': CloudArchiveExtractStatusResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudArchiveExtractStatusResponseModel {
+    'JobId': string;
+    'State': CloudArchiveExtractStatusResponseModelStateEnum;
+    'Format'?: CloudArchiveExtractStatusResponseModelFormatEnum;
+    'Progress'?: CloudArchiveExtractProgressModel;
+    'ExtractedPath'?: string;
+    'FailedReason'?: string;
+}
+
+export const CloudArchiveExtractStatusResponseModelStateEnum = {
+    Waiting: 'waiting',
+    Delayed: 'delayed',
+    Active: 'active',
+    Completed: 'completed',
+    Failed: 'failed'
+} as const;
+
+export type CloudArchiveExtractStatusResponseModelStateEnum = typeof CloudArchiveExtractStatusResponseModelStateEnum[keyof typeof CloudArchiveExtractStatusResponseModelStateEnum];
+export const CloudArchiveExtractStatusResponseModelFormatEnum = {
+    Zip: 'zip',
+    Tar: 'tar',
+    TarGz: 'tar.gz',
+    Rar: 'rar'
+} as const;
+
+export type CloudArchiveExtractStatusResponseModelFormatEnum = typeof CloudArchiveExtractStatusResponseModelFormatEnum[keyof typeof CloudArchiveExtractStatusResponseModelFormatEnum];
+
+export interface CloudArchivePreviewEntryModel {
+    'Path': string;
+    'Type': CloudArchivePreviewEntryModelTypeEnum;
+    'Size': number;
+    'CompressedSize'?: number;
+    'LastModified'?: string;
+}
+
+export const CloudArchivePreviewEntryModelTypeEnum = {
+    File: 'file',
+    Directory: 'directory'
+} as const;
+
+export type CloudArchivePreviewEntryModelTypeEnum = typeof CloudArchivePreviewEntryModelTypeEnum[keyof typeof CloudArchivePreviewEntryModelTypeEnum];
+
+export interface CloudArchivePreviewResponseBaseModel {
+    'Result': CloudArchivePreviewResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudArchivePreviewResponseModel {
+    'Key': string;
+    'Format': CloudArchivePreviewResponseModelFormatEnum;
+    'TotalEntries': number;
+    'Entries': Array<CloudArchivePreviewEntryModel>;
+}
+
+export const CloudArchivePreviewResponseModelFormatEnum = {
+    Zip: 'zip',
+    Tar: 'tar',
+    TarGz: 'tar.gz',
+    Rar: 'rar'
+} as const;
+
+export type CloudArchivePreviewResponseModelFormatEnum = typeof CloudArchivePreviewResponseModelFormatEnum[keyof typeof CloudArchivePreviewResponseModelFormatEnum];
+
 export interface CloudBreadCrumbListBaseModel {
     'Result': CloudBreadCrumbListModelResult;
     'Status': BaseStatusModel;
@@ -309,11 +511,22 @@ export interface CloudExtractZipStatusResponseBaseModel {
 }
 export interface CloudExtractZipStatusResponseModel {
     'JobId': string;
-    'State': string;
+    'State': CloudExtractZipStatusResponseModelStateEnum;
     'Progress'?: object;
     'ExtractedPath'?: string;
     'FailedReason'?: string;
 }
+
+export const CloudExtractZipStatusResponseModelStateEnum = {
+    Waiting: 'waiting',
+    Delayed: 'delayed',
+    Active: 'active',
+    Completed: 'completed',
+    Failed: 'failed'
+} as const;
+
+export type CloudExtractZipStatusResponseModelStateEnum = typeof CloudExtractZipStatusResponseModelStateEnum[keyof typeof CloudExtractZipStatusResponseModelStateEnum];
+
 export interface CloudGetMultipartPartUrlRequestModel {
     'Key': string;
     'UploadId': string;
@@ -381,11 +594,22 @@ export interface CloudScanStatusResponseBaseModel {
     'Status': BaseStatusModel;
 }
 export interface CloudScanStatusResponseModel {
-    'Status': string;
+    'Status': CloudScanStatusResponseModelStatusEnum;
     'Reason'?: string;
     'Signature'?: string;
     'ScannedAt'?: string;
 }
+
+export const CloudScanStatusResponseModelStatusEnum = {
+    Pending: 'pending',
+    Clean: 'clean',
+    Infected: 'infected',
+    Error: 'error',
+    Skipped: 'skipped'
+} as const;
+
+export type CloudScanStatusResponseModelStatusEnum = typeof CloudScanStatusResponseModelStatusEnum[keyof typeof CloudScanStatusResponseModelStatusEnum];
+
 export interface CloudSearchResponseBaseModel {
     'Result': CloudSearchResponseModel;
     'Status': BaseStatusModel;
@@ -3296,322 +3520,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
-         * @summary Convert a directory to encrypted
-         * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
-         * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryConvertToEncrypted: async (xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'xFolderPassphrase' is not null or undefined
-            assertParamExists('directoryConvertToEncrypted', 'xFolderPassphrase', xFolderPassphrase)
-            // verify required parameter 'directoryConvertToEncryptedRequestModel' is not null or undefined
-            assertParamExists('directoryConvertToEncrypted', 'directoryConvertToEncryptedRequestModel', directoryConvertToEncryptedRequestModel)
-            const localVarPath = `/Api/Cloud/Directories/Encrypt`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            if (xFolderPassphrase != null) {
-                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
-            }
-            if (xFolderSession != null) {
-                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(directoryConvertToEncryptedRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
-         * @summary Create a directory
-         * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
-         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryCreate: async (directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'directoryCreateRequestModel' is not null or undefined
-            assertParamExists('directoryCreate', 'directoryCreateRequestModel', directoryCreateRequestModel)
-            const localVarPath = `/Api/Cloud/Directories`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            if (xFolderPassphrase != null) {
-                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
-            }
-            if (xFolderSession != null) {
-                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(directoryCreateRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
-         * @summary Remove encryption from a directory
-         * @param {string} xFolderPassphrase Passphrase for decryption
-         * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryDecrypt: async (xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'xFolderPassphrase' is not null or undefined
-            assertParamExists('directoryDecrypt', 'xFolderPassphrase', xFolderPassphrase)
-            // verify required parameter 'directoryDecryptRequestModel' is not null or undefined
-            assertParamExists('directoryDecrypt', 'directoryDecryptRequestModel', directoryDecryptRequestModel)
-            const localVarPath = `/Api/Cloud/Directories/Decrypt`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            if (xFolderPassphrase != null) {
-                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
-            }
-            if (xFolderSession != null) {
-                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(directoryDecryptRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
-         * @summary Delete a directory
-         * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
-         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryDelete: async (directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'directoryDeleteRequestModel' is not null or undefined
-            assertParamExists('directoryDelete', 'directoryDeleteRequestModel', directoryDeleteRequestModel)
-            const localVarPath = `/Api/Cloud/Directories`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            if (xFolderPassphrase != null) {
-                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
-            }
-            if (xFolderSession != null) {
-                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(directoryDeleteRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Invalidates the session token for an encrypted directory.
-         * @summary Lock an encrypted directory
-         * @param {DirectoryLockRequestModel} directoryLockRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryLock: async (directoryLockRequestModel: DirectoryLockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'directoryLockRequestModel' is not null or undefined
-            assertParamExists('directoryLock', 'directoryLockRequestModel', directoryLockRequestModel)
-            const localVarPath = `/Api/Cloud/Directories/Lock`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(directoryLockRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
-         * @summary Rename a directory
-         * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
-         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryRename: async (directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'directoryRenameRequestModel' is not null or undefined
-            assertParamExists('directoryRename', 'directoryRenameRequestModel', directoryRenameRequestModel)
-            const localVarPath = `/Api/Cloud/Directories/Rename`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            if (xFolderPassphrase != null) {
-                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
-            }
-            if (xFolderSession != null) {
-                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(directoryRenameRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
-         * @summary Unlock an encrypted directory
-         * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
-         * @param {DirectoryUnlockRequestModel} directoryUnlockRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryUnlock: async (xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'xFolderPassphrase' is not null or undefined
-            assertParamExists('directoryUnlock', 'xFolderPassphrase', xFolderPassphrase)
-            // verify required parameter 'directoryUnlockRequestModel' is not null or undefined
-            assertParamExists('directoryUnlock', 'directoryUnlockRequestModel', directoryUnlockRequestModel)
-            const localVarPath = `/Api/Cloud/Directories/Unlock`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            if (xFolderPassphrase != null) {
-                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(directoryUnlockRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {string} key Path/key to the file (user-scoped)
@@ -3637,125 +3545,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
             if (key !== undefined) {
                 localVarQueryParameter['Key'] = key;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Cancels a zip extraction job if it is pending or running.
-         * @summary Cancel zip extraction
-         * @param {CloudExtractZipCancelRequestModel} cloudExtractZipCancelRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        extractZipCancel: async (cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudExtractZipCancelRequestModel' is not null or undefined
-            assertParamExists('extractZipCancel', 'cloudExtractZipCancelRequestModel', cloudExtractZipCancelRequestModel)
-            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Cancel`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudExtractZipCancelRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Starts an async job to extract a previously uploaded .zip file.
-         * @summary Start zip extraction
-         * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        extractZipStart: async (cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'cloudExtractZipStartRequestModel' is not null or undefined
-            assertParamExists('extractZipStart', 'cloudExtractZipStartRequestModel', cloudExtractZipStartRequestModel)
-            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Start`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            if (xFolderSession != null) {
-                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(cloudExtractZipStartRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Returns the current status/progress of a zip extraction job.
-         * @summary Get zip extraction status
-         * @param {string} jobId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        extractZipStatus: async (jobId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'jobId' is not null or undefined
-            assertParamExists('extractZipStatus', 'jobId', jobId)
-            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Status`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-            if (jobId !== undefined) {
-                localVarQueryParameter['JobId'] = jobId;
             }
 
 
@@ -4297,6 +4086,2147 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Returns the authenticated user storage usage and limits.
+         * @summary Get user\'s storage usage
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        userStorageUsage: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Cloud/User/StorageUsage`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CloudApi - functional programming interface
+ */
+export const CloudApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CloudApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Deletes one or more objects (or directories) belonging to the authenticated user.
+         * @summary Delete objects
+         * @param {string} idempotencyKey 
+         * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async _delete(idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator._delete(idempotencyKey, cloudDeleteRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi._delete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
+         * @summary Download a file for the authenticated user (streamed)
+         * @param {string} key Path/key to the file (user-scoped)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async download(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.download(key, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.download']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Find a single object by key (user scoped) and return its metadata.
+         * @summary Get object metadata
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async find(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.find(key, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.find']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns a presigned URL for a specific object key to allow direct client access.
+         * @summary Get a presigned URL for upload/download
+         * @param {string} key 
+         * @param {number} [expiresInSeconds] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getPresignedUrl(key: string, expiresInSeconds?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StringResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPresignedUrl(key, expiresInSeconds, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.getPresignedUrl']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
+         * @summary List files and directories
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] 
+         * @param {boolean} [delimiter] 
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async list(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.list']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns breadcrumb entries (path pieces) for the supplied path.
+         * @summary Get breadcrumb for a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] 
+         * @param {boolean} [delimiter] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listBreadcrumb(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudBreadCrumbListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listBreadcrumb(search, skip, take, path, delimiter, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.listBreadcrumb']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
+         * @summary List directories inside a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] 
+         * @param {boolean} [delimiter] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listDirectories(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(search, skip, take, path, delimiter, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.listDirectories']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
+         * @summary List objects (files) inside a path
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] 
+         * @param {boolean} [delimiter] 
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listObjects(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.listObjects']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Move an object from SourceKey to DestinationKey within the user scope.
+         * @summary Move/rename an object
+         * @param {string} idempotencyKey 
+         * @param {CloudMoveRequestModel} cloudMoveRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async move(idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.move(idempotencyKey, cloudMoveRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns the latest antivirus scan status for the given object key.
+         * @summary Get antivirus scan status for a file
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async scanStatus(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudScanStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.scanStatus(key, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.scanStatus']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
+         * @summary Search files by name
+         * @param {string} query Search query - partial filename match (case-insensitive, min 2 chars)
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] Restrict search to a specific directory path
+         * @param {string} [extension] Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async search(query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudSearchResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.search(query, search, skip, take, path, extension, isMetadataProcessing, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.search']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Update an existing object by changing metadata or renaming the file (name only).
+         * @summary Update object metadata or rename
+         * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async update(cloudUpdateRequestModel: CloudUpdateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.update(cloudUpdateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.update']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns the authenticated user storage usage and limits.
+         * @summary Get user\'s storage usage
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async userStorageUsage(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUserStorageUsageResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.userStorageUsage(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.userStorageUsage']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * CloudApi - factory interface
+ */
+export const CloudApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CloudApiFp(configuration)
+    return {
+        /**
+         * Deletes one or more objects (or directories) belonging to the authenticated user.
+         * @summary Delete objects
+         * @param {CloudApiDeleteRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
+         * @summary Download a file for the authenticated user (streamed)
+         * @param {CloudApiDownloadRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        download(requestParameters: CloudApiDownloadRequest, options?: RawAxiosRequestConfig): AxiosPromise<File> {
+            return localVarFp.download(requestParameters.key, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Find a single object by key (user scoped) and return its metadata.
+         * @summary Get object metadata
+         * @param {CloudApiFindRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        find(requestParameters: CloudApiFindRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.find(requestParameters.key, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns a presigned URL for a specific object key to allow direct client access.
+         * @summary Get a presigned URL for upload/download
+         * @param {CloudApiGetPresignedUrlRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<StringResponseModel> {
+            return localVarFp.getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
+         * @summary List files and directories
+         * @param {CloudApiListRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudListResponseBaseModel> {
+            return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns breadcrumb entries (path pieces) for the supplied path.
+         * @summary Get breadcrumb for a path
+         * @param {CloudApiListBreadcrumbRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listBreadcrumb(requestParameters: CloudApiListBreadcrumbRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudBreadCrumbListBaseModel> {
+            return localVarFp.listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
+         * @summary List directories inside a path
+         * @param {CloudApiListDirectoriesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudDirectoryListBaseModel> {
+            return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
+         * @summary List objects (files) inside a path
+         * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectListBaseModel> {
+            return localVarFp.listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Move an object from SourceKey to DestinationKey within the user scope.
+         * @summary Move/rename an object
+         * @param {CloudApiMoveRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns the latest antivirus scan status for the given object key.
+         * @summary Get antivirus scan status for a file
+         * @param {CloudApiScanStatusRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudScanStatusResponseBaseModel> {
+            return localVarFp.scanStatus(requestParameters.key, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
+         * @summary Search files by name
+         * @param {CloudApiSearchRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudSearchResponseBaseModel> {
+            return localVarFp.search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Update an existing object by changing metadata or renaming the file (name only).
+         * @summary Update object metadata or rename
+         * @param {CloudApiUpdateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update(requestParameters: CloudApiUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectBaseModel> {
+            return localVarFp.update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns the authenticated user storage usage and limits.
+         * @summary Get user\'s storage usage
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        userStorageUsage(options?: RawAxiosRequestConfig): AxiosPromise<CloudUserStorageUsageResponseBaseModel> {
+            return localVarFp.userStorageUsage(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for _delete operation in CloudApi.
+ */
+export interface CloudApiDeleteRequest {
+    readonly idempotencyKey: string
+
+    readonly cloudDeleteRequestModel: CloudDeleteRequestModel
+}
+
+/**
+ * Request parameters for download operation in CloudApi.
+ */
+export interface CloudApiDownloadRequest {
+    /**
+     * Path/key to the file (user-scoped)
+     */
+    readonly key: string
+}
+
+/**
+ * Request parameters for find operation in CloudApi.
+ */
+export interface CloudApiFindRequest {
+    readonly key: string
+}
+
+/**
+ * Request parameters for getPresignedUrl operation in CloudApi.
+ */
+export interface CloudApiGetPresignedUrlRequest {
+    readonly key: string
+
+    readonly expiresInSeconds?: number
+}
+
+/**
+ * Request parameters for list operation in CloudApi.
+ */
+export interface CloudApiListRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
+    readonly path?: string
+
+    readonly delimiter?: boolean
+
+    readonly isMetadataProcessing?: boolean
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for listBreadcrumb operation in CloudApi.
+ */
+export interface CloudApiListBreadcrumbRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
+    readonly path?: string
+
+    readonly delimiter?: boolean
+}
+
+/**
+ * Request parameters for listDirectories operation in CloudApi.
+ */
+export interface CloudApiListDirectoriesRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
+    readonly path?: string
+
+    readonly delimiter?: boolean
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for listObjects operation in CloudApi.
+ */
+export interface CloudApiListObjectsRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
+    readonly path?: string
+
+    readonly delimiter?: boolean
+
+    readonly isMetadataProcessing?: boolean
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for move operation in CloudApi.
+ */
+export interface CloudApiMoveRequest {
+    readonly idempotencyKey: string
+
+    readonly cloudMoveRequestModel: CloudMoveRequestModel
+}
+
+/**
+ * Request parameters for scanStatus operation in CloudApi.
+ */
+export interface CloudApiScanStatusRequest {
+    readonly key: string
+}
+
+/**
+ * Request parameters for search operation in CloudApi.
+ */
+export interface CloudApiSearchRequest {
+    /**
+     * Search query - partial filename match (case-insensitive, min 2 chars)
+     */
+    readonly query: string
+
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
+    /**
+     * Restrict search to a specific directory path
+     */
+    readonly path?: string
+
+    /**
+     * Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
+     */
+    readonly extension?: string
+
+    readonly isMetadataProcessing?: boolean
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for update operation in CloudApi.
+ */
+export interface CloudApiUpdateRequest {
+    readonly cloudUpdateRequestModel: CloudUpdateRequestModel
+}
+
+/**
+ * CloudApi - object-oriented interface
+ */
+export class CloudApi extends BaseAPI {
+    /**
+     * Deletes one or more objects (or directories) belonging to the authenticated user.
+     * @summary Delete objects
+     * @param {CloudApiDeleteRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration)._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
+     * @summary Download a file for the authenticated user (streamed)
+     * @param {CloudApiDownloadRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public download(requestParameters: CloudApiDownloadRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).download(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Find a single object by key (user scoped) and return its metadata.
+     * @summary Get object metadata
+     * @param {CloudApiFindRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public find(requestParameters: CloudApiFindRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).find(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns a presigned URL for a specific object key to allow direct client access.
+     * @summary Get a presigned URL for upload/download
+     * @param {CloudApiGetPresignedUrlRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
+     * @summary List files and directories
+     * @param {CloudApiListRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns breadcrumb entries (path pieces) for the supplied path.
+     * @summary Get breadcrumb for a path
+     * @param {CloudApiListBreadcrumbRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listBreadcrumb(requestParameters: CloudApiListBreadcrumbRequest = {}, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
+     * @summary List directories inside a path
+     * @param {CloudApiListDirectoriesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
+     * @summary List objects (files) inside a path
+     * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Move an object from SourceKey to DestinationKey within the user scope.
+     * @summary Move/rename an object
+     * @param {CloudApiMoveRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns the latest antivirus scan status for the given object key.
+     * @summary Get antivirus scan status for a file
+     * @param {CloudApiScanStatusRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).scanStatus(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
+     * @summary Search files by name
+     * @param {CloudApiSearchRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Update an existing object by changing metadata or renaming the file (name only).
+     * @summary Update object metadata or rename
+     * @param {CloudApiUpdateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public update(requestParameters: CloudApiUpdateRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns the authenticated user storage usage and limits.
+     * @summary Get user\'s storage usage
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public userStorageUsage(options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).userStorageUsage(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * CloudArchiveApi - axios parameter creator
+ */
+export const CloudArchiveApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Cancels an archive creation job if it is pending or running.
+         * @summary Cancel archive creation
+         * @param {CloudArchiveCreateCancelRequestModel} cloudArchiveCreateCancelRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveCreateCancel: async (cloudArchiveCreateCancelRequestModel: CloudArchiveCreateCancelRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudArchiveCreateCancelRequestModel' is not null or undefined
+            assertParamExists('archiveCreateCancel', 'cloudArchiveCreateCancelRequestModel', cloudArchiveCreateCancelRequestModel)
+            const localVarPath = `/Api/Cloud/Archive/Create/Cancel`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudArchiveCreateCancelRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
+         * @summary Start archive creation
+         * @param {CloudArchiveCreateStartRequestModel} cloudArchiveCreateStartRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveCreateStart: async (cloudArchiveCreateStartRequestModel: CloudArchiveCreateStartRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudArchiveCreateStartRequestModel' is not null or undefined
+            assertParamExists('archiveCreateStart', 'cloudArchiveCreateStartRequestModel', cloudArchiveCreateStartRequestModel)
+            const localVarPath = `/Api/Cloud/Archive/Create/Start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudArchiveCreateStartRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns the current status/progress of an archive creation job.
+         * @summary Get archive creation status
+         * @param {string} jobId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveCreateStatus: async (jobId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'jobId' is not null or undefined
+            assertParamExists('archiveCreateStatus', 'jobId', jobId)
+            const localVarPath = `/Api/Cloud/Archive/Create/Status`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (jobId !== undefined) {
+                localVarQueryParameter['JobId'] = jobId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Cancels an archive extraction job if it is pending or running.
+         * @summary Cancel archive extraction
+         * @param {CloudArchiveExtractCancelRequestModel} cloudArchiveExtractCancelRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveExtractCancel: async (cloudArchiveExtractCancelRequestModel: CloudArchiveExtractCancelRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudArchiveExtractCancelRequestModel' is not null or undefined
+            assertParamExists('archiveExtractCancel', 'cloudArchiveExtractCancelRequestModel', cloudArchiveExtractCancelRequestModel)
+            const localVarPath = `/Api/Cloud/Archive/Extract/Cancel`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudArchiveExtractCancelRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
+         * @summary Start archive extraction
+         * @param {CloudArchiveExtractStartRequestModel} cloudArchiveExtractStartRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveExtractStart: async (cloudArchiveExtractStartRequestModel: CloudArchiveExtractStartRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudArchiveExtractStartRequestModel' is not null or undefined
+            assertParamExists('archiveExtractStart', 'cloudArchiveExtractStartRequestModel', cloudArchiveExtractStartRequestModel)
+            const localVarPath = `/Api/Cloud/Archive/Extract/Start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudArchiveExtractStartRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns the current status/progress of an archive extraction job.
+         * @summary Get archive extraction status
+         * @param {string} jobId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveExtractStatus: async (jobId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'jobId' is not null or undefined
+            assertParamExists('archiveExtractStatus', 'jobId', jobId)
+            const localVarPath = `/Api/Cloud/Archive/Extract/Status`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (jobId !== undefined) {
+                localVarQueryParameter['JobId'] = jobId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Lists entries of an archive file without extracting. Supports .zip, .tar, .tar.gz, and .rar.
+         * @summary Preview archive contents
+         * @param {string} key Key of the archive file to preview
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archivePreview: async (key: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('archivePreview', 'key', key)
+            const localVarPath = `/Api/Cloud/Archive/Preview`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+
+    
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CloudArchiveApi - functional programming interface
+ */
+export const CloudArchiveApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CloudArchiveApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Cancels an archive creation job if it is pending or running.
+         * @summary Cancel archive creation
+         * @param {CloudArchiveCreateCancelRequestModel} cloudArchiveCreateCancelRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async archiveCreateCancel(cloudArchiveCreateCancelRequestModel: CloudArchiveCreateCancelRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateCancelResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateCancel(cloudArchiveCreateCancelRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveCreateCancel']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
+         * @summary Start archive creation
+         * @param {CloudArchiveCreateStartRequestModel} cloudArchiveCreateStartRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async archiveCreateStart(cloudArchiveCreateStartRequestModel: CloudArchiveCreateStartRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateStartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateStart(cloudArchiveCreateStartRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveCreateStart']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns the current status/progress of an archive creation job.
+         * @summary Get archive creation status
+         * @param {string} jobId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async archiveCreateStatus(jobId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateStatus(jobId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveCreateStatus']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Cancels an archive extraction job if it is pending or running.
+         * @summary Cancel archive extraction
+         * @param {CloudArchiveExtractCancelRequestModel} cloudArchiveExtractCancelRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async archiveExtractCancel(cloudArchiveExtractCancelRequestModel: CloudArchiveExtractCancelRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractCancelResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractCancel(cloudArchiveExtractCancelRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveExtractCancel']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
+         * @summary Start archive extraction
+         * @param {CloudArchiveExtractStartRequestModel} cloudArchiveExtractStartRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async archiveExtractStart(cloudArchiveExtractStartRequestModel: CloudArchiveExtractStartRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractStartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractStart(cloudArchiveExtractStartRequestModel, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveExtractStart']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns the current status/progress of an archive extraction job.
+         * @summary Get archive extraction status
+         * @param {string} jobId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async archiveExtractStatus(jobId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractStatus(jobId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveExtractStatus']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Lists entries of an archive file without extracting. Supports .zip, .tar, .tar.gz, and .rar.
+         * @summary Preview archive contents
+         * @param {string} key Key of the archive file to preview
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async archivePreview(key: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchivePreviewResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archivePreview(key, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archivePreview']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * CloudArchiveApi - factory interface
+ */
+export const CloudArchiveApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CloudArchiveApiFp(configuration)
+    return {
+        /**
+         * Cancels an archive creation job if it is pending or running.
+         * @summary Cancel archive creation
+         * @param {CloudArchiveApiArchiveCreateCancelRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveCreateCancel(requestParameters: CloudArchiveApiArchiveCreateCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveCreateCancelResponseBaseModel> {
+            return localVarFp.archiveCreateCancel(requestParameters.cloudArchiveCreateCancelRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
+         * @summary Start archive creation
+         * @param {CloudArchiveApiArchiveCreateStartRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveCreateStart(requestParameters: CloudArchiveApiArchiveCreateStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveCreateStartResponseBaseModel> {
+            return localVarFp.archiveCreateStart(requestParameters.cloudArchiveCreateStartRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns the current status/progress of an archive creation job.
+         * @summary Get archive creation status
+         * @param {CloudArchiveApiArchiveCreateStatusRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveCreateStatus(requestParameters: CloudArchiveApiArchiveCreateStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveCreateStatusResponseBaseModel> {
+            return localVarFp.archiveCreateStatus(requestParameters.jobId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Cancels an archive extraction job if it is pending or running.
+         * @summary Cancel archive extraction
+         * @param {CloudArchiveApiArchiveExtractCancelRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveExtractCancel(requestParameters: CloudArchiveApiArchiveExtractCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveExtractCancelResponseBaseModel> {
+            return localVarFp.archiveExtractCancel(requestParameters.cloudArchiveExtractCancelRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
+         * @summary Start archive extraction
+         * @param {CloudArchiveApiArchiveExtractStartRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveExtractStart(requestParameters: CloudArchiveApiArchiveExtractStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveExtractStartResponseBaseModel> {
+            return localVarFp.archiveExtractStart(requestParameters.cloudArchiveExtractStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns the current status/progress of an archive extraction job.
+         * @summary Get archive extraction status
+         * @param {CloudArchiveApiArchiveExtractStatusRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archiveExtractStatus(requestParameters: CloudArchiveApiArchiveExtractStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveExtractStatusResponseBaseModel> {
+            return localVarFp.archiveExtractStatus(requestParameters.jobId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Lists entries of an archive file without extracting. Supports .zip, .tar, .tar.gz, and .rar.
+         * @summary Preview archive contents
+         * @param {CloudArchiveApiArchivePreviewRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        archivePreview(requestParameters: CloudArchiveApiArchivePreviewRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchivePreviewResponseBaseModel> {
+            return localVarFp.archivePreview(requestParameters.key, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for archiveCreateCancel operation in CloudArchiveApi.
+ */
+export interface CloudArchiveApiArchiveCreateCancelRequest {
+    readonly cloudArchiveCreateCancelRequestModel: CloudArchiveCreateCancelRequestModel
+}
+
+/**
+ * Request parameters for archiveCreateStart operation in CloudArchiveApi.
+ */
+export interface CloudArchiveApiArchiveCreateStartRequest {
+    readonly cloudArchiveCreateStartRequestModel: CloudArchiveCreateStartRequestModel
+}
+
+/**
+ * Request parameters for archiveCreateStatus operation in CloudArchiveApi.
+ */
+export interface CloudArchiveApiArchiveCreateStatusRequest {
+    readonly jobId: string
+}
+
+/**
+ * Request parameters for archiveExtractCancel operation in CloudArchiveApi.
+ */
+export interface CloudArchiveApiArchiveExtractCancelRequest {
+    readonly cloudArchiveExtractCancelRequestModel: CloudArchiveExtractCancelRequestModel
+}
+
+/**
+ * Request parameters for archiveExtractStart operation in CloudArchiveApi.
+ */
+export interface CloudArchiveApiArchiveExtractStartRequest {
+    readonly cloudArchiveExtractStartRequestModel: CloudArchiveExtractStartRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for archiveExtractStatus operation in CloudArchiveApi.
+ */
+export interface CloudArchiveApiArchiveExtractStatusRequest {
+    readonly jobId: string
+}
+
+/**
+ * Request parameters for archivePreview operation in CloudArchiveApi.
+ */
+export interface CloudArchiveApiArchivePreviewRequest {
+    /**
+     * Key of the archive file to preview
+     */
+    readonly key: string
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * CloudArchiveApi - object-oriented interface
+ */
+export class CloudArchiveApi extends BaseAPI {
+    /**
+     * Cancels an archive creation job if it is pending or running.
+     * @summary Cancel archive creation
+     * @param {CloudArchiveApiArchiveCreateCancelRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public archiveCreateCancel(requestParameters: CloudArchiveApiArchiveCreateCancelRequest, options?: RawAxiosRequestConfig) {
+        return CloudArchiveApiFp(this.configuration).archiveCreateCancel(requestParameters.cloudArchiveCreateCancelRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
+     * @summary Start archive creation
+     * @param {CloudArchiveApiArchiveCreateStartRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public archiveCreateStart(requestParameters: CloudArchiveApiArchiveCreateStartRequest, options?: RawAxiosRequestConfig) {
+        return CloudArchiveApiFp(this.configuration).archiveCreateStart(requestParameters.cloudArchiveCreateStartRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns the current status/progress of an archive creation job.
+     * @summary Get archive creation status
+     * @param {CloudArchiveApiArchiveCreateStatusRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public archiveCreateStatus(requestParameters: CloudArchiveApiArchiveCreateStatusRequest, options?: RawAxiosRequestConfig) {
+        return CloudArchiveApiFp(this.configuration).archiveCreateStatus(requestParameters.jobId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Cancels an archive extraction job if it is pending or running.
+     * @summary Cancel archive extraction
+     * @param {CloudArchiveApiArchiveExtractCancelRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public archiveExtractCancel(requestParameters: CloudArchiveApiArchiveExtractCancelRequest, options?: RawAxiosRequestConfig) {
+        return CloudArchiveApiFp(this.configuration).archiveExtractCancel(requestParameters.cloudArchiveExtractCancelRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
+     * @summary Start archive extraction
+     * @param {CloudArchiveApiArchiveExtractStartRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public archiveExtractStart(requestParameters: CloudArchiveApiArchiveExtractStartRequest, options?: RawAxiosRequestConfig) {
+        return CloudArchiveApiFp(this.configuration).archiveExtractStart(requestParameters.cloudArchiveExtractStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns the current status/progress of an archive extraction job.
+     * @summary Get archive extraction status
+     * @param {CloudArchiveApiArchiveExtractStatusRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public archiveExtractStatus(requestParameters: CloudArchiveApiArchiveExtractStatusRequest, options?: RawAxiosRequestConfig) {
+        return CloudArchiveApiFp(this.configuration).archiveExtractStatus(requestParameters.jobId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Lists entries of an archive file without extracting. Supports .zip, .tar, .tar.gz, and .rar.
+     * @summary Preview archive contents
+     * @param {CloudArchiveApiArchivePreviewRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public archivePreview(requestParameters: CloudArchiveApiArchivePreviewRequest, options?: RawAxiosRequestConfig) {
+        return CloudArchiveApiFp(this.configuration).archivePreview(requestParameters.key, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * CloudDirectoriesApi - axios parameter creator
+ */
+export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Convert a directory to encrypted
+         * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
+         * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryConvertToEncrypted: async (xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryConvertToEncrypted', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryConvertToEncryptedRequestModel' is not null or undefined
+            assertParamExists('directoryConvertToEncrypted', 'directoryConvertToEncryptedRequestModel', directoryConvertToEncryptedRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Encrypt`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryConvertToEncryptedRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
+         * @summary Create a directory
+         * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryCreate: async (directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryCreateRequestModel' is not null or undefined
+            assertParamExists('directoryCreate', 'directoryCreateRequestModel', directoryCreateRequestModel)
+            const localVarPath = `/Api/Cloud/Directories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryCreateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
+         * @summary Remove encryption from a directory
+         * @param {string} xFolderPassphrase Passphrase for decryption
+         * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryDecrypt: async (xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryDecrypt', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryDecryptRequestModel' is not null or undefined
+            assertParamExists('directoryDecrypt', 'directoryDecryptRequestModel', directoryDecryptRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Decrypt`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryDecryptRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Delete a directory
+         * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryDelete: async (directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryDeleteRequestModel' is not null or undefined
+            assertParamExists('directoryDelete', 'directoryDeleteRequestModel', directoryDeleteRequestModel)
+            const localVarPath = `/Api/Cloud/Directories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryDeleteRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Invalidates the session token for an encrypted directory.
+         * @summary Lock an encrypted directory
+         * @param {DirectoryLockRequestModel} directoryLockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryLock: async (directoryLockRequestModel: DirectoryLockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryLockRequestModel' is not null or undefined
+            assertParamExists('directoryLock', 'directoryLockRequestModel', directoryLockRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Lock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryLockRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Rename a directory
+         * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryRename: async (directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'directoryRenameRequestModel' is not null or undefined
+            assertParamExists('directoryRename', 'directoryRenameRequestModel', directoryRenameRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Rename`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryRenameRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
+         * @summary Unlock an encrypted directory
+         * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
+         * @param {DirectoryUnlockRequestModel} directoryUnlockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryUnlock: async (xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xFolderPassphrase' is not null or undefined
+            assertParamExists('directoryUnlock', 'xFolderPassphrase', xFolderPassphrase)
+            // verify required parameter 'directoryUnlockRequestModel' is not null or undefined
+            assertParamExists('directoryUnlock', 'directoryUnlockRequestModel', directoryUnlockRequestModel)
+            const localVarPath = `/Api/Cloud/Directories/Unlock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderPassphrase != null) {
+                localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryUnlockRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CloudDirectoriesApi - functional programming interface
+ */
+export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CloudDirectoriesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Convert a directory to encrypted
+         * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
+         * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryConvertToEncrypted(xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConvertToEncrypted(xFolderPassphrase, directoryConvertToEncryptedRequestModel, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryConvertToEncrypted']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
+         * @summary Create a directory
+         * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryCreate(directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryCreate(directoryCreateRequestModel, xFolderPassphrase, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryCreate']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
+         * @summary Remove encryption from a directory
+         * @param {string} xFolderPassphrase Passphrase for decryption
+         * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryDecrypt(xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDecrypt(xFolderPassphrase, directoryDecryptRequestModel, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryDecrypt']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Delete a directory
+         * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryDelete(directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDelete(directoryDeleteRequestModel, xFolderPassphrase, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Invalidates the session token for an encrypted directory.
+         * @summary Lock an encrypted directory
+         * @param {DirectoryLockRequestModel} directoryLockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryLock(directoryLockRequestModel: DirectoryLockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryLock(directoryLockRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryLock']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Rename a directory
+         * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
+         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryRename(directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryRename(directoryRenameRequestModel, xFolderPassphrase, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryRename']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
+         * @summary Unlock an encrypted directory
+         * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
+         * @param {DirectoryUnlockRequestModel} directoryUnlockRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async directoryUnlock(xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryUnlockResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryUnlock(xFolderPassphrase, directoryUnlockRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryUnlock']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * CloudDirectoriesApi - factory interface
+ */
+export const CloudDirectoriesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CloudDirectoriesApiFp(configuration)
+    return {
+        /**
+         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
+         * @summary Convert a directory to encrypted
+         * @param {CloudDirectoriesApiDirectoryConvertToEncryptedRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryConvertToEncrypted(requestParameters: CloudDirectoriesApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
+         * @summary Create a directory
+         * @param {CloudDirectoriesApiDirectoryCreateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryCreate(requestParameters: CloudDirectoriesApiDirectoryCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
+         * @summary Remove encryption from a directory
+         * @param {CloudDirectoriesApiDirectoryDecryptRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryDecrypt(requestParameters: CloudDirectoriesApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Delete a directory
+         * @param {CloudDirectoriesApiDirectoryDeleteRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryDelete(requestParameters: CloudDirectoriesApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Invalidates the session token for an encrypted directory.
+         * @summary Lock an encrypted directory
+         * @param {CloudDirectoriesApiDirectoryLockRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryLock(requestParameters: CloudDirectoriesApiDirectoryLockRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.directoryLock(requestParameters.directoryLockRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+         * @summary Rename a directory
+         * @param {CloudDirectoriesApiDirectoryRenameRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryRename(requestParameters: CloudDirectoriesApiDirectoryRenameRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
+            return localVarFp.directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
+         * @summary Unlock an encrypted directory
+         * @param {CloudDirectoriesApiDirectoryUnlockRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        directoryUnlock(requestParameters: CloudDirectoriesApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryUnlockResponseBaseModel> {
+            return localVarFp.directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for directoryConvertToEncrypted operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryConvertToEncryptedRequest {
+    /**
+     * Passphrase for encryption (min 8 chars)
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for directoryCreate operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryCreateRequest {
+    readonly directoryCreateRequestModel: DirectoryCreateRequestModel
+
+    /**
+     * Passphrase for encrypted directory (min 8 chars)
+     */
+    readonly xFolderPassphrase?: string
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for directoryDecrypt operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryDecryptRequest {
+    /**
+     * Passphrase for decryption
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryDecryptRequestModel: DirectoryDecryptRequestModel
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for directoryDelete operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryDeleteRequest {
+    readonly directoryDeleteRequestModel: DirectoryDeleteRequestModel
+
+    /**
+     * Passphrase for encrypted directory
+     */
+    readonly xFolderPassphrase?: string
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for directoryLock operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryLockRequest {
+    readonly directoryLockRequestModel: DirectoryLockRequestModel
+}
+
+/**
+ * Request parameters for directoryRename operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryRenameRequest {
+    readonly directoryRenameRequestModel: DirectoryRenameRequestModel
+
+    /**
+     * Passphrase for encrypted directory
+     */
+    readonly xFolderPassphrase?: string
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for directoryUnlock operation in CloudDirectoriesApi.
+ */
+export interface CloudDirectoriesApiDirectoryUnlockRequest {
+    /**
+     * Passphrase for encrypted directory (min 8 chars)
+     */
+    readonly xFolderPassphrase: string
+
+    readonly directoryUnlockRequestModel: DirectoryUnlockRequestModel
+}
+
+/**
+ * CloudDirectoriesApi - object-oriented interface
+ */
+export class CloudDirectoriesApi extends BaseAPI {
+    /**
+     * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
+     * @summary Convert a directory to encrypted
+     * @param {CloudDirectoriesApiDirectoryConvertToEncryptedRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryConvertToEncrypted(requestParameters: CloudDirectoriesApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
+     * @summary Create a directory
+     * @param {CloudDirectoriesApiDirectoryCreateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryCreate(requestParameters: CloudDirectoriesApiDirectoryCreateRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
+     * @summary Remove encryption from a directory
+     * @param {CloudDirectoriesApiDirectoryDecryptRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryDecrypt(requestParameters: CloudDirectoriesApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+     * @summary Delete a directory
+     * @param {CloudDirectoriesApiDirectoryDeleteRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryDelete(requestParameters: CloudDirectoriesApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Invalidates the session token for an encrypted directory.
+     * @summary Lock an encrypted directory
+     * @param {CloudDirectoriesApiDirectoryLockRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryLock(requestParameters: CloudDirectoriesApiDirectoryLockRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryLock(requestParameters.directoryLockRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
+     * @summary Rename a directory
+     * @param {CloudDirectoriesApiDirectoryRenameRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryRename(requestParameters: CloudDirectoriesApiDirectoryRenameRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
+     * @summary Unlock an encrypted directory
+     * @param {CloudDirectoriesApiDirectoryUnlockRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public directoryUnlock(requestParameters: CloudDirectoriesApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig) {
+        return CloudDirectoriesApiFp(this.configuration).directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * CloudUploadApi - axios parameter creator
+ */
+export const CloudUploadApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Cancels a zip extraction job if it is pending or running. Use Archive/Extract/Cancel instead.
+         * @summary Cancel zip extraction (deprecated)
+         * @param {CloudExtractZipCancelRequestModel} cloudExtractZipCancelRequestModel 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        extractZipCancel: async (cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudExtractZipCancelRequestModel' is not null or undefined
+            assertParamExists('extractZipCancel', 'cloudExtractZipCancelRequestModel', cloudExtractZipCancelRequestModel)
+            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Cancel`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudExtractZipCancelRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Starts an async job to extract a previously uploaded .zip file. Use Archive/Extract/Start instead.
+         * @summary Start zip extraction (deprecated)
+         * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        extractZipStart: async (cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudExtractZipStartRequestModel' is not null or undefined
+            assertParamExists('extractZipStart', 'cloudExtractZipStartRequestModel', cloudExtractZipStartRequestModel)
+            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudExtractZipStartRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns the current status/progress of a zip extraction job. Use Archive/Extract/Status instead.
+         * @summary Get zip extraction status (deprecated)
+         * @param {string} jobId 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        extractZipStatus: async (jobId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'jobId' is not null or undefined
+            assertParamExists('extractZipStatus', 'jobId', jobId)
+            const localVarPath = `/Api/Cloud/Upload/ExtractZip/Status`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (jobId !== undefined) {
+                localVarQueryParameter['JobId'] = jobId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Abort an ongoing multipart upload and clean up temporary state.
          * @summary Abort a multipart upload
          * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
@@ -4540,374 +6470,56 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
                 options: localVarRequestOptions,
             };
         },
-        /**
-         * Returns the authenticated user storage usage and limits.
-         * @summary Get user\'s storage usage
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        userStorageUsage: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/Api/Cloud/User/StorageUsage`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
     }
 };
 
 /**
- * CloudApi - functional programming interface
+ * CloudUploadApi - functional programming interface
  */
-export const CloudApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = CloudApiAxiosParamCreator(configuration)
+export const CloudUploadApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CloudUploadApiAxiosParamCreator(configuration)
     return {
         /**
-         * Deletes one or more objects (or directories) belonging to the authenticated user.
-         * @summary Delete objects
-         * @param {string} idempotencyKey 
-         * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async _delete(idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator._delete(idempotencyKey, cloudDeleteRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi._delete']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
-         * @summary Convert a directory to encrypted
-         * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
-         * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async directoryConvertToEncrypted(xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConvertToEncrypted(xFolderPassphrase, directoryConvertToEncryptedRequestModel, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryConvertToEncrypted']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
-         * @summary Create a directory
-         * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
-         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async directoryCreate(directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryCreate(directoryCreateRequestModel, xFolderPassphrase, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryCreate']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
-         * @summary Remove encryption from a directory
-         * @param {string} xFolderPassphrase Passphrase for decryption
-         * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async directoryDecrypt(xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDecrypt(xFolderPassphrase, directoryDecryptRequestModel, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryDecrypt']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
-         * @summary Delete a directory
-         * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
-         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async directoryDelete(directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDelete(directoryDeleteRequestModel, xFolderPassphrase, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryDelete']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Invalidates the session token for an encrypted directory.
-         * @summary Lock an encrypted directory
-         * @param {DirectoryLockRequestModel} directoryLockRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async directoryLock(directoryLockRequestModel: DirectoryLockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryLock(directoryLockRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryLock']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
-         * @summary Rename a directory
-         * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
-         * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async directoryRename(directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryRename(directoryRenameRequestModel, xFolderPassphrase, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryRename']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
-         * @summary Unlock an encrypted directory
-         * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
-         * @param {DirectoryUnlockRequestModel} directoryUnlockRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async directoryUnlock(xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryUnlockResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryUnlock(xFolderPassphrase, directoryUnlockRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.directoryUnlock']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
-         * @summary Download a file for the authenticated user (streamed)
-         * @param {string} key Path/key to the file (user-scoped)
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async download(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.download(key, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.download']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Cancels a zip extraction job if it is pending or running.
-         * @summary Cancel zip extraction
+         * Cancels a zip extraction job if it is pending or running. Use Archive/Extract/Cancel instead.
+         * @summary Cancel zip extraction (deprecated)
          * @param {CloudExtractZipCancelRequestModel} cloudExtractZipCancelRequestModel 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async extractZipCancel(cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipCancelResponseBaseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipCancel(cloudExtractZipCancelRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.extractZipCancel']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.extractZipCancel']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Starts an async job to extract a previously uploaded .zip file.
-         * @summary Start zip extraction
+         * Starts an async job to extract a previously uploaded .zip file. Use Archive/Extract/Start instead.
+         * @summary Start zip extraction (deprecated)
          * @param {CloudExtractZipStartRequestModel} cloudExtractZipStartRequestModel 
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async extractZipStart(cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipStartResponseBaseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipStart(cloudExtractZipStartRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.extractZipStart']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.extractZipStart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Returns the current status/progress of a zip extraction job.
-         * @summary Get zip extraction status
+         * Returns the current status/progress of a zip extraction job. Use Archive/Extract/Status instead.
+         * @summary Get zip extraction status (deprecated)
          * @param {string} jobId 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async extractZipStatus(jobId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudExtractZipStatusResponseBaseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.extractZipStatus(jobId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.extractZipStatus']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Find a single object by key (user scoped) and return its metadata.
-         * @summary Get object metadata
-         * @param {string} key 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async find(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.find(key, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.find']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns a presigned URL for a specific object key to allow direct client access.
-         * @summary Get a presigned URL for upload/download
-         * @param {string} key 
-         * @param {number} [expiresInSeconds] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getPresignedUrl(key: string, expiresInSeconds?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StringResponseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getPresignedUrl(key, expiresInSeconds, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.getPresignedUrl']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
-         * @summary List files and directories
-         * @param {string} [search] 
-         * @param {number} [skip] 
-         * @param {number} [take] 
-         * @param {string} [path] 
-         * @param {boolean} [delimiter] 
-         * @param {boolean} [isMetadataProcessing] 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async list(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.list']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns breadcrumb entries (path pieces) for the supplied path.
-         * @summary Get breadcrumb for a path
-         * @param {string} [search] 
-         * @param {number} [skip] 
-         * @param {number} [take] 
-         * @param {string} [path] 
-         * @param {boolean} [delimiter] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listBreadcrumb(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudBreadCrumbListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listBreadcrumb(search, skip, take, path, delimiter, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.listBreadcrumb']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
-         * @summary List directories inside a path
-         * @param {string} [search] 
-         * @param {number} [skip] 
-         * @param {number} [take] 
-         * @param {string} [path] 
-         * @param {boolean} [delimiter] 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listDirectories(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(search, skip, take, path, delimiter, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.listDirectories']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
-         * @summary List objects (files) inside a path
-         * @param {string} [search] 
-         * @param {number} [skip] 
-         * @param {number} [take] 
-         * @param {string} [path] 
-         * @param {boolean} [delimiter] 
-         * @param {boolean} [isMetadataProcessing] 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listObjects(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.listObjects']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Move an object from SourceKey to DestinationKey within the user scope.
-         * @summary Move/rename an object
-         * @param {string} idempotencyKey 
-         * @param {CloudMoveRequestModel} cloudMoveRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async move(idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.move(idempotencyKey, cloudMoveRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns the latest antivirus scan status for the given object key.
-         * @summary Get antivirus scan status for a file
-         * @param {string} key 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async scanStatus(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudScanStatusResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.scanStatus(key, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.scanStatus']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
-         * @summary Search files by name
-         * @param {string} query Search query - partial filename match (case-insensitive, min 2 chars)
-         * @param {string} [search] 
-         * @param {number} [skip] 
-         * @param {number} [take] 
-         * @param {string} [path] Restrict search to a specific directory path
-         * @param {string} [extension] Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
-         * @param {boolean} [isMetadataProcessing] 
-         * @param {string} [xFolderSession] Session token for encrypted folder access
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async search(query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudSearchResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.search(query, search, skip, take, path, extension, isMetadataProcessing, xFolderSession, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.search']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Update an existing object by changing metadata or renaming the file (name only).
-         * @summary Update object metadata or rename
-         * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async update(cloudUpdateRequestModel: CloudUpdateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.update(cloudUpdateRequestModel, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.update']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.extractZipStatus']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -4920,7 +6532,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         async uploadAbortMultipartUpload(cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadAbortMultipartUpload(cloudAbortMultipartUploadRequestModel, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadAbortMultipartUpload']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadAbortMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -4935,7 +6547,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         async uploadCompleteMultipartUpload(idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCompleteMultipartUpload(idempotencyKey, cloudCompleteMultipartUploadRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadCompleteMultipartUpload']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadCompleteMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -4949,7 +6561,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         async uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCreateMultipartUploadResponseBaseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadCreateMultipartUpload']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadCreateMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -4963,7 +6575,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         async uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadGetMultipartPartUrl']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadGetMultipartPartUrl']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -4981,446 +6593,115 @@ export const CloudApiFp = function(configuration?: Configuration) {
         async uploadPart(contentMd5: string, key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(contentMd5, key, uploadId, partNumber, file, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.uploadPart']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns the authenticated user storage usage and limits.
-         * @summary Get user\'s storage usage
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async userStorageUsage(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUserStorageUsageResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.userStorageUsage(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.userStorageUsage']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadPart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
- * CloudApi - factory interface
+ * CloudUploadApi - factory interface
  */
-export const CloudApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = CloudApiFp(configuration)
+export const CloudUploadApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CloudUploadApiFp(configuration)
     return {
         /**
-         * Deletes one or more objects (or directories) belonging to the authenticated user.
-         * @summary Delete objects
-         * @param {CloudApiDeleteRequest} requestParameters Request parameters.
+         * Cancels a zip extraction job if it is pending or running. Use Archive/Extract/Cancel instead.
+         * @summary Cancel zip extraction (deprecated)
+         * @param {CloudUploadApiExtractZipCancelRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
-        _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
-         * @summary Convert a directory to encrypted
-         * @param {CloudApiDirectoryConvertToEncryptedRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryConvertToEncrypted(requestParameters: CloudApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
-         * @summary Create a directory
-         * @param {CloudApiDirectoryCreateRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryCreate(requestParameters: CloudApiDirectoryCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
-         * @summary Remove encryption from a directory
-         * @param {CloudApiDirectoryDecryptRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryDecrypt(requestParameters: CloudApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
-         * @summary Delete a directory
-         * @param {CloudApiDirectoryDeleteRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryDelete(requestParameters: CloudApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Invalidates the session token for an encrypted directory.
-         * @summary Lock an encrypted directory
-         * @param {CloudApiDirectoryLockRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryLock(requestParameters: CloudApiDirectoryLockRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.directoryLock(requestParameters.directoryLockRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
-         * @summary Rename a directory
-         * @param {CloudApiDirectoryRenameRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryRename(requestParameters: CloudApiDirectoryRenameRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
-         * @summary Unlock an encrypted directory
-         * @param {CloudApiDirectoryUnlockRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        directoryUnlock(requestParameters: CloudApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryUnlockResponseBaseModel> {
-            return localVarFp.directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
-         * @summary Download a file for the authenticated user (streamed)
-         * @param {CloudApiDownloadRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        download(requestParameters: CloudApiDownloadRequest, options?: RawAxiosRequestConfig): AxiosPromise<File> {
-            return localVarFp.download(requestParameters.key, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Cancels a zip extraction job if it is pending or running.
-         * @summary Cancel zip extraction
-         * @param {CloudApiExtractZipCancelRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        extractZipCancel(requestParameters: CloudApiExtractZipCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipCancelResponseBaseModel> {
+        extractZipCancel(requestParameters: CloudUploadApiExtractZipCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipCancelResponseBaseModel> {
             return localVarFp.extractZipCancel(requestParameters.cloudExtractZipCancelRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
-         * Starts an async job to extract a previously uploaded .zip file.
-         * @summary Start zip extraction
-         * @param {CloudApiExtractZipStartRequest} requestParameters Request parameters.
+         * Starts an async job to extract a previously uploaded .zip file. Use Archive/Extract/Start instead.
+         * @summary Start zip extraction (deprecated)
+         * @param {CloudUploadApiExtractZipStartRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
-        extractZipStart(requestParameters: CloudApiExtractZipStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStartResponseBaseModel> {
+        extractZipStart(requestParameters: CloudUploadApiExtractZipStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStartResponseBaseModel> {
             return localVarFp.extractZipStart(requestParameters.cloudExtractZipStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
-         * Returns the current status/progress of a zip extraction job.
-         * @summary Get zip extraction status
-         * @param {CloudApiExtractZipStatusRequest} requestParameters Request parameters.
+         * Returns the current status/progress of a zip extraction job. Use Archive/Extract/Status instead.
+         * @summary Get zip extraction status (deprecated)
+         * @param {CloudUploadApiExtractZipStatusRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
-        extractZipStatus(requestParameters: CloudApiExtractZipStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStatusResponseBaseModel> {
+        extractZipStatus(requestParameters: CloudUploadApiExtractZipStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudExtractZipStatusResponseBaseModel> {
             return localVarFp.extractZipStatus(requestParameters.jobId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Find a single object by key (user scoped) and return its metadata.
-         * @summary Get object metadata
-         * @param {CloudApiFindRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        find(requestParameters: CloudApiFindRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.find(requestParameters.key, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns a presigned URL for a specific object key to allow direct client access.
-         * @summary Get a presigned URL for upload/download
-         * @param {CloudApiGetPresignedUrlRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<StringResponseModel> {
-            return localVarFp.getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
-         * @summary List files and directories
-         * @param {CloudApiListRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudListResponseBaseModel> {
-            return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns breadcrumb entries (path pieces) for the supplied path.
-         * @summary Get breadcrumb for a path
-         * @param {CloudApiListBreadcrumbRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listBreadcrumb(requestParameters: CloudApiListBreadcrumbRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudBreadCrumbListBaseModel> {
-            return localVarFp.listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
-         * @summary List directories inside a path
-         * @param {CloudApiListDirectoriesRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudDirectoryListBaseModel> {
-            return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
-         * @summary List objects (files) inside a path
-         * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectListBaseModel> {
-            return localVarFp.listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Move an object from SourceKey to DestinationKey within the user scope.
-         * @summary Move/rename an object
-         * @param {CloudApiMoveRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns the latest antivirus scan status for the given object key.
-         * @summary Get antivirus scan status for a file
-         * @param {CloudApiScanStatusRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudScanStatusResponseBaseModel> {
-            return localVarFp.scanStatus(requestParameters.key, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
-         * @summary Search files by name
-         * @param {CloudApiSearchRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudSearchResponseBaseModel> {
-            return localVarFp.search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Update an existing object by changing metadata or renaming the file (name only).
-         * @summary Update object metadata or rename
-         * @param {CloudApiUpdateRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        update(requestParameters: CloudApiUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectBaseModel> {
-            return localVarFp.update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * Abort an ongoing multipart upload and clean up temporary state.
          * @summary Abort a multipart upload
-         * @param {CloudApiUploadAbortMultipartUploadRequest} requestParameters Request parameters.
+         * @param {CloudUploadApiUploadAbortMultipartUploadRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadAbortMultipartUpload(requestParameters: CloudApiUploadAbortMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        uploadAbortMultipartUpload(requestParameters: CloudUploadApiUploadAbortMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.uploadAbortMultipartUpload(requestParameters.cloudAbortMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
         },
         /**
          * Completes a multipart upload by providing the list of parts and finalizes the object.
          * @summary Complete multipart upload
-         * @param {CloudApiUploadCompleteMultipartUploadRequest} requestParameters Request parameters.
+         * @param {CloudUploadApiUploadCompleteMultipartUploadRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCompleteMultipartUpload(requestParameters: CloudApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel> {
+        uploadCompleteMultipartUpload(requestParameters: CloudUploadApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel> {
             return localVarFp.uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates an UploadId and starts a multipart upload flow.
          * @summary Create a multipart upload session
-         * @param {CloudApiUploadCreateMultipartUploadRequest} requestParameters Request parameters.
+         * @param {CloudUploadApiUploadCreateMultipartUploadRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCreateMultipartUpload(requestParameters: CloudApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCreateMultipartUploadResponseBaseModel> {
+        uploadCreateMultipartUpload(requestParameters: CloudUploadApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCreateMultipartUploadResponseBaseModel> {
             return localVarFp.uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
          * @summary Get a multipart upload part URL
-         * @param {CloudApiUploadGetMultipartPartUrlRequest} requestParameters Request parameters.
+         * @param {CloudUploadApiUploadGetMultipartPartUrlRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadGetMultipartPartUrl(requestParameters: CloudApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel> {
+        uploadGetMultipartPartUrl(requestParameters: CloudUploadApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel> {
             return localVarFp.uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
          * @summary Upload a multipart part
-         * @param {CloudApiUploadPartRequest} requestParameters Request parameters.
+         * @param {CloudUploadApiUploadPartRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadPart(requestParameters: CloudApiUploadPartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseBaseModel> {
+        uploadPart(requestParameters: CloudUploadApiUploadPartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseBaseModel> {
             return localVarFp.uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns the authenticated user storage usage and limits.
-         * @summary Get user\'s storage usage
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        userStorageUsage(options?: RawAxiosRequestConfig): AxiosPromise<CloudUserStorageUsageResponseBaseModel> {
-            return localVarFp.userStorageUsage(options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
- * Request parameters for _delete operation in CloudApi.
+ * Request parameters for extractZipCancel operation in CloudUploadApi.
  */
-export interface CloudApiDeleteRequest {
-    readonly idempotencyKey: string
-
-    readonly cloudDeleteRequestModel: CloudDeleteRequestModel
-}
-
-/**
- * Request parameters for directoryConvertToEncrypted operation in CloudApi.
- */
-export interface CloudApiDirectoryConvertToEncryptedRequest {
-    /**
-     * Passphrase for encryption (min 8 chars)
-     */
-    readonly xFolderPassphrase: string
-
-    readonly directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for directoryCreate operation in CloudApi.
- */
-export interface CloudApiDirectoryCreateRequest {
-    readonly directoryCreateRequestModel: DirectoryCreateRequestModel
-
-    /**
-     * Passphrase for encrypted directory (min 8 chars)
-     */
-    readonly xFolderPassphrase?: string
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for directoryDecrypt operation in CloudApi.
- */
-export interface CloudApiDirectoryDecryptRequest {
-    /**
-     * Passphrase for decryption
-     */
-    readonly xFolderPassphrase: string
-
-    readonly directoryDecryptRequestModel: DirectoryDecryptRequestModel
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for directoryDelete operation in CloudApi.
- */
-export interface CloudApiDirectoryDeleteRequest {
-    readonly directoryDeleteRequestModel: DirectoryDeleteRequestModel
-
-    /**
-     * Passphrase for encrypted directory
-     */
-    readonly xFolderPassphrase?: string
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for directoryLock operation in CloudApi.
- */
-export interface CloudApiDirectoryLockRequest {
-    readonly directoryLockRequestModel: DirectoryLockRequestModel
-}
-
-/**
- * Request parameters for directoryRename operation in CloudApi.
- */
-export interface CloudApiDirectoryRenameRequest {
-    readonly directoryRenameRequestModel: DirectoryRenameRequestModel
-
-    /**
-     * Passphrase for encrypted directory
-     */
-    readonly xFolderPassphrase?: string
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for directoryUnlock operation in CloudApi.
- */
-export interface CloudApiDirectoryUnlockRequest {
-    /**
-     * Passphrase for encrypted directory (min 8 chars)
-     */
-    readonly xFolderPassphrase: string
-
-    readonly directoryUnlockRequestModel: DirectoryUnlockRequestModel
-}
-
-/**
- * Request parameters for download operation in CloudApi.
- */
-export interface CloudApiDownloadRequest {
-    /**
-     * Path/key to the file (user-scoped)
-     */
-    readonly key: string
-}
-
-/**
- * Request parameters for extractZipCancel operation in CloudApi.
- */
-export interface CloudApiExtractZipCancelRequest {
+export interface CloudUploadApiExtractZipCancelRequest {
     readonly cloudExtractZipCancelRequestModel: CloudExtractZipCancelRequestModel
 }
 
 /**
- * Request parameters for extractZipStart operation in CloudApi.
+ * Request parameters for extractZipStart operation in CloudUploadApi.
  */
-export interface CloudApiExtractZipStartRequest {
+export interface CloudUploadApiExtractZipStartRequest {
     readonly cloudExtractZipStartRequestModel: CloudExtractZipStartRequestModel
 
     /**
@@ -5430,174 +6711,23 @@ export interface CloudApiExtractZipStartRequest {
 }
 
 /**
- * Request parameters for extractZipStatus operation in CloudApi.
+ * Request parameters for extractZipStatus operation in CloudUploadApi.
  */
-export interface CloudApiExtractZipStatusRequest {
+export interface CloudUploadApiExtractZipStatusRequest {
     readonly jobId: string
 }
 
 /**
- * Request parameters for find operation in CloudApi.
+ * Request parameters for uploadAbortMultipartUpload operation in CloudUploadApi.
  */
-export interface CloudApiFindRequest {
-    readonly key: string
-}
-
-/**
- * Request parameters for getPresignedUrl operation in CloudApi.
- */
-export interface CloudApiGetPresignedUrlRequest {
-    readonly key: string
-
-    readonly expiresInSeconds?: number
-}
-
-/**
- * Request parameters for list operation in CloudApi.
- */
-export interface CloudApiListRequest {
-    readonly search?: string
-
-    readonly skip?: number
-
-    readonly take?: number
-
-    readonly path?: string
-
-    readonly delimiter?: boolean
-
-    readonly isMetadataProcessing?: boolean
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for listBreadcrumb operation in CloudApi.
- */
-export interface CloudApiListBreadcrumbRequest {
-    readonly search?: string
-
-    readonly skip?: number
-
-    readonly take?: number
-
-    readonly path?: string
-
-    readonly delimiter?: boolean
-}
-
-/**
- * Request parameters for listDirectories operation in CloudApi.
- */
-export interface CloudApiListDirectoriesRequest {
-    readonly search?: string
-
-    readonly skip?: number
-
-    readonly take?: number
-
-    readonly path?: string
-
-    readonly delimiter?: boolean
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for listObjects operation in CloudApi.
- */
-export interface CloudApiListObjectsRequest {
-    readonly search?: string
-
-    readonly skip?: number
-
-    readonly take?: number
-
-    readonly path?: string
-
-    readonly delimiter?: boolean
-
-    readonly isMetadataProcessing?: boolean
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for move operation in CloudApi.
- */
-export interface CloudApiMoveRequest {
-    readonly idempotencyKey: string
-
-    readonly cloudMoveRequestModel: CloudMoveRequestModel
-}
-
-/**
- * Request parameters for scanStatus operation in CloudApi.
- */
-export interface CloudApiScanStatusRequest {
-    readonly key: string
-}
-
-/**
- * Request parameters for search operation in CloudApi.
- */
-export interface CloudApiSearchRequest {
-    /**
-     * Search query - partial filename match (case-insensitive, min 2 chars)
-     */
-    readonly query: string
-
-    readonly search?: string
-
-    readonly skip?: number
-
-    readonly take?: number
-
-    /**
-     * Restrict search to a specific directory path
-     */
-    readonly path?: string
-
-    /**
-     * Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
-     */
-    readonly extension?: string
-
-    readonly isMetadataProcessing?: boolean
-
-    /**
-     * Session token for encrypted folder access
-     */
-    readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for update operation in CloudApi.
- */
-export interface CloudApiUpdateRequest {
-    readonly cloudUpdateRequestModel: CloudUpdateRequestModel
-}
-
-/**
- * Request parameters for uploadAbortMultipartUpload operation in CloudApi.
- */
-export interface CloudApiUploadAbortMultipartUploadRequest {
+export interface CloudUploadApiUploadAbortMultipartUploadRequest {
     readonly cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel
 }
 
 /**
- * Request parameters for uploadCompleteMultipartUpload operation in CloudApi.
+ * Request parameters for uploadCompleteMultipartUpload operation in CloudUploadApi.
  */
-export interface CloudApiUploadCompleteMultipartUploadRequest {
+export interface CloudUploadApiUploadCompleteMultipartUploadRequest {
     readonly idempotencyKey: string
 
     readonly cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel
@@ -5609,9 +6739,9 @@ export interface CloudApiUploadCompleteMultipartUploadRequest {
 }
 
 /**
- * Request parameters for uploadCreateMultipartUpload operation in CloudApi.
+ * Request parameters for uploadCreateMultipartUpload operation in CloudUploadApi.
  */
-export interface CloudApiUploadCreateMultipartUploadRequest {
+export interface CloudUploadApiUploadCreateMultipartUploadRequest {
     readonly cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel
 
     /**
@@ -5621,9 +6751,9 @@ export interface CloudApiUploadCreateMultipartUploadRequest {
 }
 
 /**
- * Request parameters for uploadGetMultipartPartUrl operation in CloudApi.
+ * Request parameters for uploadGetMultipartPartUrl operation in CloudUploadApi.
  */
-export interface CloudApiUploadGetMultipartPartUrlRequest {
+export interface CloudUploadApiUploadGetMultipartPartUrlRequest {
     readonly cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel
 
     /**
@@ -5633,9 +6763,9 @@ export interface CloudApiUploadGetMultipartPartUrlRequest {
 }
 
 /**
- * Request parameters for uploadPart operation in CloudApi.
+ * Request parameters for uploadPart operation in CloudUploadApi.
  */
-export interface CloudApiUploadPartRequest {
+export interface CloudUploadApiUploadPartRequest {
     readonly contentMd5: string
 
     readonly key: string
@@ -5653,314 +6783,98 @@ export interface CloudApiUploadPartRequest {
 }
 
 /**
- * CloudApi - object-oriented interface
+ * CloudUploadApi - object-oriented interface
  */
-export class CloudApi extends BaseAPI {
+export class CloudUploadApi extends BaseAPI {
     /**
-     * Deletes one or more objects (or directories) belonging to the authenticated user.
-     * @summary Delete objects
-     * @param {CloudApiDeleteRequest} requestParameters Request parameters.
+     * Cancels a zip extraction job if it is pending or running. Use Archive/Extract/Cancel instead.
+     * @summary Cancel zip extraction (deprecated)
+     * @param {CloudUploadApiExtractZipCancelRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      */
-    public _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration)._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public extractZipCancel(requestParameters: CloudUploadApiExtractZipCancelRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).extractZipCancel(requestParameters.cloudExtractZipCancelRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
-     * @summary Convert a directory to encrypted
-     * @param {CloudApiDirectoryConvertToEncryptedRequest} requestParameters Request parameters.
+     * Starts an async job to extract a previously uploaded .zip file. Use Archive/Extract/Start instead.
+     * @summary Start zip extraction (deprecated)
+     * @param {CloudUploadApiExtractZipStartRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      */
-    public directoryConvertToEncrypted(requestParameters: CloudApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    public extractZipStart(requestParameters: CloudUploadApiExtractZipStartRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).extractZipStart(requestParameters.cloudExtractZipStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
-     * @summary Create a directory
-     * @param {CloudApiDirectoryCreateRequest} requestParameters Request parameters.
+     * Returns the current status/progress of a zip extraction job. Use Archive/Extract/Status instead.
+     * @summary Get zip extraction status (deprecated)
+     * @param {CloudUploadApiExtractZipStatusRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      */
-    public directoryCreate(requestParameters: CloudApiDirectoryCreateRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
-     * @summary Remove encryption from a directory
-     * @param {CloudApiDirectoryDecryptRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public directoryDecrypt(requestParameters: CloudApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
-     * @summary Delete a directory
-     * @param {CloudApiDirectoryDeleteRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public directoryDelete(requestParameters: CloudApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Invalidates the session token for an encrypted directory.
-     * @summary Lock an encrypted directory
-     * @param {CloudApiDirectoryLockRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public directoryLock(requestParameters: CloudApiDirectoryLockRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryLock(requestParameters.directoryLockRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
-     * @summary Rename a directory
-     * @param {CloudApiDirectoryRenameRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public directoryRename(requestParameters: CloudApiDirectoryRenameRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
-     * @summary Unlock an encrypted directory
-     * @param {CloudApiDirectoryUnlockRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public directoryUnlock(requestParameters: CloudApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
-     * @summary Download a file for the authenticated user (streamed)
-     * @param {CloudApiDownloadRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public download(requestParameters: CloudApiDownloadRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).download(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Cancels a zip extraction job if it is pending or running.
-     * @summary Cancel zip extraction
-     * @param {CloudApiExtractZipCancelRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public extractZipCancel(requestParameters: CloudApiExtractZipCancelRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).extractZipCancel(requestParameters.cloudExtractZipCancelRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Starts an async job to extract a previously uploaded .zip file.
-     * @summary Start zip extraction
-     * @param {CloudApiExtractZipStartRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public extractZipStart(requestParameters: CloudApiExtractZipStartRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).extractZipStart(requestParameters.cloudExtractZipStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns the current status/progress of a zip extraction job.
-     * @summary Get zip extraction status
-     * @param {CloudApiExtractZipStatusRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public extractZipStatus(requestParameters: CloudApiExtractZipStatusRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).extractZipStatus(requestParameters.jobId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Find a single object by key (user scoped) and return its metadata.
-     * @summary Get object metadata
-     * @param {CloudApiFindRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public find(requestParameters: CloudApiFindRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).find(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns a presigned URL for a specific object key to allow direct client access.
-     * @summary Get a presigned URL for upload/download
-     * @param {CloudApiGetPresignedUrlRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
-     * @summary List files and directories
-     * @param {CloudApiListRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns breadcrumb entries (path pieces) for the supplied path.
-     * @summary Get breadcrumb for a path
-     * @param {CloudApiListBreadcrumbRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public listBreadcrumb(requestParameters: CloudApiListBreadcrumbRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
-     * @summary List directories inside a path
-     * @param {CloudApiListDirectoriesRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
-     * @summary List objects (files) inside a path
-     * @param {CloudApiListObjectsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Move an object from SourceKey to DestinationKey within the user scope.
-     * @summary Move/rename an object
-     * @param {CloudApiMoveRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns the latest antivirus scan status for the given object key.
-     * @summary Get antivirus scan status for a file
-     * @param {CloudApiScanStatusRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).scanStatus(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
-     * @summary Search files by name
-     * @param {CloudApiSearchRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Update an existing object by changing metadata or renaming the file (name only).
-     * @summary Update object metadata or rename
-     * @param {CloudApiUpdateRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public update(requestParameters: CloudApiUpdateRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public extractZipStatus(requestParameters: CloudUploadApiExtractZipStatusRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).extractZipStatus(requestParameters.jobId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * Abort an ongoing multipart upload and clean up temporary state.
      * @summary Abort a multipart upload
-     * @param {CloudApiUploadAbortMultipartUploadRequest} requestParameters Request parameters.
+     * @param {CloudUploadApiUploadAbortMultipartUploadRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public uploadAbortMultipartUpload(requestParameters: CloudApiUploadAbortMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadAbortMultipartUpload(requestParameters.cloudAbortMultipartUploadRequestModel, options).then((request) => request(this.axios, this.basePath));
+    public uploadAbortMultipartUpload(requestParameters: CloudUploadApiUploadAbortMultipartUploadRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).uploadAbortMultipartUpload(requestParameters.cloudAbortMultipartUploadRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * Completes a multipart upload by providing the list of parts and finalizes the object.
      * @summary Complete multipart upload
-     * @param {CloudApiUploadCompleteMultipartUploadRequest} requestParameters Request parameters.
+     * @param {CloudUploadApiUploadCompleteMultipartUploadRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public uploadCompleteMultipartUpload(requestParameters: CloudApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    public uploadCompleteMultipartUpload(requestParameters: CloudUploadApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * Creates an UploadId and starts a multipart upload flow.
      * @summary Create a multipart upload session
-     * @param {CloudApiUploadCreateMultipartUploadRequest} requestParameters Request parameters.
+     * @param {CloudUploadApiUploadCreateMultipartUploadRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public uploadCreateMultipartUpload(requestParameters: CloudApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    public uploadCreateMultipartUpload(requestParameters: CloudUploadApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
      * @summary Get a multipart upload part URL
-     * @param {CloudApiUploadGetMultipartPartUrlRequest} requestParameters Request parameters.
+     * @param {CloudUploadApiUploadGetMultipartPartUrlRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public uploadGetMultipartPartUrl(requestParameters: CloudApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    public uploadGetMultipartPartUrl(requestParameters: CloudUploadApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
      * @summary Upload a multipart part
-     * @param {CloudApiUploadPartRequest} requestParameters Request parameters.
+     * @param {CloudUploadApiUploadPartRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public uploadPart(requestParameters: CloudApiUploadPartRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns the authenticated user storage usage and limits.
-     * @summary Get user\'s storage usage
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public userStorageUsage(options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).userStorageUsage(options).then((request) => request(this.axios, this.basePath));
+    public uploadPart(requestParameters: CloudUploadApiUploadPartRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

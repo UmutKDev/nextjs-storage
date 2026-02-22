@@ -5,7 +5,10 @@ import type {
   CloudDirectoryModel,
   CloudObjectModel,
 } from "@/Service/Generates/api";
-import { cloudApiFactory } from "@/Service/Factories";
+import {
+  cloudApiFactory,
+  cloudDirectoriesApiFactory,
+} from "@/Service/Factories";
 import { createIdempotencyKey } from "@/lib/idempotency";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import { useExplorerEncryption } from "../contexts/ExplorerEncryptionContext";
@@ -130,7 +133,7 @@ export function useExplorerDelete() {
             if (!normalizedPath) return;
             const passphrase = getFolderPassphrase(normalizedPath);
             const sessionToken = getSessionToken(normalizedPath);
-            await cloudApiFactory.directoryDelete({
+            await cloudDirectoriesApiFactory.directoryDelete({
               directoryDeleteRequestModel: {
                 Path: normalizedPath,
               },
@@ -194,7 +197,8 @@ export function useExplorerDelete() {
 
           if (shouldTreatAsEncrypted && normalizedPath) {
             const passphrase = getFolderPassphrase(normalizedPath);
-            if (!passphrase) {
+            const sessionToken = getSessionToken(normalizedPath);
+            if (!passphrase && !sessionToken) {
               setDeletingStatusByKey((previous) => ({
                 ...previous,
                 [key]: false,
@@ -208,7 +212,7 @@ export function useExplorerDelete() {
               });
               return;
             }
-            await cloudApiFactory.directoryDelete({
+            await cloudDirectoriesApiFactory.directoryDelete({
               directoryDeleteRequestModel: {
                 Path: normalizedPath,
               },

@@ -1,15 +1,20 @@
 "use client";
 
 import React from "react";
-import type { CloudObjectModel } from "@/Service/Generates/api";
+import type {
+  CloudObjectModel,
+  CloudArchiveCreateStartRequestModelFormatEnum,
+} from "@/Service/Generates/api";
 import type {
   CloudObject,
   Directory,
-  ZipExtractJobsByKey,
+  ArchiveExtractJobsByKey,
+  ArchiveCreateJobsByKey,
 } from "@/components/storage-browser/types/storage-browser.types";
 import { useDialogs } from "./DialogsContext";
 import { useExplorerDelete } from "../hooks/useExplorerDelete";
-import { useExplorerExtractZip } from "../hooks/useExplorerExtractZip";
+import { useExplorerArchiveExtract } from "../hooks/useExplorerArchiveExtract";
+import { useExplorerArchiveCreate } from "../hooks/useExplorerArchiveCreate";
 import { useExplorerItemNavigation } from "./ExplorerNavigationContext";
 
 type ExplorerActionsContextValue = {
@@ -18,14 +23,26 @@ type ExplorerActionsContextValue = {
   moveItems: (items: string[]) => void;
   renameItem: (item: CloudObject | Directory) => void;
   convertFolder: (directory: Directory) => void;
-  extractZip: (file: CloudObject) => void;
-  extractZipSelection: (files: CloudObject[]) => void;
-  cancelExtractZip: (file: CloudObject) => void;
-  createZipExtractionJob: (file: CloudObjectModel) => Promise<void>;
+  extractArchive: (file: CloudObject) => void;
+  extractArchiveSelection: (files: CloudObject[]) => void;
+  cancelArchiveExtraction: (file: CloudObject) => void;
+  createArchiveExtractionJob: (
+    file: CloudObjectModel,
+    selectedEntries?: string[],
+    totalEntries?: number,
+  ) => Promise<void>;
+  createArchive: (keys: string[]) => void;
+  startArchiveCreation: (
+    keys: string[],
+    format?: CloudArchiveCreateStartRequestModelFormatEnum,
+    outputName?: string,
+  ) => Promise<void>;
+  cancelArchiveCreation: (jobKey: string) => void;
   previewFile: (file: CloudObject) => void;
   editFile: (file: CloudObject) => void;
   deletingStatusByKey: Record<string, boolean>;
-  extractJobs: ZipExtractJobsByKey;
+  extractJobs: ArchiveExtractJobsByKey;
+  createJobs: ArchiveCreateJobsByKey;
 };
 
 const ExplorerActionsContext =
@@ -38,8 +55,13 @@ export function ExplorerActionsProvider({
 }) {
   const { openDialog } = useDialogs();
   const { deletingStatusByKey } = useExplorerDelete();
-  const { extractJobs, createZipExtractionJob, deleteZipExtractionJob } =
-    useExplorerExtractZip();
+  const {
+    extractJobs,
+    createArchiveExtractionJob,
+    cancelArchiveExtractionJob,
+  } = useExplorerArchiveExtract();
+  const { createJobs, startArchiveCreation, cancelArchiveCreation } =
+    useExplorerArchiveCreate();
   const { renameItem } = useExplorerItemNavigation();
 
   const deleteItem = React.useCallback(
@@ -70,25 +92,32 @@ export function ExplorerActionsProvider({
     [openDialog],
   );
 
-  const extractZip = React.useCallback(
+  const extractArchive = React.useCallback(
     (file: CloudObject) => {
-      openDialog("extract-zip", { file });
+      openDialog("archive-preview-extract", { file });
     },
     [openDialog],
   );
 
-  const extractZipSelection = React.useCallback(
+  const extractArchiveSelection = React.useCallback(
     (files: CloudObject[]) => {
-      openDialog("extract-zip-selection", { files });
+      openDialog("archive-extract-selection", { files });
     },
     [openDialog],
   );
 
-  const cancelExtractZip = React.useCallback(
+  const cancelArchiveExtraction = React.useCallback(
     (file: CloudObject) => {
-      void deleteZipExtractionJob(file);
+      void cancelArchiveExtractionJob(file);
     },
-    [deleteZipExtractionJob],
+    [cancelArchiveExtractionJob],
+  );
+
+  const createArchive = React.useCallback(
+    (keys: string[]) => {
+      openDialog("archive-create", { keys });
+    },
+    [openDialog],
   );
 
   const previewFile = React.useCallback(
@@ -112,29 +141,37 @@ export function ExplorerActionsProvider({
       moveItems,
       renameItem,
       convertFolder,
-      extractZip,
-      extractZipSelection,
-      cancelExtractZip,
-      createZipExtractionJob,
+      extractArchive,
+      extractArchiveSelection,
+      cancelArchiveExtraction,
+      createArchiveExtractionJob,
+      createArchive,
+      startArchiveCreation,
+      cancelArchiveCreation,
       previewFile,
       editFile,
       deletingStatusByKey,
       extractJobs,
+      createJobs,
     }),
     [
-      cancelExtractZip,
+      cancelArchiveCreation,
+      cancelArchiveExtraction,
       convertFolder,
-      createZipExtractionJob,
+      createArchive,
+      createArchiveExtractionJob,
+      createJobs,
       deleteItem,
       deleteSelection,
       deletingStatusByKey,
       editFile,
+      extractArchive,
+      extractArchiveSelection,
       extractJobs,
-      extractZip,
-      extractZipSelection,
       moveItems,
       previewFile,
       renameItem,
+      startArchiveCreation,
     ],
   );
 

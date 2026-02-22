@@ -27,7 +27,7 @@ export const StorageGridFolderCard = ({
 }: StorageGridFolderCardProps) => {
   const { selectedItemKeys } = useExplorerSelection();
   const { getDirectoryMetadata } = useDirectoryMetadata();
-  const { handleItemClick, updateSelection, openContextMenu, isLoading } =
+  const { handleItemClick, handleItemAuxClick, updateSelection, openContextMenu, isLoading } =
     useStorageBrowserInteractions();
   const { deletingStatusByKey, renameItem, convertFolder, deleteItem } =
     useExplorerActions();
@@ -97,6 +97,7 @@ export const StorageGridFolderCard = ({
           }
           handleItemClick(directory, "folder", event);
         }}
+        onAuxClick={(event) => handleItemAuxClick(directory, "folder", event)}
         onContextMenu={(event) => {
           event.preventDefault();
           openContextMenu(directory, "folder", {

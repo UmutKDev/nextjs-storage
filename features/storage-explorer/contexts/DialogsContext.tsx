@@ -13,8 +13,9 @@ type DialogPayloads = {
   "move-items": { items: string[] };
   "delete-item": { item: CloudObjectModel | CloudDirectoryModel };
   "delete-selection": { count: number };
-  "extract-zip": { file: CloudObjectModel };
-  "extract-zip-selection": { files: CloudObjectModel[] };
+  "archive-preview-extract": { file: CloudObjectModel };
+  "archive-extract-selection": { files: CloudObjectModel[] };
+  "archive-create": { keys: string[] };
   "confirm-move-drag": {
     sourceKeys: string[];
     targetKey: string;

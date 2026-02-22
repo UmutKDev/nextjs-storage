@@ -15,11 +15,13 @@ export type ExplorerMoveRequest = {
   targetName?: string;
 };
 
-export type ExplorerExtractJob = {
+export type ArchiveExtractJob = {
   key: string;
   jobId?: string;
   state: string;
+  format?: string;
   progress?: {
+    phase?: "extract" | "create";
     entriesProcessed?: number;
     totalEntries?: number | null;
     bytesRead?: number;
@@ -27,6 +29,23 @@ export type ExplorerExtractJob = {
     currentEntry?: string;
   };
   extractedPath?: string;
+  failedReason?: string;
+  updatedAt: number;
+};
+
+export type ArchiveCreateJob = {
+  jobId?: string;
+  state: string;
+  format?: string;
+  outputKey?: string;
+  progress?: {
+    entriesProcessed?: number;
+    totalEntries?: number | null;
+    bytesProcessed?: number;
+    totalBytes?: number | null;
+  };
+  archiveKey?: string;
+  archiveSize?: number;
   failedReason?: string;
   updatedAt: number;
 };

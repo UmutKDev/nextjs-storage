@@ -3,7 +3,7 @@
 import { createWithEqualityFn } from "zustand/traditional";
 import { devtools, persist, createJSONStorage } from "zustand/middleware";
 import { shallow } from "zustand/shallow";
-import { cloudApiFactory } from "@/Service/Factories";
+import { cloudDirectoriesApiFactory } from "@/Service/Factories";
 import { sessionManager } from "@/lib/SessionManager";
 
 type UnlockPrompt = {
@@ -197,7 +197,7 @@ export const useEncryptedFoldersStore =
             const normalized = normalizeFolderPath(path);
             if (!normalized) throw new Error("Invalid folder path.");
 
-            const response = await cloudApiFactory.directoryUnlock({
+            const response = await cloudDirectoriesApiFactory.directoryUnlock({
               xFolderPassphrase: passphrase,
               directoryUnlockRequestModel: {
                 Path: normalized,

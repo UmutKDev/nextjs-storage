@@ -4,6 +4,7 @@ import React from "react";
 import { useItemSelection } from "@/components/storage-browser/hooks/useItemSelection";
 import { useExplorerItemNavigation } from "@/features/storage-explorer/contexts/ExplorerNavigationContext";
 import { useExplorerContextMenu } from "@/features/storage-explorer/stores/explorerContextMenu.store";
+import { useStorage } from "@/components/Storage/StorageProvider";
 import type {
   CloudObject,
   Directory,
@@ -17,6 +18,11 @@ type StorageBrowserInteractionsValue = {
   ) => void;
   replaceSelection: (nextSelection: Set<string>) => void;
   handleItemClick: (
+    item: CloudObject | Directory,
+    itemType: "file" | "folder",
+    event: React.MouseEvent,
+  ) => void;
+  handleItemAuxClick: (
     item: CloudObject | Directory,
     itemType: "file" | "folder",
     event: React.MouseEvent,
@@ -41,6 +47,7 @@ export function StorageBrowserInteractionsProvider({
   const { updateSelection, replaceSelection } = useItemSelection();
   const { openEntry } = useExplorerItemNavigation();
   const { openContextMenu } = useExplorerContextMenu();
+  const { buildPathUrl } = useStorage();
 
   const handleItemClick = React.useCallback(
     (
@@ -69,15 +76,36 @@ export function StorageBrowserInteractionsProvider({
     [isLoading, openEntry, updateSelection],
   );
 
+  const handleItemAuxClick = React.useCallback(
+    (
+      storageItem: CloudObject | Directory,
+      itemType: "file" | "folder",
+      event: React.MouseEvent,
+    ) => {
+      if (event.button !== 1) return;
+      if (itemType !== "folder") return;
+
+      event.preventDefault();
+      const prefix = (storageItem as Directory).Prefix;
+      if (!prefix) return;
+      const normalized = prefix.replace(/^\/+|\/+$/g, "");
+      if (!normalized) return;
+
+      window.open(buildPathUrl(normalized), "_blank");
+    },
+    [buildPathUrl],
+  );
+
   const value = React.useMemo<StorageBrowserInteractionsValue>(
     () => ({
       isLoading,
       updateSelection,
       replaceSelection,
       handleItemClick,
+      handleItemAuxClick,
       openContextMenu,
     }),
-    [handleItemClick, isLoading, openContextMenu, replaceSelection, updateSelection],
+    [handleItemAuxClick, handleItemClick, isLoading, openContextMenu, replaceSelection, updateSelection],
   );
 
   return (

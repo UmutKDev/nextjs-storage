@@ -3,6 +3,9 @@ import {
   AccountSecurityApiFactory,
   AuthenticationApiFactory,
   CloudApiFactory,
+  CloudArchiveApiFactory,
+  CloudDirectoriesApiFactory,
+  CloudUploadApiFactory,
 } from "./Generates";
 import Instance from "./Instance";
 
@@ -25,3 +28,21 @@ export const accountApiFactory = AccountApiFactory(
 );
 
 export const cloudApiFactory = CloudApiFactory(undefined, undefined, Instance);
+
+export const cloudDirectoriesApiFactory = CloudDirectoriesApiFactory(
+  undefined,
+  undefined,
+  Instance,
+);
+
+export const cloudUploadApiFactory = CloudUploadApiFactory(
+  undefined,
+  undefined,
+  Instance,
+);
+
+export const cloudArchiveApiFactory = CloudArchiveApiFactory(
+  undefined,
+  undefined,
+  Instance,
+);

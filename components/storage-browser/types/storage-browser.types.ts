@@ -8,11 +8,13 @@ export type Directory = CloudDirectoryModel;
 
 export type ViewMode = "list" | "grid";
 
-export type ZipExtractJob = {
+export type ArchiveExtractJob = {
   key: string;
   jobId?: string;
   state: string;
+  format?: string;
   progress?: {
+    phase?: "extract" | "create";
     entriesProcessed?: number;
     totalEntries?: number | null;
     bytesRead?: number;
@@ -24,6 +26,25 @@ export type ZipExtractJob = {
   updatedAt: number;
 };
 
-export type ZipExtractJobsByKey = Record<string, ZipExtractJob>;
+export type ArchiveExtractJobsByKey = Record<string, ArchiveExtractJob>;
+
+export type ArchiveCreateJob = {
+  jobId?: string;
+  state: string;
+  format?: string;
+  outputKey?: string;
+  progress?: {
+    entriesProcessed?: number;
+    totalEntries?: number | null;
+    bytesProcessed?: number;
+    totalBytes?: number | null;
+  };
+  archiveKey?: string;
+  archiveSize?: number;
+  failedReason?: string;
+  updatedAt: number;
+};
+
+export type ArchiveCreateJobsByKey = Record<string, ArchiveCreateJob>;
 
 export type StorageItemType = "file" | "folder";
