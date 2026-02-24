@@ -78,7 +78,10 @@ export default function TeamInvitationsSection({
           <UserPlus className="h-4 w-4" />
           Üye Davet Et
         </h3>
-        <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-3">
+        <form
+          onSubmit={handleInvite}
+          className="flex flex-col sm:flex-row gap-3"
+        >
           <div className="flex-1">
             <Label htmlFor="invite-email" className="sr-only">
               E-posta

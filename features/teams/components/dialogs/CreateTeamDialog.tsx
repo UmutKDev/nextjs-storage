@@ -69,8 +69,8 @@ export default function CreateTeamDialog({
           <DialogHeader>
             <DialogTitle>Yeni Takım Oluştur</DialogTitle>
             <DialogDescription>
-              Takımınız için bir ad ve açıklama belirleyin. Takım oluşturulduktan
-              sonra üye davet edebilirsiniz.
+              Takımınız için bir ad ve açıklama belirleyin. Takım
+              oluşturulduktan sonra üye davet edebilirsiniz.
             </DialogDescription>
           </DialogHeader>
 

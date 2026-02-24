@@ -24,8 +24,7 @@ export function useTeamList() {
 
   const query = useQuery({
     queryKey: TEAM_LIST_QUERY_KEY,
-    queryFn: async ({ signal }) =>
-      await teamApiFactory.list({ signal }),
+    queryFn: async ({ signal }) => await teamApiFactory.list({ signal }),
     select: (res) => res.data?.Result,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
@@ -46,10 +45,7 @@ export function useTeamDetail(teamId: string | null) {
   return useQuery({
     queryKey: [...TEAM_DETAIL_QUERY_KEY, teamId],
     queryFn: async ({ signal }) =>
-      await teamApiFactory.find(
-        { id: teamId!, xTeamId: teamId! },
-        { signal },
-      ),
+      await teamApiFactory.find({ id: teamId!, xTeamId: teamId! }, { signal }),
     select: (res) => res.data?.Result,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
@@ -64,10 +60,7 @@ export function useTeamMembers(teamId: string | null) {
   const query = useQuery({
     queryKey: [...TEAM_MEMBERS_QUERY_KEY, teamId],
     queryFn: async ({ signal }) =>
-      await teamMembersApiFactory.list(
-        { xTeamId: teamId! },
-        { signal },
-      ),
+      await teamMembersApiFactory.list({ xTeamId: teamId! }, { signal }),
     select: (res) => res.data?.Result,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,

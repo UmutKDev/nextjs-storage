@@ -104,9 +104,7 @@ export default function Sidebar({ className }: SidebarProps) {
         <DropdownMenuContent align="start" className="w-56 p-2 rounded-xl">
           <DropdownMenuItem
             onClick={
-              isUploadBlocked
-                ? undefined
-                : () => openDialog("upload-files", {})
+              isUploadBlocked ? undefined : () => openDialog("upload-files", {})
             }
             disabled={isUploadBlocked}
             className="gap-2 p-3 rounded-lg cursor-pointer"
@@ -166,10 +164,7 @@ export default function Sidebar({ className }: SidebarProps) {
             <span className="font-semibold text-sm">Bulut Alanı</span>
           </div>
 
-          <StorageUsage
-            usage={userStorageUsageQuery.data}
-            className="w-full"
-          />
+          <StorageUsage usage={userStorageUsageQuery.data} className="w-full" />
 
           <Button
             variant="default"

@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { Loader2, MoreHorizontal, Shield, UserMinus, Crown } from "lucide-react";
+import {
+  Loader2,
+  MoreHorizontal,
+  Shield,
+  UserMinus,
+  Crown,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,7 +40,10 @@ import {
   useTransferOwnership,
 } from "../../hooks/useTeamMutations";
 import { canManageMembers, isOwner } from "../../utils/permissions";
-import { TeamRole, TeamMemberUpdateRoleRequestModelRoleEnum } from "@/types/team.types";
+import {
+  TeamRole,
+  TeamMemberUpdateRoleRequestModelRoleEnum,
+} from "@/types/team.types";
 import type { TeamMemberResponseModel } from "@/types/team.types";
 import RemoveMemberDialog from "../dialogs/RemoveMemberDialog";
 import TransferOwnershipDialog from "../dialogs/TransferOwnershipDialog";
@@ -76,15 +85,11 @@ export default function TeamMembersSection({
   const [transferTarget, setTransferTarget] =
     React.useState<TeamMemberResponseModel | null>(null);
 
-  const members: TeamMemberResponseModel[] =
-    membersQuery.data?.Items ?? [];
+  const members: TeamMemberResponseModel[] = membersQuery.data?.Items ?? [];
   const canManage = canManageMembers(myRole);
   const amOwner = isOwner(myRole);
 
-  const handleRoleChange = async (
-    memberId: string,
-    newRole: string,
-  ) => {
+  const handleRoleChange = async (memberId: string, newRole: string) => {
     try {
       await updateRoleMutation.mutateAsync({
         memberId,
@@ -171,9 +176,7 @@ export default function TeamMembersSection({
                   {canManage && member.Role !== TeamRole.OWNER ? (
                     <Select
                       value={member.Role}
-                      onValueChange={(val) =>
-                        handleRoleChange(member.Id, val)
-                      }
+                      onValueChange={(val) => handleRoleChange(member.Id, val)}
                     >
                       <SelectTrigger className="w-32 h-8 text-xs rounded-lg">
                         <SelectValue />
@@ -186,9 +189,7 @@ export default function TeamMembersSection({
                     </Select>
                   ) : (
                     <Badge
-                      variant={
-                        roleBadgeVariants[member.Role] ?? "outline"
-                      }
+                      variant={roleBadgeVariants[member.Role] ?? "outline"}
                       className="text-xs"
                     >
                       {roleLabels[member.Role] ?? member.Role}

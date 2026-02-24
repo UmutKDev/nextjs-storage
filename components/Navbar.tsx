@@ -203,26 +203,17 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="absolute top-16 left-0 right-0 border-t bg-background/95 backdrop-blur-lg p-4 shadow-lg md:hidden animate-in fade-in slide-in-from-top-2">
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-            <Button
-              variant="ghost"
-              className="w-full justify-start rounded-xl"
-            >
+            <Button variant="ghost" className="w-full justify-start rounded-xl">
               Anasayfa
             </Button>
           </Link>
           <Link href="#features" onClick={() => setMobileMenuOpen(false)}>
-            <Button
-              variant="ghost"
-              className="w-full justify-start rounded-xl"
-            >
+            <Button variant="ghost" className="w-full justify-start rounded-xl">
               Özellikler
             </Button>
           </Link>
           <Link href="/teams" onClick={() => setMobileMenuOpen(false)}>
-            <Button
-              variant="ghost"
-              className="w-full justify-start rounded-xl"
-            >
+            <Button variant="ghost" className="w-full justify-start rounded-xl">
               Takımlarım
             </Button>
           </Link>

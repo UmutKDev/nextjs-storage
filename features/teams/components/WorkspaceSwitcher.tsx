@@ -126,9 +126,7 @@ export default function WorkspaceSwitcher() {
                 Kişisel depolama
               </div>
             </div>
-            {isPersonal && (
-              <Check className="h-4 w-4 text-primary shrink-0" />
-            )}
+            {isPersonal && <Check className="h-4 w-4 text-primary shrink-0" />}
           </DropdownMenuItem>
 
           {/* Teams section */}

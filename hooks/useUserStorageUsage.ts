@@ -12,9 +12,8 @@ export const CLOUD_USER_STORAGE_USAGE_QUERY_KEY = [
   "user-storage-usage",
 ] as const;
 
-export const createCloudUserStorageUsageQueryKey = (
-  teamId?: string | null,
-) => [...CLOUD_USER_STORAGE_USAGE_QUERY_KEY, teamId ?? "personal"] as const;
+export const createCloudUserStorageUsageQueryKey = (teamId?: string | null) =>
+  [...CLOUD_USER_STORAGE_USAGE_QUERY_KEY, teamId ?? "personal"] as const;
 
 export default function useUserStorageUsage() {
   const { status } = useSession();

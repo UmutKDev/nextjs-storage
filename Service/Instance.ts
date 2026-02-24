@@ -78,9 +78,8 @@ Instance.interceptors.request.use(
     // Team context: inject X-Team-Id header from workspace store
     if (typeof window !== "undefined") {
       try {
-        const { useWorkspaceStore } = await import(
-          "@/features/teams/stores/workspace.store"
-        );
+        const { useWorkspaceStore } =
+          await import("@/features/teams/stores/workspace.store");
         const activeTeamId = useWorkspaceStore.getState().activeTeamId;
         if (activeTeamId && !config.headers["X-Team-Id"]) {
           config.headers["X-Team-Id"] = activeTeamId;

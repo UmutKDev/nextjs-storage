@@ -27,7 +27,9 @@ export default function WorkspaceSync() {
     queryClient.invalidateQueries({ queryKey: CLOUD_BREADCRUMB_QUERY_KEY });
     queryClient.invalidateQueries({ queryKey: CLOUD_OBJECTS_QUERY_KEY });
     queryClient.invalidateQueries({ queryKey: CLOUD_DIRECTORIES_QUERY_KEY });
-    queryClient.invalidateQueries({ queryKey: ["cloud", "user-storage-usage"] });
+    queryClient.invalidateQueries({
+      queryKey: ["cloud", "user-storage-usage"],
+    });
   }, [activeTeamId, queryClient, setCurrentPath]);
 
   return null;

@@ -55,10 +55,7 @@ export default function TeamDetailView({
               {detail?.Name ?? teamName ?? "Takım"}
             </h2>
             {role && (
-              <Badge
-                variant="secondary"
-                className="text-xs"
-              >
+              <Badge variant="secondary" className="text-xs">
                 {roleLabels[role] ?? role}
               </Badge>
             )}

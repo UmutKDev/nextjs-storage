@@ -51,8 +51,7 @@ export function useDeleteTeam(teamId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () =>
-      teamApiFactory._delete({ id: teamId, xTeamId: teamId }),
+    mutationFn: () => teamApiFactory._delete({ id: teamId, xTeamId: teamId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEAM_LIST_QUERY_KEY });
     },

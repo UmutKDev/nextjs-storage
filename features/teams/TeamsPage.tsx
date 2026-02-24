@@ -72,9 +72,7 @@ export default function TeamsPage() {
       <div className="container mx-auto max-w-5xl px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Takım Yönetimi
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Takım Yönetimi</h1>
           <p className="text-muted-foreground mt-1">
             Takımlarınızı oluşturun, yönetin ve üyelerinizi davet edin.
           </p>

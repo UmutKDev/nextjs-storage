@@ -29,8 +29,7 @@ const roleLabels: Record<string, string> = {
 
 export default function PendingInvitationsBadge() {
   const { query } = usePendingInvitations();
-  const invitations: TeamInvitationResponseModel[] =
-    query.data?.Items ?? [];
+  const invitations: TeamInvitationResponseModel[] = query.data?.Items ?? [];
   const count = invitations.length;
 
   if (count === 0) return null;
@@ -73,8 +72,7 @@ function InvitationItem({
 }) {
   const acceptMutation = useAcceptInvitation();
   const declineMutation = useDeclineInvitation();
-  const isPending =
-    acceptMutation.isPending || declineMutation.isPending;
+  const isPending = acceptMutation.isPending || declineMutation.isPending;
 
   const handleAccept = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -110,9 +108,7 @@ function InvitationItem({
   const now = new Date();
   const daysLeft = Math.max(
     0,
-    Math.ceil(
-      (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-    ),
+    Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
   );
 
   return (
