@@ -13,8 +13,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Cloud, LogOut, Settings, User, Menu, X, Loader2 } from "lucide-react";
+import {
+  Cloud,
+  LogOut,
+  Settings,
+  User,
+  Menu,
+  X,
+  Loader2,
+  UsersRound,
+} from "lucide-react";
 import { useState } from "react";
+import PendingInvitationsBadge from "@/features/teams/components/PendingInvitationsBadge";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -87,6 +97,7 @@ export function Navbar() {
                   Depoya Git
                 </Button>
               </Link>
+              <PendingInvitationsBadge />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -124,6 +135,16 @@ export function Navbar() {
                     >
                       <User className="mr-2 h-4 w-4" />
                       <span>Profil</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/teams"
+                      className="flex items-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <UsersRound className="mr-2 h-4 w-4" />
+                      <span>Takımlarım</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -182,13 +203,27 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="absolute top-16 left-0 right-0 border-t bg-background/95 backdrop-blur-lg p-4 shadow-lg md:hidden animate-in fade-in slide-in-from-top-2">
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-            <Button variant="ghost" className="w-full justify-start rounded-xl">
+            <Button
+              variant="ghost"
+              className="w-full justify-start rounded-xl"
+            >
               Anasayfa
             </Button>
           </Link>
           <Link href="#features" onClick={() => setMobileMenuOpen(false)}>
-            <Button variant="ghost" className="w-full justify-start rounded-xl">
+            <Button
+              variant="ghost"
+              className="w-full justify-start rounded-xl"
+            >
               Özellikler
+            </Button>
+          </Link>
+          <Link href="/teams" onClick={() => setMobileMenuOpen(false)}>
+            <Button
+              variant="ghost"
+              className="w-full justify-start rounded-xl"
+            >
+              Takımlarım
             </Button>
           </Link>
           <Link href="/storage" onClick={() => setMobileMenuOpen(false)}>

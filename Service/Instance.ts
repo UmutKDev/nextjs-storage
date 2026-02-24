@@ -75,6 +75,21 @@ Instance.interceptors.response.use(onSuccess, onError);
 
 Instance.interceptors.request.use(
   async (config) => {
+    // Team context: inject X-Team-Id header from workspace store
+    if (typeof window !== "undefined") {
+      try {
+        const { useWorkspaceStore } = await import(
+          "@/features/teams/stores/workspace.store"
+        );
+        const activeTeamId = useWorkspaceStore.getState().activeTeamId;
+        if (activeTeamId && !config.headers["X-Team-Id"]) {
+          config.headers["X-Team-Id"] = activeTeamId;
+        }
+      } catch {
+        // Store not yet initialized, skip
+      }
+    }
+
     // Cloud API endpoints check
     const url = config.url || "";
     if (url.includes("/Api/Cloud/")) {

@@ -6,6 +6,9 @@ import {
   CloudArchiveApiFactory,
   CloudDirectoriesApiFactory,
   CloudUploadApiFactory,
+  TeamApiFactory,
+  TeamInvitationsApiFactory,
+  TeamMembersApiFactory,
 } from "./Generates";
 import Instance from "./Instance";
 
@@ -42,6 +45,20 @@ export const cloudUploadApiFactory = CloudUploadApiFactory(
 );
 
 export const cloudArchiveApiFactory = CloudArchiveApiFactory(
+  undefined,
+  undefined,
+  Instance,
+);
+
+export const teamApiFactory = TeamApiFactory(undefined, undefined, Instance);
+
+export const teamInvitationsApiFactory = TeamInvitationsApiFactory(
+  undefined,
+  undefined,
+  Instance,
+);
+
+export const teamMembersApiFactory = TeamMembersApiFactory(
   undefined,
   undefined,
   Instance,

@@ -24,6 +24,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import WorkspaceSwitcher from "@/features/teams/components/WorkspaceSwitcher";
+import { useWorkspace } from "@/features/teams/stores/workspace.store";
+import {
+  canPerformAction,
+  canUpload,
+} from "@/features/teams/utils/permissions";
 
 interface SidebarProps {
   className?: string;
@@ -34,7 +40,10 @@ export default function Sidebar({ className }: SidebarProps) {
   const { currentPath, setCurrentPath } = useStorage();
   const { openDialog } = useDialogs();
   const { isExplorerLocked } = useExplorerEncryption();
-  const isUploadBlocked = isExplorerLocked;
+  const { activeTeamRole } = useWorkspace();
+
+  const canUploadFiles = canPerformAction(activeTeamRole, canUpload);
+  const isUploadBlocked = isExplorerLocked || !canUploadFiles;
 
   const navItems = [
     {
@@ -74,15 +83,19 @@ export default function Sidebar({ className }: SidebarProps) {
     <div
       className={cn(
         "w-64 flex flex-col h-full border-r bg-card/30 backdrop-blur-xl p-6 gap-6",
-        className
+        className,
       )}
     >
+      {/* Workspace Switcher */}
+      <WorkspaceSwitcher />
+
       {/* New Action Button */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             size="lg"
             className="w-full justify-start gap-2 shadow-lg shadow-primary/20 rounded-2xl h-12 text-base font-semibold"
+            disabled={!canUploadFiles}
           >
             <Plus className="w-5 h-5" />
             Yeni Ekle
@@ -91,7 +104,9 @@ export default function Sidebar({ className }: SidebarProps) {
         <DropdownMenuContent align="start" className="w-56 p-2 rounded-xl">
           <DropdownMenuItem
             onClick={
-              isUploadBlocked ? undefined : () => openDialog("upload-files", {})
+              isUploadBlocked
+                ? undefined
+                : () => openDialog("upload-files", {})
             }
             disabled={isUploadBlocked}
             className="gap-2 p-3 rounded-lg cursor-pointer"
@@ -127,7 +142,7 @@ export default function Sidebar({ className }: SidebarProps) {
               "w-full justify-start gap-3 font-medium h-11 rounded-xl transition-all duration-200",
               item.active
                 ? "bg-primary/10 text-primary hover:bg-primary/15 shadow-sm"
-                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground",
             )}
             onClick={item.onClick}
             disabled={item.disabled}
@@ -135,7 +150,7 @@ export default function Sidebar({ className }: SidebarProps) {
             <item.icon
               className={cn(
                 "w-5 h-5",
-                item.active ? "text-primary" : "text-muted-foreground"
+                item.active ? "text-primary" : "text-muted-foreground",
               )}
             />
             {item.label}
@@ -151,7 +166,10 @@ export default function Sidebar({ className }: SidebarProps) {
             <span className="font-semibold text-sm">Bulut Alanı</span>
           </div>
 
-          <StorageUsage usage={userStorageUsageQuery.data} className="w-full" />
+          <StorageUsage
+            usage={userStorageUsageQuery.data}
+            className="w-full"
+          />
 
           <Button
             variant="default"

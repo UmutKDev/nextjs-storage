@@ -1098,6 +1098,139 @@ export const SubscriptionResponseModelStatusEnum = {
 
 export type SubscriptionResponseModelStatusEnum = typeof SubscriptionResponseModelStatusEnum[keyof typeof SubscriptionResponseModelStatusEnum];
 
+export interface TeamCreateRequestModel {
+    'Name': string;
+    'Description'?: string;
+}
+export interface TeamDetailResponseBaseModel {
+    'Result': TeamDetailResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface TeamDetailResponseModel {
+    'Id': string;
+    'Name': string;
+    'Slug': string;
+    'Description'?: string;
+    'Image'?: string;
+    'Status': string;
+    'MemberCount'?: number;
+    'MyRole'?: string;
+    'CreatedAt': string;
+    'StorageLimitBytes'?: number;
+    'MaxUploadSizeBytes'?: number;
+    'MaxMembers'?: number;
+}
+export interface TeamInvitationAcceptRequestModel {
+    'Token': string;
+}
+export interface TeamInvitationCreateRequestModel {
+    'Email': string;
+    'Role'?: TeamInvitationCreateRequestModelRoleEnum;
+}
+
+export const TeamInvitationCreateRequestModelRoleEnum = {
+    Owner: 'OWNER',
+    Admin: 'ADMIN',
+    Member: 'MEMBER',
+    Viewer: 'VIEWER'
+} as const;
+
+export type TeamInvitationCreateRequestModelRoleEnum = typeof TeamInvitationCreateRequestModelRoleEnum[keyof typeof TeamInvitationCreateRequestModelRoleEnum];
+
+export interface TeamInvitationDeclineRequestModel {
+    'Token': string;
+}
+export interface TeamInvitationResponseBaseModel {
+    'Result': TeamInvitationResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface TeamInvitationResponseListBaseModel {
+    'Result': TeamInvitationResponseListModelResult;
+    'Status': BaseStatusModel;
+}
+export interface TeamInvitationResponseListModelResult {
+    'Options': PaginationResponseModel;
+    'Items': Array<TeamInvitationResponseModel>;
+}
+export interface TeamInvitationResponseModel {
+    'Id': string;
+    'Token'?: string;
+    'Email': string;
+    'Role': string;
+    'Status': string;
+    'InvitedByName'?: string;
+    'TeamName'?: string;
+    'ExpiresAt': string;
+    'CreatedAt': string;
+}
+export interface TeamMemberResponseBaseModel {
+    'Result': TeamMemberResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface TeamMemberResponseListBaseModel {
+    'Result': TeamMemberResponseListModelResult;
+    'Status': BaseStatusModel;
+}
+export interface TeamMemberResponseListModelResult {
+    'Options': PaginationResponseModel;
+    'Items': Array<TeamMemberResponseModel>;
+}
+export interface TeamMemberResponseModel {
+    'Id': string;
+    'UserId': string;
+    'FullName': string;
+    'Email': string;
+    'Image'?: string;
+    'Role': string;
+    'JoinedAt'?: string;
+}
+export interface TeamMemberUpdateRoleRequestModel {
+    'Role': TeamMemberUpdateRoleRequestModelRoleEnum;
+}
+
+export const TeamMemberUpdateRoleRequestModelRoleEnum = {
+    Owner: 'OWNER',
+    Admin: 'ADMIN',
+    Member: 'MEMBER',
+    Viewer: 'VIEWER'
+} as const;
+
+export type TeamMemberUpdateRoleRequestModelRoleEnum = typeof TeamMemberUpdateRoleRequestModelRoleEnum[keyof typeof TeamMemberUpdateRoleRequestModelRoleEnum];
+
+export interface TeamResponseBaseModel {
+    'Result': TeamResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface TeamResponseListBaseModel {
+    'Result': TeamResponseListModelResult;
+    'Status': BaseStatusModel;
+}
+export interface TeamResponseListModelResult {
+    'Options': PaginationResponseModel;
+    'Items': Array<TeamResponseModel>;
+}
+export interface TeamResponseModel {
+    'Id': string;
+    'Name': string;
+    'Slug': string;
+    'Description'?: string;
+    'Image'?: string;
+    'Status': string;
+    'MemberCount'?: number;
+    'MyRole'?: string;
+    'CreatedAt': string;
+}
+export interface TeamTransferOwnershipRequestModel {
+    /**
+     * UserId of the new owner
+     */
+    'UserId': string;
+}
+export interface TeamUpdateRequestModel {
+    'Name'?: string;
+    'Description'?: string;
+    'Image'?: string;
+}
 export interface TwoFactorBackupCodesResponseBaseModel {
     'Result': TwoFactorBackupCodesResponseModel;
     'Status': BaseStatusModel;
@@ -3496,10 +3629,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @summary Delete objects
          * @param {string} idempotencyKey 
          * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        _delete: async (idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        _delete: async (idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'idempotencyKey' is not null or undefined
             assertParamExists('_delete', 'idempotencyKey', idempotencyKey)
             // verify required parameter 'cloudDeleteRequestModel' is not null or undefined
@@ -3522,6 +3656,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (idempotencyKey != null) {
                 localVarHeaderParameter['idempotency-key'] = String(idempotencyKey);
             }
@@ -3539,10 +3676,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {string} key Path/key to the file (user-scoped)
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        download: async (key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        download: async (key: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'key' is not null or undefined
             assertParamExists('download', 'key', key)
             const localVarPath = `/Api/Cloud/Download`;
@@ -3565,6 +3703,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -3578,10 +3719,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Find a single object by key (user scoped) and return its metadata.
          * @summary Get object metadata
          * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        find: async (key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        find: async (key: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'key' is not null or undefined
             assertParamExists('find', 'key', key)
             const localVarPath = `/Api/Cloud/Find`;
@@ -3604,6 +3746,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -3617,11 +3762,12 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Returns a presigned URL for a specific object key to allow direct client access.
          * @summary Get a presigned URL for upload/download
          * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {number} [expiresInSeconds] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getPresignedUrl: async (key: string, expiresInSeconds?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getPresignedUrl: async (key: string, xTeamId?: string, expiresInSeconds?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'key' is not null or undefined
             assertParamExists('getPresignedUrl', 'key', key)
             const localVarPath = `/Api/Cloud/PresignedUrl`;
@@ -3648,6 +3794,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -3660,6 +3809,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List files and directories
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -3671,7 +3821,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        list: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        list: async (xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3712,6 +3862,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -3730,6 +3883,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Returns breadcrumb entries (path pieces) for the supplied path.
          * @summary Get breadcrumb for a path
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -3738,7 +3892,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listBreadcrumb: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listBreadcrumb: async (xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Breadcrumb`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3775,6 +3929,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -3787,6 +3944,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List directories inside a path
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -3797,7 +3955,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listDirectories: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listDirectories: async (xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Directories`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3834,6 +3992,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -3852,6 +4013,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List objects (files) inside a path
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -3862,7 +4024,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listObjects: async (search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listObjects: async (xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/List/Objects`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3903,6 +4065,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -3920,10 +4085,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @summary Move/rename an object
          * @param {string} idempotencyKey 
          * @param {CloudMoveRequestModel} cloudMoveRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        move: async (idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        move: async (idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'idempotencyKey' is not null or undefined
             assertParamExists('move', 'idempotencyKey', idempotencyKey)
             // verify required parameter 'cloudMoveRequestModel' is not null or undefined
@@ -3946,6 +4112,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (idempotencyKey != null) {
                 localVarHeaderParameter['idempotency-key'] = String(idempotencyKey);
             }
@@ -3963,10 +4132,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Returns the latest antivirus scan status for the given object key.
          * @summary Get antivirus scan status for a file
          * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        scanStatus: async (key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        scanStatus: async (key: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'key' is not null or undefined
             assertParamExists('scanStatus', 'key', key)
             const localVarPath = `/Api/Cloud/Scan/Status`;
@@ -3989,6 +4159,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -4002,6 +4175,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
          * @summary Search files by name
          * @param {string} query Search query - partial filename match (case-insensitive, min 2 chars)
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -4013,7 +4187,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        search: async (query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        search: async (query: string, xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'query' is not null or undefined
             assertParamExists('search', 'query', query)
             const localVarPath = `/Api/Cloud/Search`;
@@ -4060,6 +4234,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -4079,10 +4256,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
          * Update an existing object by changing metadata or renaming the file (name only).
          * @summary Update object metadata or rename
          * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        update: async (cloudUpdateRequestModel: CloudUpdateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        update: async (cloudUpdateRequestModel: CloudUpdateRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudUpdateRequestModel' is not null or undefined
             assertParamExists('update', 'cloudUpdateRequestModel', cloudUpdateRequestModel)
             const localVarPath = `/Api/Cloud/Update`;
@@ -4103,6 +4281,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -4116,10 +4297,11 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Returns the authenticated user storage usage and limits.
          * @summary Get user\'s storage usage
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        userStorageUsage: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        userStorageUsage: async (xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/Api/Cloud/User/StorageUsage`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -4136,6 +4318,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -4159,11 +4344,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @summary Delete objects
          * @param {string} idempotencyKey 
          * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async _delete(idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator._delete(idempotencyKey, cloudDeleteRequestModel, options);
+        async _delete(idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator._delete(idempotencyKey, cloudDeleteRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi._delete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4172,11 +4358,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {string} key Path/key to the file (user-scoped)
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async download(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.download(key, options);
+        async download(key: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.download(key, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.download']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4185,11 +4372,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Find a single object by key (user scoped) and return its metadata.
          * @summary Get object metadata
          * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async find(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.find(key, options);
+        async find(key: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.find(key, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.find']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4198,12 +4386,13 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Returns a presigned URL for a specific object key to allow direct client access.
          * @summary Get a presigned URL for upload/download
          * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {number} [expiresInSeconds] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getPresignedUrl(key: string, expiresInSeconds?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StringResponseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getPresignedUrl(key, expiresInSeconds, options);
+        async getPresignedUrl(key: string, xTeamId?: string, expiresInSeconds?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StringResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPresignedUrl(key, xTeamId, expiresInSeconds, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.getPresignedUrl']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4211,6 +4400,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List files and directories
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -4222,8 +4412,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async list(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.list(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, xHiddenSession, options);
+        async list(xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudListResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(xTeamId, search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, xHiddenSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.list']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4231,6 +4421,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Returns breadcrumb entries (path pieces) for the supplied path.
          * @summary Get breadcrumb for a path
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -4239,8 +4430,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listBreadcrumb(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudBreadCrumbListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listBreadcrumb(search, skip, take, path, delimiter, options);
+        async listBreadcrumb(xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudBreadCrumbListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listBreadcrumb(xTeamId, search, skip, take, path, delimiter, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listBreadcrumb']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4248,6 +4439,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List directories inside a path
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -4258,8 +4450,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listDirectories(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(search, skip, take, path, delimiter, xFolderSession, xHiddenSession, options);
+        async listDirectories(xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudDirectoryListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listDirectories(xTeamId, search, skip, take, path, delimiter, xFolderSession, xHiddenSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listDirectories']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4267,6 +4459,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
          * @summary List objects (files) inside a path
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -4277,8 +4470,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listObjects(search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectListBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
+        async listObjects(xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(xTeamId, search, skip, take, path, delimiter, isMetadataProcessing, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.listObjects']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4288,11 +4481,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @summary Move/rename an object
          * @param {string} idempotencyKey 
          * @param {CloudMoveRequestModel} cloudMoveRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async move(idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.move(idempotencyKey, cloudMoveRequestModel, options);
+        async move(idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.move(idempotencyKey, cloudMoveRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4301,11 +4495,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Returns the latest antivirus scan status for the given object key.
          * @summary Get antivirus scan status for a file
          * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async scanStatus(key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudScanStatusResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.scanStatus(key, options);
+        async scanStatus(key: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudScanStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.scanStatus(key, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.scanStatus']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4314,6 +4509,7 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
          * @summary Search files by name
          * @param {string} query Search query - partial filename match (case-insensitive, min 2 chars)
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {string} [search] 
          * @param {number} [skip] 
          * @param {number} [take] 
@@ -4325,8 +4521,8 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async search(query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudSearchResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.search(query, search, skip, take, path, extension, isMetadataProcessing, xFolderSession, xHiddenSession, options);
+        async search(query: string, xTeamId?: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, xFolderSession?: string, xHiddenSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudSearchResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.search(query, xTeamId, search, skip, take, path, extension, isMetadataProcessing, xFolderSession, xHiddenSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.search']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4335,11 +4531,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
          * Update an existing object by changing metadata or renaming the file (name only).
          * @summary Update object metadata or rename
          * @param {CloudUpdateRequestModel} cloudUpdateRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async update(cloudUpdateRequestModel: CloudUpdateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.update(cloudUpdateRequestModel, options);
+        async update(cloudUpdateRequestModel: CloudUpdateRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudObjectBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.update(cloudUpdateRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.update']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4347,11 +4544,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Returns the authenticated user storage usage and limits.
          * @summary Get user\'s storage usage
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async userStorageUsage(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUserStorageUsageResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.userStorageUsage(options);
+        async userStorageUsage(xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUserStorageUsageResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.userStorageUsage(xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.userStorageUsage']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4373,7 +4571,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
@@ -4383,7 +4581,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         download(requestParameters: CloudApiDownloadRequest, options?: RawAxiosRequestConfig): AxiosPromise<File> {
-            return localVarFp.download(requestParameters.key, options).then((request) => request(axios, basePath));
+            return localVarFp.download(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Find a single object by key (user scoped) and return its metadata.
@@ -4393,7 +4591,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         find(requestParameters: CloudApiFindRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.find(requestParameters.key, options).then((request) => request(axios, basePath));
+            return localVarFp.find(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns a presigned URL for a specific object key to allow direct client access.
@@ -4403,7 +4601,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<StringResponseModel> {
-            return localVarFp.getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(axios, basePath));
+            return localVarFp.getPresignedUrl(requestParameters.key, requestParameters.xTeamId, requestParameters.expiresInSeconds, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns a view (breadcrumbs, directories and objects) for the given user-scoped path. Supports delimiter and metadata processing flags. For encrypted folders, provide session token via X-Folder-Session header.
@@ -4413,7 +4611,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudListResponseBaseModel> {
-            return localVarFp.list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
+            return localVarFp.list(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns breadcrumb entries (path pieces) for the supplied path.
@@ -4423,7 +4621,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         listBreadcrumb(requestParameters: CloudApiListBreadcrumbRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudBreadCrumbListBaseModel> {
-            return localVarFp.listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
+            return localVarFp.listBreadcrumb(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns directory prefixes (folders) for a given path. For encrypted folders, provide session token via X-Folder-Session header.
@@ -4433,7 +4631,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudDirectoryListBaseModel> {
-            return localVarFp.listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
+            return localVarFp.listDirectories(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns files at a given path for the authenticated user. For encrypted folders, provide session token via X-Folder-Session header.
@@ -4443,7 +4641,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectListBaseModel> {
-            return localVarFp.listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.listObjects(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Move an object from SourceKey to DestinationKey within the user scope.
@@ -4453,7 +4651,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns the latest antivirus scan status for the given object key.
@@ -4463,7 +4661,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudScanStatusResponseBaseModel> {
-            return localVarFp.scanStatus(requestParameters.key, options).then((request) => request(axios, basePath));
+            return localVarFp.scanStatus(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Recursively searches the user\'s files by partial filename match (case-insensitive). Optionally restrict to a specific path or filter by extension. Encrypted folder contents are excluded unless a valid session token is provided via X-Folder-Session header.
@@ -4473,7 +4671,7 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudSearchResponseBaseModel> {
-            return localVarFp.search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
+            return localVarFp.search(requestParameters.query, requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Update an existing object by changing metadata or renaming the file (name only).
@@ -4483,16 +4681,17 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         update(requestParameters: CloudApiUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudObjectBaseModel> {
-            return localVarFp.update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.update(requestParameters.cloudUpdateRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns the authenticated user storage usage and limits.
          * @summary Get user\'s storage usage
+         * @param {CloudApiUserStorageUsageRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        userStorageUsage(options?: RawAxiosRequestConfig): AxiosPromise<CloudUserStorageUsageResponseBaseModel> {
-            return localVarFp.userStorageUsage(options).then((request) => request(axios, basePath));
+        userStorageUsage(requestParameters: CloudApiUserStorageUsageRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<CloudUserStorageUsageResponseBaseModel> {
+            return localVarFp.userStorageUsage(requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -4504,6 +4703,11 @@ export interface CloudApiDeleteRequest {
     readonly idempotencyKey: string
 
     readonly cloudDeleteRequestModel: CloudDeleteRequestModel
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -4514,6 +4718,11 @@ export interface CloudApiDownloadRequest {
      * Path/key to the file (user-scoped)
      */
     readonly key: string
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -4521,6 +4730,11 @@ export interface CloudApiDownloadRequest {
  */
 export interface CloudApiFindRequest {
     readonly key: string
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -4529,6 +4743,11 @@ export interface CloudApiFindRequest {
 export interface CloudApiGetPresignedUrlRequest {
     readonly key: string
 
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+
     readonly expiresInSeconds?: number
 }
 
@@ -4536,6 +4755,11 @@ export interface CloudApiGetPresignedUrlRequest {
  * Request parameters for list operation in CloudApi.
  */
 export interface CloudApiListRequest {
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+
     readonly search?: string
 
     readonly skip?: number
@@ -4563,6 +4787,11 @@ export interface CloudApiListRequest {
  * Request parameters for listBreadcrumb operation in CloudApi.
  */
 export interface CloudApiListBreadcrumbRequest {
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+
     readonly search?: string
 
     readonly skip?: number
@@ -4578,6 +4807,11 @@ export interface CloudApiListBreadcrumbRequest {
  * Request parameters for listDirectories operation in CloudApi.
  */
 export interface CloudApiListDirectoriesRequest {
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+
     readonly search?: string
 
     readonly skip?: number
@@ -4603,6 +4837,11 @@ export interface CloudApiListDirectoriesRequest {
  * Request parameters for listObjects operation in CloudApi.
  */
 export interface CloudApiListObjectsRequest {
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+
     readonly search?: string
 
     readonly skip?: number
@@ -4628,6 +4867,11 @@ export interface CloudApiMoveRequest {
     readonly idempotencyKey: string
 
     readonly cloudMoveRequestModel: CloudMoveRequestModel
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -4635,6 +4879,11 @@ export interface CloudApiMoveRequest {
  */
 export interface CloudApiScanStatusRequest {
     readonly key: string
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -4645,6 +4894,11 @@ export interface CloudApiSearchRequest {
      * Search query - partial filename match (case-insensitive, min 2 chars)
      */
     readonly query: string
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
 
     readonly search?: string
 
@@ -4680,6 +4934,21 @@ export interface CloudApiSearchRequest {
  */
 export interface CloudApiUpdateRequest {
     readonly cloudUpdateRequestModel: CloudUpdateRequestModel
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for userStorageUsage operation in CloudApi.
+ */
+export interface CloudApiUserStorageUsageRequest {
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -4694,7 +4963,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public _delete(requestParameters: CloudApiDeleteRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration)._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration)._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4705,7 +4974,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public download(requestParameters: CloudApiDownloadRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).download(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).download(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4716,7 +4985,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public find(requestParameters: CloudApiFindRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).find(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).find(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4727,7 +4996,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public getPresignedUrl(requestParameters: CloudApiGetPresignedUrlRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).getPresignedUrl(requestParameters.key, requestParameters.expiresInSeconds, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).getPresignedUrl(requestParameters.key, requestParameters.xTeamId, requestParameters.expiresInSeconds, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4738,7 +5007,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public list(requestParameters: CloudApiListRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).list(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).list(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4749,7 +5018,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public listBreadcrumb(requestParameters: CloudApiListBreadcrumbRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listBreadcrumb(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listBreadcrumb(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4760,7 +5029,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public listDirectories(requestParameters: CloudApiListDirectoriesRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listDirectories(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listDirectories(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4771,7 +5040,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public listObjects(requestParameters: CloudApiListObjectsRequest = {}, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).listObjects(requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).listObjects(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4782,7 +5051,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4793,7 +5062,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public scanStatus(requestParameters: CloudApiScanStatusRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).scanStatus(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).scanStatus(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4804,7 +5073,7 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public search(requestParameters: CloudApiSearchRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).search(requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).search(requestParameters.query, requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, requestParameters.xHiddenSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4815,17 +5084,18 @@ export class CloudApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public update(requestParameters: CloudApiUpdateRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).update(requestParameters.cloudUpdateRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudApiFp(this.configuration).update(requestParameters.cloudUpdateRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * Returns the authenticated user storage usage and limits.
      * @summary Get user\'s storage usage
+     * @param {CloudApiUserStorageUsageRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public userStorageUsage(options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).userStorageUsage(options).then((request) => request(this.axios, this.basePath));
+    public userStorageUsage(requestParameters: CloudApiUserStorageUsageRequest = {}, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).userStorageUsage(requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -4840,10 +5110,11 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
          * Cancels an archive creation job if it is pending or running.
          * @summary Cancel archive creation
          * @param {CloudArchiveCreateCancelRequestModel} cloudArchiveCreateCancelRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        archiveCreateCancel: async (cloudArchiveCreateCancelRequestModel: CloudArchiveCreateCancelRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        archiveCreateCancel: async (cloudArchiveCreateCancelRequestModel: CloudArchiveCreateCancelRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudArchiveCreateCancelRequestModel' is not null or undefined
             assertParamExists('archiveCreateCancel', 'cloudArchiveCreateCancelRequestModel', cloudArchiveCreateCancelRequestModel)
             const localVarPath = `/Api/Cloud/Archive/Create/Cancel`;
@@ -4864,6 +5135,9 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -4878,10 +5152,11 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
          * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
          * @summary Start archive creation
          * @param {CloudArchiveCreateStartRequestModel} cloudArchiveCreateStartRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        archiveCreateStart: async (cloudArchiveCreateStartRequestModel: CloudArchiveCreateStartRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        archiveCreateStart: async (cloudArchiveCreateStartRequestModel: CloudArchiveCreateStartRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudArchiveCreateStartRequestModel' is not null or undefined
             assertParamExists('archiveCreateStart', 'cloudArchiveCreateStartRequestModel', cloudArchiveCreateStartRequestModel)
             const localVarPath = `/Api/Cloud/Archive/Create/Start`;
@@ -4902,6 +5177,9 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -4916,10 +5194,11 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
          * Returns the current status/progress of an archive creation job.
          * @summary Get archive creation status
          * @param {string} jobId 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        archiveCreateStatus: async (jobId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        archiveCreateStatus: async (jobId: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'jobId' is not null or undefined
             assertParamExists('archiveCreateStatus', 'jobId', jobId)
             const localVarPath = `/Api/Cloud/Archive/Create/Status`;
@@ -4942,6 +5221,9 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -4955,10 +5237,11 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
          * Cancels an archive extraction job if it is pending or running.
          * @summary Cancel archive extraction
          * @param {CloudArchiveExtractCancelRequestModel} cloudArchiveExtractCancelRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        archiveExtractCancel: async (cloudArchiveExtractCancelRequestModel: CloudArchiveExtractCancelRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        archiveExtractCancel: async (cloudArchiveExtractCancelRequestModel: CloudArchiveExtractCancelRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudArchiveExtractCancelRequestModel' is not null or undefined
             assertParamExists('archiveExtractCancel', 'cloudArchiveExtractCancelRequestModel', cloudArchiveExtractCancelRequestModel)
             const localVarPath = `/Api/Cloud/Archive/Extract/Cancel`;
@@ -4979,6 +5262,9 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -4993,11 +5279,12 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
          * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
          * @summary Start archive extraction
          * @param {CloudArchiveExtractStartRequestModel} cloudArchiveExtractStartRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        archiveExtractStart: async (cloudArchiveExtractStartRequestModel: CloudArchiveExtractStartRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        archiveExtractStart: async (cloudArchiveExtractStartRequestModel: CloudArchiveExtractStartRequestModel, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudArchiveExtractStartRequestModel' is not null or undefined
             assertParamExists('archiveExtractStart', 'cloudArchiveExtractStartRequestModel', cloudArchiveExtractStartRequestModel)
             const localVarPath = `/Api/Cloud/Archive/Extract/Start`;
@@ -5018,6 +5305,9 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -5035,10 +5325,11 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
          * Returns the current status/progress of an archive extraction job.
          * @summary Get archive extraction status
          * @param {string} jobId 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        archiveExtractStatus: async (jobId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        archiveExtractStatus: async (jobId: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'jobId' is not null or undefined
             assertParamExists('archiveExtractStatus', 'jobId', jobId)
             const localVarPath = `/Api/Cloud/Archive/Extract/Status`;
@@ -5061,6 +5352,9 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5074,11 +5368,12 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
          * Lists entries of an archive file without extracting. Supports .zip, .tar, .tar.gz, and .rar.
          * @summary Preview archive contents
          * @param {string} key Key of the archive file to preview
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        archivePreview: async (key: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        archivePreview: async (key: string, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'key' is not null or undefined
             assertParamExists('archivePreview', 'key', key)
             const localVarPath = `/Api/Cloud/Archive/Preview`;
@@ -5101,6 +5396,9 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
 
 
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -5126,11 +5424,12 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
          * Cancels an archive creation job if it is pending or running.
          * @summary Cancel archive creation
          * @param {CloudArchiveCreateCancelRequestModel} cloudArchiveCreateCancelRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async archiveCreateCancel(cloudArchiveCreateCancelRequestModel: CloudArchiveCreateCancelRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateCancelResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateCancel(cloudArchiveCreateCancelRequestModel, options);
+        async archiveCreateCancel(cloudArchiveCreateCancelRequestModel: CloudArchiveCreateCancelRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateCancelResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateCancel(cloudArchiveCreateCancelRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveCreateCancel']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5139,11 +5438,12 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
          * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
          * @summary Start archive creation
          * @param {CloudArchiveCreateStartRequestModel} cloudArchiveCreateStartRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async archiveCreateStart(cloudArchiveCreateStartRequestModel: CloudArchiveCreateStartRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateStartResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateStart(cloudArchiveCreateStartRequestModel, options);
+        async archiveCreateStart(cloudArchiveCreateStartRequestModel: CloudArchiveCreateStartRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateStartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateStart(cloudArchiveCreateStartRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveCreateStart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5152,11 +5452,12 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
          * Returns the current status/progress of an archive creation job.
          * @summary Get archive creation status
          * @param {string} jobId 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async archiveCreateStatus(jobId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateStatusResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateStatus(jobId, options);
+        async archiveCreateStatus(jobId: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateStatus(jobId, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveCreateStatus']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5165,11 +5466,12 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
          * Cancels an archive extraction job if it is pending or running.
          * @summary Cancel archive extraction
          * @param {CloudArchiveExtractCancelRequestModel} cloudArchiveExtractCancelRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async archiveExtractCancel(cloudArchiveExtractCancelRequestModel: CloudArchiveExtractCancelRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractCancelResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractCancel(cloudArchiveExtractCancelRequestModel, options);
+        async archiveExtractCancel(cloudArchiveExtractCancelRequestModel: CloudArchiveExtractCancelRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractCancelResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractCancel(cloudArchiveExtractCancelRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveExtractCancel']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5178,12 +5480,13 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
          * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
          * @summary Start archive extraction
          * @param {CloudArchiveExtractStartRequestModel} cloudArchiveExtractStartRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async archiveExtractStart(cloudArchiveExtractStartRequestModel: CloudArchiveExtractStartRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractStartResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractStart(cloudArchiveExtractStartRequestModel, xFolderSession, options);
+        async archiveExtractStart(cloudArchiveExtractStartRequestModel: CloudArchiveExtractStartRequestModel, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractStartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractStart(cloudArchiveExtractStartRequestModel, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveExtractStart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5192,11 +5495,12 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
          * Returns the current status/progress of an archive extraction job.
          * @summary Get archive extraction status
          * @param {string} jobId 
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async archiveExtractStatus(jobId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractStatusResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractStatus(jobId, options);
+        async archiveExtractStatus(jobId: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractStatusResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractStatus(jobId, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveExtractStatus']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5205,12 +5509,13 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
          * Lists entries of an archive file without extracting. Supports .zip, .tar, .tar.gz, and .rar.
          * @summary Preview archive contents
          * @param {string} key Key of the archive file to preview
+         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async archivePreview(key: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchivePreviewResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archivePreview(key, xFolderSession, options);
+        async archivePreview(key: string, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchivePreviewResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.archivePreview(key, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archivePreview']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5232,7 +5537,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          * @throws {RequiredError}
          */
         archiveCreateCancel(requestParameters: CloudArchiveApiArchiveCreateCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveCreateCancelResponseBaseModel> {
-            return localVarFp.archiveCreateCancel(requestParameters.cloudArchiveCreateCancelRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.archiveCreateCancel(requestParameters.cloudArchiveCreateCancelRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
@@ -5242,7 +5547,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          * @throws {RequiredError}
          */
         archiveCreateStart(requestParameters: CloudArchiveApiArchiveCreateStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveCreateStartResponseBaseModel> {
-            return localVarFp.archiveCreateStart(requestParameters.cloudArchiveCreateStartRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.archiveCreateStart(requestParameters.cloudArchiveCreateStartRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns the current status/progress of an archive creation job.
@@ -5252,7 +5557,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          * @throws {RequiredError}
          */
         archiveCreateStatus(requestParameters: CloudArchiveApiArchiveCreateStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveCreateStatusResponseBaseModel> {
-            return localVarFp.archiveCreateStatus(requestParameters.jobId, options).then((request) => request(axios, basePath));
+            return localVarFp.archiveCreateStatus(requestParameters.jobId, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Cancels an archive extraction job if it is pending or running.
@@ -5262,7 +5567,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          * @throws {RequiredError}
          */
         archiveExtractCancel(requestParameters: CloudArchiveApiArchiveExtractCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveExtractCancelResponseBaseModel> {
-            return localVarFp.archiveExtractCancel(requestParameters.cloudArchiveExtractCancelRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.archiveExtractCancel(requestParameters.cloudArchiveExtractCancelRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
@@ -5272,7 +5577,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          * @throws {RequiredError}
          */
         archiveExtractStart(requestParameters: CloudArchiveApiArchiveExtractStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveExtractStartResponseBaseModel> {
-            return localVarFp.archiveExtractStart(requestParameters.cloudArchiveExtractStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.archiveExtractStart(requestParameters.cloudArchiveExtractStartRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns the current status/progress of an archive extraction job.
@@ -5282,7 +5587,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          * @throws {RequiredError}
          */
         archiveExtractStatus(requestParameters: CloudArchiveApiArchiveExtractStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveExtractStatusResponseBaseModel> {
-            return localVarFp.archiveExtractStatus(requestParameters.jobId, options).then((request) => request(axios, basePath));
+            return localVarFp.archiveExtractStatus(requestParameters.jobId, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Lists entries of an archive file without extracting. Supports .zip, .tar, .tar.gz, and .rar.
@@ -5292,7 +5597,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          * @throws {RequiredError}
          */
         archivePreview(requestParameters: CloudArchiveApiArchivePreviewRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchivePreviewResponseBaseModel> {
-            return localVarFp.archivePreview(requestParameters.key, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.archivePreview(requestParameters.key, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -5302,6 +5607,11 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
  */
 export interface CloudArchiveApiArchiveCreateCancelRequest {
     readonly cloudArchiveCreateCancelRequestModel: CloudArchiveCreateCancelRequestModel
+
+    /**
+     * Optional team ID. When provided, archive operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -5309,6 +5619,11 @@ export interface CloudArchiveApiArchiveCreateCancelRequest {
  */
 export interface CloudArchiveApiArchiveCreateStartRequest {
     readonly cloudArchiveCreateStartRequestModel: CloudArchiveCreateStartRequestModel
+
+    /**
+     * Optional team ID. When provided, archive operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -5316,6 +5631,11 @@ export interface CloudArchiveApiArchiveCreateStartRequest {
  */
 export interface CloudArchiveApiArchiveCreateStatusRequest {
     readonly jobId: string
+
+    /**
+     * Optional team ID. When provided, archive operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -5323,6 +5643,11 @@ export interface CloudArchiveApiArchiveCreateStatusRequest {
  */
 export interface CloudArchiveApiArchiveExtractCancelRequest {
     readonly cloudArchiveExtractCancelRequestModel: CloudArchiveExtractCancelRequestModel
+
+    /**
+     * Optional team ID. When provided, archive operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -5330,6 +5655,11 @@ export interface CloudArchiveApiArchiveExtractCancelRequest {
  */
 export interface CloudArchiveApiArchiveExtractStartRequest {
     readonly cloudArchiveExtractStartRequestModel: CloudArchiveExtractStartRequestModel
+
+    /**
+     * Optional team ID. When provided, archive operations target the team storage.
+     */
+    readonly xTeamId?: string
 
     /**
      * Session token for encrypted folder access
@@ -5342,6 +5672,11 @@ export interface CloudArchiveApiArchiveExtractStartRequest {
  */
 export interface CloudArchiveApiArchiveExtractStatusRequest {
     readonly jobId: string
+
+    /**
+     * Optional team ID. When provided, archive operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -5352,6 +5687,11 @@ export interface CloudArchiveApiArchivePreviewRequest {
      * Key of the archive file to preview
      */
     readonly key: string
+
+    /**
+     * Optional team ID. When provided, archive operations target the team storage.
+     */
+    readonly xTeamId?: string
 
     /**
      * Session token for encrypted folder access
@@ -5371,7 +5711,7 @@ export class CloudArchiveApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public archiveCreateCancel(requestParameters: CloudArchiveApiArchiveCreateCancelRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archiveCreateCancel(requestParameters.cloudArchiveCreateCancelRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudArchiveApiFp(this.configuration).archiveCreateCancel(requestParameters.cloudArchiveCreateCancelRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5382,7 +5722,7 @@ export class CloudArchiveApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public archiveCreateStart(requestParameters: CloudArchiveApiArchiveCreateStartRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archiveCreateStart(requestParameters.cloudArchiveCreateStartRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudArchiveApiFp(this.configuration).archiveCreateStart(requestParameters.cloudArchiveCreateStartRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5393,7 +5733,7 @@ export class CloudArchiveApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public archiveCreateStatus(requestParameters: CloudArchiveApiArchiveCreateStatusRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archiveCreateStatus(requestParameters.jobId, options).then((request) => request(this.axios, this.basePath));
+        return CloudArchiveApiFp(this.configuration).archiveCreateStatus(requestParameters.jobId, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5404,7 +5744,7 @@ export class CloudArchiveApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public archiveExtractCancel(requestParameters: CloudArchiveApiArchiveExtractCancelRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archiveExtractCancel(requestParameters.cloudArchiveExtractCancelRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudArchiveApiFp(this.configuration).archiveExtractCancel(requestParameters.cloudArchiveExtractCancelRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5415,7 +5755,7 @@ export class CloudArchiveApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public archiveExtractStart(requestParameters: CloudArchiveApiArchiveExtractStartRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archiveExtractStart(requestParameters.cloudArchiveExtractStartRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudArchiveApiFp(this.configuration).archiveExtractStart(requestParameters.cloudArchiveExtractStartRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5426,7 +5766,7 @@ export class CloudArchiveApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public archiveExtractStatus(requestParameters: CloudArchiveApiArchiveExtractStatusRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archiveExtractStatus(requestParameters.jobId, options).then((request) => request(this.axios, this.basePath));
+        return CloudArchiveApiFp(this.configuration).archiveExtractStatus(requestParameters.jobId, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5437,7 +5777,7 @@ export class CloudArchiveApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public archivePreview(requestParameters: CloudArchiveApiArchivePreviewRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archivePreview(requestParameters.key, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudArchiveApiFp(this.configuration).archivePreview(requestParameters.key, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -5452,10 +5792,11 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * Invalidates the session token for hidden directories, hiding them from listings again.
          * @summary Conceal hidden directories
          * @param {DirectoryConcealRequestModel} directoryConcealRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryConceal: async (directoryConcealRequestModel: DirectoryConcealRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryConceal: async (directoryConcealRequestModel: DirectoryConcealRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'directoryConcealRequestModel' is not null or undefined
             assertParamExists('directoryConceal', 'directoryConcealRequestModel', directoryConcealRequestModel)
             const localVarPath = `/Api/Cloud/Directories/Conceal`;
@@ -5476,6 +5817,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5491,11 +5835,12 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * @summary Convert a directory to encrypted
          * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
          * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryConvertToEncrypted: async (xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryConvertToEncrypted: async (xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'xFolderPassphrase' is not null or undefined
             assertParamExists('directoryConvertToEncrypted', 'xFolderPassphrase', xFolderPassphrase)
             // verify required parameter 'directoryConvertToEncryptedRequestModel' is not null or undefined
@@ -5518,6 +5863,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5538,12 +5886,13 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
          * @summary Create a directory
          * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryCreate: async (directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryCreate: async (directoryCreateRequestModel: DirectoryCreateRequestModel, xTeamId?: string, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'directoryCreateRequestModel' is not null or undefined
             assertParamExists('directoryCreate', 'directoryCreateRequestModel', directoryCreateRequestModel)
             const localVarPath = `/Api/Cloud/Directories`;
@@ -5564,6 +5913,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5585,11 +5937,12 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * @summary Remove encryption from a directory
          * @param {string} xFolderPassphrase Passphrase for decryption
          * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryDecrypt: async (xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryDecrypt: async (xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'xFolderPassphrase' is not null or undefined
             assertParamExists('directoryDecrypt', 'xFolderPassphrase', xFolderPassphrase)
             // verify required parameter 'directoryDecryptRequestModel' is not null or undefined
@@ -5612,6 +5965,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5632,12 +5988,13 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
          * @summary Delete a directory
          * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryDelete: async (directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryDelete: async (directoryDeleteRequestModel: DirectoryDeleteRequestModel, xTeamId?: string, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'directoryDeleteRequestModel' is not null or undefined
             assertParamExists('directoryDelete', 'directoryDeleteRequestModel', directoryDeleteRequestModel)
             const localVarPath = `/Api/Cloud/Directories`;
@@ -5658,6 +6015,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5679,10 +6039,11 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * @summary Hide a directory
          * @param {string} xFolderPassphrase Passphrase for hidden directory (min 8 chars)
          * @param {DirectoryHideRequestModel} directoryHideRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryHide: async (xFolderPassphrase: string, directoryHideRequestModel: DirectoryHideRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryHide: async (xFolderPassphrase: string, directoryHideRequestModel: DirectoryHideRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'xFolderPassphrase' is not null or undefined
             assertParamExists('directoryHide', 'xFolderPassphrase', xFolderPassphrase)
             // verify required parameter 'directoryHideRequestModel' is not null or undefined
@@ -5705,6 +6066,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5722,10 +6086,11 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * Invalidates the session token for an encrypted directory.
          * @summary Lock an encrypted directory
          * @param {DirectoryLockRequestModel} directoryLockRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryLock: async (directoryLockRequestModel: DirectoryLockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryLock: async (directoryLockRequestModel: DirectoryLockRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'directoryLockRequestModel' is not null or undefined
             assertParamExists('directoryLock', 'directoryLockRequestModel', directoryLockRequestModel)
             const localVarPath = `/Api/Cloud/Directories/Lock`;
@@ -5746,6 +6111,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -5760,12 +6128,13 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
          * @summary Rename a directory
          * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryRename: async (directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryRename: async (directoryRenameRequestModel: DirectoryRenameRequestModel, xTeamId?: string, xFolderPassphrase?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'directoryRenameRequestModel' is not null or undefined
             assertParamExists('directoryRename', 'directoryRenameRequestModel', directoryRenameRequestModel)
             const localVarPath = `/Api/Cloud/Directories/Rename`;
@@ -5786,6 +6155,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5807,10 +6179,11 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * @summary Reveal hidden directories
          * @param {string} xFolderPassphrase Passphrase for hidden directory (min 8 chars)
          * @param {DirectoryRevealRequestModel} directoryRevealRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryReveal: async (xFolderPassphrase: string, directoryRevealRequestModel: DirectoryRevealRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryReveal: async (xFolderPassphrase: string, directoryRevealRequestModel: DirectoryRevealRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'xFolderPassphrase' is not null or undefined
             assertParamExists('directoryReveal', 'xFolderPassphrase', xFolderPassphrase)
             // verify required parameter 'directoryRevealRequestModel' is not null or undefined
@@ -5833,6 +6206,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5851,10 +6227,11 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * @summary Unhide a directory
          * @param {string} xFolderPassphrase Passphrase for hidden directory
          * @param {DirectoryUnhideRequestModel} directoryUnhideRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryUnhide: async (xFolderPassphrase: string, directoryUnhideRequestModel: DirectoryUnhideRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryUnhide: async (xFolderPassphrase: string, directoryUnhideRequestModel: DirectoryUnhideRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'xFolderPassphrase' is not null or undefined
             assertParamExists('directoryUnhide', 'xFolderPassphrase', xFolderPassphrase)
             // verify required parameter 'directoryUnhideRequestModel' is not null or undefined
@@ -5877,6 +6254,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5895,10 +6275,11 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
          * @summary Unlock an encrypted directory
          * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
          * @param {DirectoryUnlockRequestModel} directoryUnlockRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        directoryUnlock: async (xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        directoryUnlock: async (xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'xFolderPassphrase' is not null or undefined
             assertParamExists('directoryUnlock', 'xFolderPassphrase', xFolderPassphrase)
             // verify required parameter 'directoryUnlockRequestModel' is not null or undefined
@@ -5921,6 +6302,9 @@ export const CloudDirectoriesApiAxiosParamCreator = function (configuration?: Co
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderPassphrase != null) {
                 localVarHeaderParameter['x-folder-passphrase'] = String(xFolderPassphrase);
             }
@@ -5947,11 +6331,12 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * Invalidates the session token for hidden directories, hiding them from listings again.
          * @summary Conceal hidden directories
          * @param {DirectoryConcealRequestModel} directoryConcealRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryConceal(directoryConcealRequestModel: DirectoryConcealRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConceal(directoryConcealRequestModel, options);
+        async directoryConceal(directoryConcealRequestModel: DirectoryConcealRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConceal(directoryConcealRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryConceal']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5961,12 +6346,13 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * @summary Convert a directory to encrypted
          * @param {string} xFolderPassphrase Passphrase for encryption (min 8 chars)
          * @param {DirectoryConvertToEncryptedRequestModel} directoryConvertToEncryptedRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryConvertToEncrypted(xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConvertToEncrypted(xFolderPassphrase, directoryConvertToEncryptedRequestModel, xFolderSession, options);
+        async directoryConvertToEncrypted(xFolderPassphrase: string, directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryConvertToEncrypted(xFolderPassphrase, directoryConvertToEncryptedRequestModel, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryConvertToEncrypted']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5975,13 +6361,14 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
          * @summary Create a directory
          * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory (min 8 chars)
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryCreate(directoryCreateRequestModel: DirectoryCreateRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryCreate(directoryCreateRequestModel, xFolderPassphrase, xFolderSession, options);
+        async directoryCreate(directoryCreateRequestModel: DirectoryCreateRequestModel, xTeamId?: string, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryCreate(directoryCreateRequestModel, xTeamId, xFolderPassphrase, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryCreate']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -5991,12 +6378,13 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * @summary Remove encryption from a directory
          * @param {string} xFolderPassphrase Passphrase for decryption
          * @param {DirectoryDecryptRequestModel} directoryDecryptRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryDecrypt(xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDecrypt(xFolderPassphrase, directoryDecryptRequestModel, xFolderSession, options);
+        async directoryDecrypt(xFolderPassphrase: string, directoryDecryptRequestModel: DirectoryDecryptRequestModel, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDecrypt(xFolderPassphrase, directoryDecryptRequestModel, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryDecrypt']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6005,13 +6393,14 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
          * @summary Delete a directory
          * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryDelete(directoryDeleteRequestModel: DirectoryDeleteRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDelete(directoryDeleteRequestModel, xFolderPassphrase, xFolderSession, options);
+        async directoryDelete(directoryDeleteRequestModel: DirectoryDeleteRequestModel, xTeamId?: string, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryDelete(directoryDeleteRequestModel, xTeamId, xFolderPassphrase, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryDelete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6021,11 +6410,12 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * @summary Hide a directory
          * @param {string} xFolderPassphrase Passphrase for hidden directory (min 8 chars)
          * @param {DirectoryHideRequestModel} directoryHideRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryHide(xFolderPassphrase: string, directoryHideRequestModel: DirectoryHideRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryHide(xFolderPassphrase, directoryHideRequestModel, options);
+        async directoryHide(xFolderPassphrase: string, directoryHideRequestModel: DirectoryHideRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryHide(xFolderPassphrase, directoryHideRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryHide']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6034,11 +6424,12 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * Invalidates the session token for an encrypted directory.
          * @summary Lock an encrypted directory
          * @param {DirectoryLockRequestModel} directoryLockRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryLock(directoryLockRequestModel: DirectoryLockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryLock(directoryLockRequestModel, options);
+        async directoryLock(directoryLockRequestModel: DirectoryLockRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryLock(directoryLockRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryLock']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6047,13 +6438,14 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
          * @summary Rename a directory
          * @param {DirectoryRenameRequestModel} directoryRenameRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {string} [xFolderPassphrase] Passphrase for encrypted directory
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryRename(directoryRenameRequestModel: DirectoryRenameRequestModel, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryRename(directoryRenameRequestModel, xFolderPassphrase, xFolderSession, options);
+        async directoryRename(directoryRenameRequestModel: DirectoryRenameRequestModel, xTeamId?: string, xFolderPassphrase?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryRename(directoryRenameRequestModel, xTeamId, xFolderPassphrase, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryRename']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6063,11 +6455,12 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * @summary Reveal hidden directories
          * @param {string} xFolderPassphrase Passphrase for hidden directory (min 8 chars)
          * @param {DirectoryRevealRequestModel} directoryRevealRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryReveal(xFolderPassphrase: string, directoryRevealRequestModel: DirectoryRevealRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryRevealResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryReveal(xFolderPassphrase, directoryRevealRequestModel, options);
+        async directoryReveal(xFolderPassphrase: string, directoryRevealRequestModel: DirectoryRevealRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryRevealResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryReveal(xFolderPassphrase, directoryRevealRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryReveal']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6077,11 +6470,12 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * @summary Unhide a directory
          * @param {string} xFolderPassphrase Passphrase for hidden directory
          * @param {DirectoryUnhideRequestModel} directoryUnhideRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryUnhide(xFolderPassphrase: string, directoryUnhideRequestModel: DirectoryUnhideRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryUnhide(xFolderPassphrase, directoryUnhideRequestModel, options);
+        async directoryUnhide(xFolderPassphrase: string, directoryUnhideRequestModel: DirectoryUnhideRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryUnhide(xFolderPassphrase, directoryUnhideRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryUnhide']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6091,11 +6485,12 @@ export const CloudDirectoriesApiFp = function(configuration?: Configuration) {
          * @summary Unlock an encrypted directory
          * @param {string} xFolderPassphrase Passphrase for encrypted directory (min 8 chars)
          * @param {DirectoryUnlockRequestModel} directoryUnlockRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, directory operations target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async directoryUnlock(xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryUnlockResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryUnlock(xFolderPassphrase, directoryUnlockRequestModel, options);
+        async directoryUnlock(xFolderPassphrase: string, directoryUnlockRequestModel: DirectoryUnlockRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DirectoryUnlockResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.directoryUnlock(xFolderPassphrase, directoryUnlockRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudDirectoriesApi.directoryUnlock']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6117,7 +6512,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryConceal(requestParameters: CloudDirectoriesApiDirectoryConcealRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.directoryConceal(requestParameters.directoryConcealRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryConceal(requestParameters.directoryConcealRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Marks an existing directory as encrypted. Provide passphrase via X-Folder-Passphrase header.
@@ -6127,7 +6522,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryConvertToEncrypted(requestParameters: CloudDirectoriesApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates a new directory. For encrypted directories, set IsEncrypted=true and provide passphrase via X-Folder-Passphrase header.
@@ -6137,7 +6532,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryCreate(requestParameters: CloudDirectoriesApiDirectoryCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xTeamId, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Removes encryption from a directory (keeps files). Provide passphrase via X-Folder-Passphrase header.
@@ -6147,7 +6542,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryDecrypt(requestParameters: CloudDirectoriesApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Deletes a directory and all its contents. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
@@ -6157,7 +6552,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryDelete(requestParameters: CloudDirectoriesApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xTeamId, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Marks a directory as hidden. Hidden directories are not shown in directory listings unless a valid hidden session token is provided. Provide passphrase via X-Folder-Passphrase header.
@@ -6167,7 +6562,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryHide(requestParameters: CloudDirectoriesApiDirectoryHideRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryHide(requestParameters.xFolderPassphrase, requestParameters.directoryHideRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryHide(requestParameters.xFolderPassphrase, requestParameters.directoryHideRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Invalidates the session token for an encrypted directory.
@@ -6177,7 +6572,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryLock(requestParameters: CloudDirectoriesApiDirectoryLockRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
-            return localVarFp.directoryLock(requestParameters.directoryLockRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryLock(requestParameters.directoryLockRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Renames a directory. For encrypted directories, provide passphrase via X-Folder-Passphrase header.
@@ -6187,7 +6582,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryRename(requestParameters: CloudDirectoriesApiDirectoryRenameRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xTeamId, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Validates passphrase and creates a session token for viewing hidden directories. The session token should be passed via X-Hidden-Session header in subsequent list requests.
@@ -6197,7 +6592,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryReveal(requestParameters: CloudDirectoriesApiDirectoryRevealRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryRevealResponseBaseModel> {
-            return localVarFp.directoryReveal(requestParameters.xFolderPassphrase, requestParameters.directoryRevealRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryReveal(requestParameters.xFolderPassphrase, requestParameters.directoryRevealRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Removes hidden status from a directory. Provide passphrase via X-Folder-Passphrase header.
@@ -6207,7 +6602,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryUnhide(requestParameters: CloudDirectoriesApiDirectoryUnhideRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryResponseBaseModel> {
-            return localVarFp.directoryUnhide(requestParameters.xFolderPassphrase, requestParameters.directoryUnhideRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryUnhide(requestParameters.xFolderPassphrase, requestParameters.directoryUnhideRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Validates passphrase and creates a session token for subsequent access. The session token should be passed via X-Folder-Session header in subsequent requests.
@@ -6217,7 +6612,7 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         directoryUnlock(requestParameters: CloudDirectoriesApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig): AxiosPromise<DirectoryUnlockResponseBaseModel> {
-            return localVarFp.directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -6227,6 +6622,11 @@ export const CloudDirectoriesApiFactory = function (configuration?: Configuratio
  */
 export interface CloudDirectoriesApiDirectoryConcealRequest {
     readonly directoryConcealRequestModel: DirectoryConcealRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -6241,6 +6641,11 @@ export interface CloudDirectoriesApiDirectoryConvertToEncryptedRequest {
     readonly directoryConvertToEncryptedRequestModel: DirectoryConvertToEncryptedRequestModel
 
     /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
+
+    /**
      * Session token for encrypted folder access
      */
     readonly xFolderSession?: string
@@ -6251,6 +6656,11 @@ export interface CloudDirectoriesApiDirectoryConvertToEncryptedRequest {
  */
 export interface CloudDirectoriesApiDirectoryCreateRequest {
     readonly directoryCreateRequestModel: DirectoryCreateRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 
     /**
      * Passphrase for encrypted directory (min 8 chars)
@@ -6275,6 +6685,11 @@ export interface CloudDirectoriesApiDirectoryDecryptRequest {
     readonly directoryDecryptRequestModel: DirectoryDecryptRequestModel
 
     /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
+
+    /**
      * Session token for encrypted folder access
      */
     readonly xFolderSession?: string
@@ -6285,6 +6700,11 @@ export interface CloudDirectoriesApiDirectoryDecryptRequest {
  */
 export interface CloudDirectoriesApiDirectoryDeleteRequest {
     readonly directoryDeleteRequestModel: DirectoryDeleteRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 
     /**
      * Passphrase for encrypted directory
@@ -6307,6 +6727,11 @@ export interface CloudDirectoriesApiDirectoryHideRequest {
     readonly xFolderPassphrase: string
 
     readonly directoryHideRequestModel: DirectoryHideRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -6314,6 +6739,11 @@ export interface CloudDirectoriesApiDirectoryHideRequest {
  */
 export interface CloudDirectoriesApiDirectoryLockRequest {
     readonly directoryLockRequestModel: DirectoryLockRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -6321,6 +6751,11 @@ export interface CloudDirectoriesApiDirectoryLockRequest {
  */
 export interface CloudDirectoriesApiDirectoryRenameRequest {
     readonly directoryRenameRequestModel: DirectoryRenameRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 
     /**
      * Passphrase for encrypted directory
@@ -6343,6 +6778,11 @@ export interface CloudDirectoriesApiDirectoryRevealRequest {
     readonly xFolderPassphrase: string
 
     readonly directoryRevealRequestModel: DirectoryRevealRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -6355,6 +6795,11 @@ export interface CloudDirectoriesApiDirectoryUnhideRequest {
     readonly xFolderPassphrase: string
 
     readonly directoryUnhideRequestModel: DirectoryUnhideRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -6367,6 +6812,11 @@ export interface CloudDirectoriesApiDirectoryUnlockRequest {
     readonly xFolderPassphrase: string
 
     readonly directoryUnlockRequestModel: DirectoryUnlockRequestModel
+
+    /**
+     * Optional team ID. When provided, directory operations target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -6381,7 +6831,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryConceal(requestParameters: CloudDirectoriesApiDirectoryConcealRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryConceal(requestParameters.directoryConcealRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryConceal(requestParameters.directoryConcealRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6392,7 +6842,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryConvertToEncrypted(requestParameters: CloudDirectoriesApiDirectoryConvertToEncryptedRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryConvertToEncrypted(requestParameters.xFolderPassphrase, requestParameters.directoryConvertToEncryptedRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6403,7 +6853,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryCreate(requestParameters: CloudDirectoriesApiDirectoryCreateRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryCreate(requestParameters.directoryCreateRequestModel, requestParameters.xTeamId, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6414,7 +6864,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryDecrypt(requestParameters: CloudDirectoriesApiDirectoryDecryptRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryDecrypt(requestParameters.xFolderPassphrase, requestParameters.directoryDecryptRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6425,7 +6875,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryDelete(requestParameters: CloudDirectoriesApiDirectoryDeleteRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryDelete(requestParameters.directoryDeleteRequestModel, requestParameters.xTeamId, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6436,7 +6886,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryHide(requestParameters: CloudDirectoriesApiDirectoryHideRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryHide(requestParameters.xFolderPassphrase, requestParameters.directoryHideRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryHide(requestParameters.xFolderPassphrase, requestParameters.directoryHideRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6447,7 +6897,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryLock(requestParameters: CloudDirectoriesApiDirectoryLockRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryLock(requestParameters.directoryLockRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryLock(requestParameters.directoryLockRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6458,7 +6908,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryRename(requestParameters: CloudDirectoriesApiDirectoryRenameRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryRename(requestParameters.directoryRenameRequestModel, requestParameters.xTeamId, requestParameters.xFolderPassphrase, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6469,7 +6919,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryReveal(requestParameters: CloudDirectoriesApiDirectoryRevealRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryReveal(requestParameters.xFolderPassphrase, requestParameters.directoryRevealRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryReveal(requestParameters.xFolderPassphrase, requestParameters.directoryRevealRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6480,7 +6930,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryUnhide(requestParameters: CloudDirectoriesApiDirectoryUnhideRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryUnhide(requestParameters.xFolderPassphrase, requestParameters.directoryUnhideRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryUnhide(requestParameters.xFolderPassphrase, requestParameters.directoryUnhideRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6491,7 +6941,7 @@ export class CloudDirectoriesApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public directoryUnlock(requestParameters: CloudDirectoriesApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig) {
-        return CloudDirectoriesApiFp(this.configuration).directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudDirectoriesApiFp(this.configuration).directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -6506,10 +6956,11 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
          * Abort an ongoing multipart upload and clean up temporary state.
          * @summary Abort a multipart upload
          * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadAbortMultipartUpload: async (cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadAbortMultipartUpload: async (cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudAbortMultipartUploadRequestModel' is not null or undefined
             assertParamExists('uploadAbortMultipartUpload', 'cloudAbortMultipartUploadRequestModel', cloudAbortMultipartUploadRequestModel)
             const localVarPath = `/Api/Cloud/Upload/AbortMultipartUpload`;
@@ -6530,6 +6981,9 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
@@ -6545,11 +6999,12 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
          * @summary Complete multipart upload
          * @param {string} idempotencyKey 
          * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCompleteMultipartUpload: async (idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadCompleteMultipartUpload: async (idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'idempotencyKey' is not null or undefined
             assertParamExists('uploadCompleteMultipartUpload', 'idempotencyKey', idempotencyKey)
             // verify required parameter 'cloudCompleteMultipartUploadRequestModel' is not null or undefined
@@ -6572,6 +7027,9 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -6592,11 +7050,12 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
          * Creates an UploadId and starts a multipart upload flow.
          * @summary Create a multipart upload session
          * @param {CloudCreateMultipartUploadRequestModel} cloudCreateMultipartUploadRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadCreateMultipartUpload: async (cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadCreateMultipartUpload: async (cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudCreateMultipartUploadRequestModel' is not null or undefined
             assertParamExists('uploadCreateMultipartUpload', 'cloudCreateMultipartUploadRequestModel', cloudCreateMultipartUploadRequestModel)
             const localVarPath = `/Api/Cloud/Upload/CreateMultipartUpload`;
@@ -6617,6 +7076,9 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -6634,11 +7096,12 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
          * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
          * @summary Get a multipart upload part URL
          * @param {CloudGetMultipartPartUrlRequestModel} cloudGetMultipartPartUrlRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadGetMultipartPartUrl: async (cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadGetMultipartPartUrl: async (cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cloudGetMultipartPartUrlRequestModel' is not null or undefined
             assertParamExists('uploadGetMultipartPartUrl', 'cloudGetMultipartPartUrlRequestModel', cloudGetMultipartPartUrlRequestModel)
             const localVarPath = `/Api/Cloud/Upload/GetMultipartPartUrl`;
@@ -6659,6 +7122,9 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
     
             localVarHeaderParameter['Content-Type'] = 'application/json';
 
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (xFolderSession != null) {
                 localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
             }
@@ -6680,11 +7146,12 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
          * @param {string} uploadId 
          * @param {number} partNumber 
          * @param {File} file 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        uploadPart: async (contentMd5: string, key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        uploadPart: async (contentMd5: string, key: string, uploadId: string, partNumber: number, file: File, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'contentMd5' is not null or undefined
             assertParamExists('uploadPart', 'contentMd5', contentMd5)
             // verify required parameter 'key' is not null or undefined
@@ -6730,6 +7197,9 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
     
             localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
     
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
             if (contentMd5 != null) {
                 localVarHeaderParameter['content-md5'] = String(contentMd5);
             }
@@ -6759,11 +7229,12 @@ export const CloudUploadApiFp = function(configuration?: Configuration) {
          * Abort an ongoing multipart upload and clean up temporary state.
          * @summary Abort a multipart upload
          * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadAbortMultipartUpload(cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadAbortMultipartUpload(cloudAbortMultipartUploadRequestModel, options);
+        async uploadAbortMultipartUpload(cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadAbortMultipartUpload(cloudAbortMultipartUploadRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadAbortMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6773,12 +7244,13 @@ export const CloudUploadApiFp = function(configuration?: Configuration) {
          * @summary Complete multipart upload
          * @param {string} idempotencyKey 
          * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadCompleteMultipartUpload(idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCompleteMultipartUpload(idempotencyKey, cloudCompleteMultipartUploadRequestModel, xFolderSession, options);
+        async uploadCompleteMultipartUpload(idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCompleteMultipartUpload(idempotencyKey, cloudCompleteMultipartUploadRequestModel, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadCompleteMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6787,12 +7259,13 @@ export const CloudUploadApiFp = function(configuration?: Configuration) {
          * Creates an UploadId and starts a multipart upload flow.
          * @summary Create a multipart upload session
          * @param {CloudCreateMultipartUploadRequestModel} cloudCreateMultipartUploadRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCreateMultipartUploadResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel, xFolderSession, options);
+        async uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudCreateMultipartUploadResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadCreateMultipartUpload(cloudCreateMultipartUploadRequestModel, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadCreateMultipartUpload']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6801,12 +7274,13 @@ export const CloudUploadApiFp = function(configuration?: Configuration) {
          * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
          * @summary Get a multipart upload part URL
          * @param {CloudGetMultipartPartUrlRequestModel} cloudGetMultipartPartUrlRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel, xFolderSession, options);
+        async uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadGetMultipartPartUrl(cloudGetMultipartPartUrlRequestModel, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadGetMultipartPartUrl']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6819,12 +7293,13 @@ export const CloudUploadApiFp = function(configuration?: Configuration) {
          * @param {string} uploadId 
          * @param {number} partNumber 
          * @param {File} file 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
          * @param {string} [xFolderSession] Session token for encrypted folder access
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async uploadPart(contentMd5: string, key: string, uploadId: string, partNumber: number, file: File, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(contentMd5, key, uploadId, partNumber, file, xFolderSession, options);
+        async uploadPart(contentMd5: string, key: string, uploadId: string, partNumber: number, file: File, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudUploadPartResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPart(contentMd5, key, uploadId, partNumber, file, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadPart']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -6846,7 +7321,7 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         uploadAbortMultipartUpload(requestParameters: CloudUploadApiUploadAbortMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.uploadAbortMultipartUpload(requestParameters.cloudAbortMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadAbortMultipartUpload(requestParameters.cloudAbortMultipartUploadRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Completes a multipart upload by providing the list of parts and finalizes the object.
@@ -6856,7 +7331,7 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         uploadCompleteMultipartUpload(requestParameters: CloudUploadApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCompleteMultipartUploadResponseBaseModel> {
-            return localVarFp.uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Creates an UploadId and starts a multipart upload flow.
@@ -6866,7 +7341,7 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         uploadCreateMultipartUpload(requestParameters: CloudUploadApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudCreateMultipartUploadResponseBaseModel> {
-            return localVarFp.uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns an expiring URL to upload a single part for the provided UploadId and PartNumber.
@@ -6876,7 +7351,7 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         uploadGetMultipartPartUrl(requestParameters: CloudUploadApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudGetMultipartPartUrlResponseBaseModel> {
-            return localVarFp.uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
          * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
@@ -6886,7 +7361,7 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
          * @throws {RequiredError}
          */
         uploadPart(requestParameters: CloudUploadApiUploadPartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudUploadPartResponseBaseModel> {
-            return localVarFp.uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+            return localVarFp.uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -6896,6 +7371,11 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
  */
 export interface CloudUploadApiUploadAbortMultipartUploadRequest {
     readonly cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel
+
+    /**
+     * Optional team ID. When provided, uploads target the team storage.
+     */
+    readonly xTeamId?: string
 }
 
 /**
@@ -6905,6 +7385,11 @@ export interface CloudUploadApiUploadCompleteMultipartUploadRequest {
     readonly idempotencyKey: string
 
     readonly cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel
+
+    /**
+     * Optional team ID. When provided, uploads target the team storage.
+     */
+    readonly xTeamId?: string
 
     /**
      * Session token for encrypted folder access
@@ -6919,6 +7404,11 @@ export interface CloudUploadApiUploadCreateMultipartUploadRequest {
     readonly cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel
 
     /**
+     * Optional team ID. When provided, uploads target the team storage.
+     */
+    readonly xTeamId?: string
+
+    /**
      * Session token for encrypted folder access
      */
     readonly xFolderSession?: string
@@ -6929,6 +7419,11 @@ export interface CloudUploadApiUploadCreateMultipartUploadRequest {
  */
 export interface CloudUploadApiUploadGetMultipartPartUrlRequest {
     readonly cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel
+
+    /**
+     * Optional team ID. When provided, uploads target the team storage.
+     */
+    readonly xTeamId?: string
 
     /**
      * Session token for encrypted folder access
@@ -6951,6 +7446,11 @@ export interface CloudUploadApiUploadPartRequest {
     readonly file: File
 
     /**
+     * Optional team ID. When provided, uploads target the team storage.
+     */
+    readonly xTeamId?: string
+
+    /**
      * Session token for encrypted folder access
      */
     readonly xFolderSession?: string
@@ -6968,7 +7468,7 @@ export class CloudUploadApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadAbortMultipartUpload(requestParameters: CloudUploadApiUploadAbortMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudUploadApiFp(this.configuration).uploadAbortMultipartUpload(requestParameters.cloudAbortMultipartUploadRequestModel, options).then((request) => request(this.axios, this.basePath));
+        return CloudUploadApiFp(this.configuration).uploadAbortMultipartUpload(requestParameters.cloudAbortMultipartUploadRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6979,7 +7479,7 @@ export class CloudUploadApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadCompleteMultipartUpload(requestParameters: CloudUploadApiUploadCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudUploadApiFp(this.configuration).uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudUploadApiFp(this.configuration).uploadCompleteMultipartUpload(requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -6990,7 +7490,7 @@ export class CloudUploadApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadCreateMultipartUpload(requestParameters: CloudUploadApiUploadCreateMultipartUploadRequest, options?: RawAxiosRequestConfig) {
-        return CloudUploadApiFp(this.configuration).uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudUploadApiFp(this.configuration).uploadCreateMultipartUpload(requestParameters.cloudCreateMultipartUploadRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -7001,7 +7501,7 @@ export class CloudUploadApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadGetMultipartPartUrl(requestParameters: CloudUploadApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig) {
-        return CloudUploadApiFp(this.configuration).uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudUploadApiFp(this.configuration).uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -7012,7 +7512,7 @@ export class CloudUploadApi extends BaseAPI {
      * @throws {RequiredError}
      */
     public uploadPart(requestParameters: CloudUploadApiUploadPartRequest, options?: RawAxiosRequestConfig) {
-        return CloudUploadApiFp(this.configuration).uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+        return CloudUploadApiFp(this.configuration).uploadPart(requestParameters.contentMd5, requestParameters.key, requestParameters.uploadId, requestParameters.partNumber, requestParameters.file, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -8267,6 +8767,1448 @@ export class SubscriptionApi extends BaseAPI {
      */
     public unsubscribe_1(options?: RawAxiosRequestConfig) {
         return SubscriptionApiFp(this.configuration).unsubscribe_1(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * TeamApi - axios parameter creator
+ */
+export const TeamApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Delete team (owner only)
+         * @param {string} id 
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        _delete: async (id: string, xTeamId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('_delete', 'id', id)
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('_delete', 'xTeamId', xTeamId)
+            const localVarPath = `/Api/Team/{Id}`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Create a new team
+         * @param {TeamCreateRequestModel} teamCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create: async (teamCreateRequestModel: TeamCreateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'teamCreateRequestModel' is not null or undefined
+            assertParamExists('create', 'teamCreateRequestModel', teamCreateRequestModel)
+            const localVarPath = `/Api/Team`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(teamCreateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get team details
+         * @param {string} id 
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        find: async (id: string, xTeamId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('find', 'id', id)
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('find', 'xTeamId', xTeamId)
+            const localVarPath = `/Api/Team/{Id}`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List user\'s teams
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Team`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update team settings
+         * @param {string} id 
+         * @param {string} xTeamId Team ID to operate on
+         * @param {TeamUpdateRequestModel} teamUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update: async (id: string, xTeamId: string, teamUpdateRequestModel: TeamUpdateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('update', 'id', id)
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('update', 'xTeamId', xTeamId)
+            // verify required parameter 'teamUpdateRequestModel' is not null or undefined
+            assertParamExists('update', 'teamUpdateRequestModel', teamUpdateRequestModel)
+            const localVarPath = `/Api/Team/{Id}`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(teamUpdateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TeamApi - functional programming interface
+ */
+export const TeamApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TeamApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Delete team (owner only)
+         * @param {string} id 
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async _delete(id: string, xTeamId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator._delete(id, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamApi._delete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create a new team
+         * @param {TeamCreateRequestModel} teamCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async create(teamCreateRequestModel: TeamCreateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.create(teamCreateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamApi.create']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get team details
+         * @param {string} id 
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async find(id: string, xTeamId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamDetailResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.find(id, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamApi.find']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List user\'s teams
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async list(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamResponseListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamApi.list']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update team settings
+         * @param {string} id 
+         * @param {string} xTeamId Team ID to operate on
+         * @param {TeamUpdateRequestModel} teamUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async update(id: string, xTeamId: string, teamUpdateRequestModel: TeamUpdateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.update(id, xTeamId, teamUpdateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamApi.update']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * TeamApi - factory interface
+ */
+export const TeamApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TeamApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Delete team (owner only)
+         * @param {TeamApiDeleteRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        _delete(requestParameters: TeamApiDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp._delete(requestParameters.id, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create a new team
+         * @param {TeamApiCreateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(requestParameters: TeamApiCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<TeamResponseBaseModel> {
+            return localVarFp.create(requestParameters.teamCreateRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get team details
+         * @param {TeamApiFindRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        find(requestParameters: TeamApiFindRequest, options?: RawAxiosRequestConfig): AxiosPromise<TeamDetailResponseBaseModel> {
+            return localVarFp.find(requestParameters.id, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List user\'s teams
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list(options?: RawAxiosRequestConfig): AxiosPromise<TeamResponseListBaseModel> {
+            return localVarFp.list(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update team settings
+         * @param {TeamApiUpdateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update(requestParameters: TeamApiUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<TeamResponseBaseModel> {
+            return localVarFp.update(requestParameters.id, requestParameters.xTeamId, requestParameters.teamUpdateRequestModel, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for _delete operation in TeamApi.
+ */
+export interface TeamApiDeleteRequest {
+    readonly id: string
+
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+}
+
+/**
+ * Request parameters for create operation in TeamApi.
+ */
+export interface TeamApiCreateRequest {
+    readonly teamCreateRequestModel: TeamCreateRequestModel
+}
+
+/**
+ * Request parameters for find operation in TeamApi.
+ */
+export interface TeamApiFindRequest {
+    readonly id: string
+
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+}
+
+/**
+ * Request parameters for update operation in TeamApi.
+ */
+export interface TeamApiUpdateRequest {
+    readonly id: string
+
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+
+    readonly teamUpdateRequestModel: TeamUpdateRequestModel
+}
+
+/**
+ * TeamApi - object-oriented interface
+ */
+export class TeamApi extends BaseAPI {
+    /**
+     * 
+     * @summary Delete team (owner only)
+     * @param {TeamApiDeleteRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public _delete(requestParameters: TeamApiDeleteRequest, options?: RawAxiosRequestConfig) {
+        return TeamApiFp(this.configuration)._delete(requestParameters.id, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create a new team
+     * @param {TeamApiCreateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public create(requestParameters: TeamApiCreateRequest, options?: RawAxiosRequestConfig) {
+        return TeamApiFp(this.configuration).create(requestParameters.teamCreateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get team details
+     * @param {TeamApiFindRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public find(requestParameters: TeamApiFindRequest, options?: RawAxiosRequestConfig) {
+        return TeamApiFp(this.configuration).find(requestParameters.id, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List user\'s teams
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public list(options?: RawAxiosRequestConfig) {
+        return TeamApiFp(this.configuration).list(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update team settings
+     * @param {TeamApiUpdateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public update(requestParameters: TeamApiUpdateRequest, options?: RawAxiosRequestConfig) {
+        return TeamApiFp(this.configuration).update(requestParameters.id, requestParameters.xTeamId, requestParameters.teamUpdateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * TeamInvitationsApi - axios parameter creator
+ */
+export const TeamInvitationsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Accept team invitation
+         * @param {TeamInvitationAcceptRequestModel} teamInvitationAcceptRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        accept: async (teamInvitationAcceptRequestModel: TeamInvitationAcceptRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'teamInvitationAcceptRequestModel' is not null or undefined
+            assertParamExists('accept', 'teamInvitationAcceptRequestModel', teamInvitationAcceptRequestModel)
+            const localVarPath = `/Api/Team/Invitations/Accept`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(teamInvitationAcceptRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Cancel invitation
+         * @param {string} id 
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cancel: async (id: string, xTeamId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('cancel', 'id', id)
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('cancel', 'xTeamId', xTeamId)
+            const localVarPath = `/Api/Team/Invitations/{Id}`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Create team invitation
+         * @param {string} xTeamId Team ID to operate on
+         * @param {TeamInvitationCreateRequestModel} teamInvitationCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create: async (xTeamId: string, teamInvitationCreateRequestModel: TeamInvitationCreateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('create', 'xTeamId', xTeamId)
+            // verify required parameter 'teamInvitationCreateRequestModel' is not null or undefined
+            assertParamExists('create', 'teamInvitationCreateRequestModel', teamInvitationCreateRequestModel)
+            const localVarPath = `/Api/Team/Invitations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(teamInvitationCreateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Decline team invitation
+         * @param {TeamInvitationDeclineRequestModel} teamInvitationDeclineRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        decline: async (teamInvitationDeclineRequestModel: TeamInvitationDeclineRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'teamInvitationDeclineRequestModel' is not null or undefined
+            assertParamExists('decline', 'teamInvitationDeclineRequestModel', teamInvitationDeclineRequestModel)
+            const localVarPath = `/Api/Team/Invitations/Decline`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(teamInvitationDeclineRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List team invitations
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listForTeam: async (xTeamId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('listForTeam', 'xTeamId', xTeamId)
+            const localVarPath = `/Api/Team/Invitations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List user\'s pending invitations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listPending: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/Team/Invitations/Pending`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TeamInvitationsApi - functional programming interface
+ */
+export const TeamInvitationsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TeamInvitationsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Accept team invitation
+         * @param {TeamInvitationAcceptRequestModel} teamInvitationAcceptRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async accept(teamInvitationAcceptRequestModel: TeamInvitationAcceptRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamMemberResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.accept(teamInvitationAcceptRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamInvitationsApi.accept']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Cancel invitation
+         * @param {string} id 
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async cancel(id: string, xTeamId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cancel(id, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamInvitationsApi.cancel']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create team invitation
+         * @param {string} xTeamId Team ID to operate on
+         * @param {TeamInvitationCreateRequestModel} teamInvitationCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async create(xTeamId: string, teamInvitationCreateRequestModel: TeamInvitationCreateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamInvitationResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.create(xTeamId, teamInvitationCreateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamInvitationsApi.create']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Decline team invitation
+         * @param {TeamInvitationDeclineRequestModel} teamInvitationDeclineRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async decline(teamInvitationDeclineRequestModel: TeamInvitationDeclineRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.decline(teamInvitationDeclineRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamInvitationsApi.decline']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List team invitations
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listForTeam(xTeamId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamInvitationResponseListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listForTeam(xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamInvitationsApi.listForTeam']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List user\'s pending invitations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listPending(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamInvitationResponseListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listPending(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamInvitationsApi.listPending']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * TeamInvitationsApi - factory interface
+ */
+export const TeamInvitationsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TeamInvitationsApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Accept team invitation
+         * @param {TeamInvitationsApiAcceptRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        accept(requestParameters: TeamInvitationsApiAcceptRequest, options?: RawAxiosRequestConfig): AxiosPromise<TeamMemberResponseBaseModel> {
+            return localVarFp.accept(requestParameters.teamInvitationAcceptRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Cancel invitation
+         * @param {TeamInvitationsApiCancelRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cancel(requestParameters: TeamInvitationsApiCancelRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.cancel(requestParameters.id, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create team invitation
+         * @param {TeamInvitationsApiCreateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(requestParameters: TeamInvitationsApiCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<TeamInvitationResponseBaseModel> {
+            return localVarFp.create(requestParameters.xTeamId, requestParameters.teamInvitationCreateRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Decline team invitation
+         * @param {TeamInvitationsApiDeclineRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        decline(requestParameters: TeamInvitationsApiDeclineRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.decline(requestParameters.teamInvitationDeclineRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List team invitations
+         * @param {TeamInvitationsApiListForTeamRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listForTeam(requestParameters: TeamInvitationsApiListForTeamRequest, options?: RawAxiosRequestConfig): AxiosPromise<TeamInvitationResponseListBaseModel> {
+            return localVarFp.listForTeam(requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List user\'s pending invitations
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listPending(options?: RawAxiosRequestConfig): AxiosPromise<TeamInvitationResponseListBaseModel> {
+            return localVarFp.listPending(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for accept operation in TeamInvitationsApi.
+ */
+export interface TeamInvitationsApiAcceptRequest {
+    readonly teamInvitationAcceptRequestModel: TeamInvitationAcceptRequestModel
+}
+
+/**
+ * Request parameters for cancel operation in TeamInvitationsApi.
+ */
+export interface TeamInvitationsApiCancelRequest {
+    readonly id: string
+
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+}
+
+/**
+ * Request parameters for create operation in TeamInvitationsApi.
+ */
+export interface TeamInvitationsApiCreateRequest {
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+
+    readonly teamInvitationCreateRequestModel: TeamInvitationCreateRequestModel
+}
+
+/**
+ * Request parameters for decline operation in TeamInvitationsApi.
+ */
+export interface TeamInvitationsApiDeclineRequest {
+    readonly teamInvitationDeclineRequestModel: TeamInvitationDeclineRequestModel
+}
+
+/**
+ * Request parameters for listForTeam operation in TeamInvitationsApi.
+ */
+export interface TeamInvitationsApiListForTeamRequest {
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+}
+
+/**
+ * TeamInvitationsApi - object-oriented interface
+ */
+export class TeamInvitationsApi extends BaseAPI {
+    /**
+     * 
+     * @summary Accept team invitation
+     * @param {TeamInvitationsApiAcceptRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public accept(requestParameters: TeamInvitationsApiAcceptRequest, options?: RawAxiosRequestConfig) {
+        return TeamInvitationsApiFp(this.configuration).accept(requestParameters.teamInvitationAcceptRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Cancel invitation
+     * @param {TeamInvitationsApiCancelRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public cancel(requestParameters: TeamInvitationsApiCancelRequest, options?: RawAxiosRequestConfig) {
+        return TeamInvitationsApiFp(this.configuration).cancel(requestParameters.id, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create team invitation
+     * @param {TeamInvitationsApiCreateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public create(requestParameters: TeamInvitationsApiCreateRequest, options?: RawAxiosRequestConfig) {
+        return TeamInvitationsApiFp(this.configuration).create(requestParameters.xTeamId, requestParameters.teamInvitationCreateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Decline team invitation
+     * @param {TeamInvitationsApiDeclineRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public decline(requestParameters: TeamInvitationsApiDeclineRequest, options?: RawAxiosRequestConfig) {
+        return TeamInvitationsApiFp(this.configuration).decline(requestParameters.teamInvitationDeclineRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List team invitations
+     * @param {TeamInvitationsApiListForTeamRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listForTeam(requestParameters: TeamInvitationsApiListForTeamRequest, options?: RawAxiosRequestConfig) {
+        return TeamInvitationsApiFp(this.configuration).listForTeam(requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List user\'s pending invitations
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listPending(options?: RawAxiosRequestConfig) {
+        return TeamInvitationsApiFp(this.configuration).listPending(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * TeamMembersApi - axios parameter creator
+ */
+export const TeamMembersApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Leave the team
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        leave: async (xTeamId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('leave', 'xTeamId', xTeamId)
+            const localVarPath = `/Api/Team/Members/Leave`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List team members
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list: async (xTeamId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('list', 'xTeamId', xTeamId)
+            const localVarPath = `/Api/Team/Members`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Remove a member from team
+         * @param {string} xTeamId Team ID to operate on
+         * @param {string} memberId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        remove: async (xTeamId: string, memberId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('remove', 'xTeamId', xTeamId)
+            // verify required parameter 'memberId' is not null or undefined
+            assertParamExists('remove', 'memberId', memberId)
+            const localVarPath = `/Api/Team/Members/{MemberId}`
+                .replace(`{${"MemberId"}}`, encodeURIComponent(String(memberId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Transfer team ownership
+         * @param {string} xTeamId Team ID to operate on
+         * @param {TeamTransferOwnershipRequestModel} teamTransferOwnershipRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transferOwnership: async (xTeamId: string, teamTransferOwnershipRequestModel: TeamTransferOwnershipRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('transferOwnership', 'xTeamId', xTeamId)
+            // verify required parameter 'teamTransferOwnershipRequestModel' is not null or undefined
+            assertParamExists('transferOwnership', 'teamTransferOwnershipRequestModel', teamTransferOwnershipRequestModel)
+            const localVarPath = `/Api/Team/Members/TransferOwnership`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(teamTransferOwnershipRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Change member role
+         * @param {string} xTeamId Team ID to operate on
+         * @param {string} memberId 
+         * @param {TeamMemberUpdateRoleRequestModel} teamMemberUpdateRoleRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateRole: async (xTeamId: string, memberId: string, teamMemberUpdateRoleRequestModel: TeamMemberUpdateRoleRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xTeamId' is not null or undefined
+            assertParamExists('updateRole', 'xTeamId', xTeamId)
+            // verify required parameter 'memberId' is not null or undefined
+            assertParamExists('updateRole', 'memberId', memberId)
+            // verify required parameter 'teamMemberUpdateRoleRequestModel' is not null or undefined
+            assertParamExists('updateRole', 'teamMemberUpdateRoleRequestModel', teamMemberUpdateRoleRequestModel)
+            const localVarPath = `/Api/Team/Members/{MemberId}/Role`
+                .replace(`{${"MemberId"}}`, encodeURIComponent(String(memberId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(teamMemberUpdateRoleRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TeamMembersApi - functional programming interface
+ */
+export const TeamMembersApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TeamMembersApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Leave the team
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async leave(xTeamId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.leave(xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamMembersApi.leave']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List team members
+         * @param {string} xTeamId Team ID to operate on
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async list(xTeamId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamMemberResponseListBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamMembersApi.list']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Remove a member from team
+         * @param {string} xTeamId Team ID to operate on
+         * @param {string} memberId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async remove(xTeamId: string, memberId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.remove(xTeamId, memberId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamMembersApi.remove']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Transfer team ownership
+         * @param {string} xTeamId Team ID to operate on
+         * @param {TeamTransferOwnershipRequestModel} teamTransferOwnershipRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async transferOwnership(xTeamId: string, teamTransferOwnershipRequestModel: TeamTransferOwnershipRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BooleanResponseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.transferOwnership(xTeamId, teamTransferOwnershipRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamMembersApi.transferOwnership']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Change member role
+         * @param {string} xTeamId Team ID to operate on
+         * @param {string} memberId 
+         * @param {TeamMemberUpdateRoleRequestModel} teamMemberUpdateRoleRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateRole(xTeamId: string, memberId: string, teamMemberUpdateRoleRequestModel: TeamMemberUpdateRoleRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamMemberResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateRole(xTeamId, memberId, teamMemberUpdateRoleRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TeamMembersApi.updateRole']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * TeamMembersApi - factory interface
+ */
+export const TeamMembersApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TeamMembersApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Leave the team
+         * @param {TeamMembersApiLeaveRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        leave(requestParameters: TeamMembersApiLeaveRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.leave(requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List team members
+         * @param {TeamMembersApiListRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list(requestParameters: TeamMembersApiListRequest, options?: RawAxiosRequestConfig): AxiosPromise<TeamMemberResponseListBaseModel> {
+            return localVarFp.list(requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Remove a member from team
+         * @param {TeamMembersApiRemoveRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        remove(requestParameters: TeamMembersApiRemoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.remove(requestParameters.xTeamId, requestParameters.memberId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Transfer team ownership
+         * @param {TeamMembersApiTransferOwnershipRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        transferOwnership(requestParameters: TeamMembersApiTransferOwnershipRequest, options?: RawAxiosRequestConfig): AxiosPromise<BooleanResponseModel> {
+            return localVarFp.transferOwnership(requestParameters.xTeamId, requestParameters.teamTransferOwnershipRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Change member role
+         * @param {TeamMembersApiUpdateRoleRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateRole(requestParameters: TeamMembersApiUpdateRoleRequest, options?: RawAxiosRequestConfig): AxiosPromise<TeamMemberResponseBaseModel> {
+            return localVarFp.updateRole(requestParameters.xTeamId, requestParameters.memberId, requestParameters.teamMemberUpdateRoleRequestModel, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for leave operation in TeamMembersApi.
+ */
+export interface TeamMembersApiLeaveRequest {
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+}
+
+/**
+ * Request parameters for list operation in TeamMembersApi.
+ */
+export interface TeamMembersApiListRequest {
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+}
+
+/**
+ * Request parameters for remove operation in TeamMembersApi.
+ */
+export interface TeamMembersApiRemoveRequest {
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+
+    readonly memberId: string
+}
+
+/**
+ * Request parameters for transferOwnership operation in TeamMembersApi.
+ */
+export interface TeamMembersApiTransferOwnershipRequest {
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+
+    readonly teamTransferOwnershipRequestModel: TeamTransferOwnershipRequestModel
+}
+
+/**
+ * Request parameters for updateRole operation in TeamMembersApi.
+ */
+export interface TeamMembersApiUpdateRoleRequest {
+    /**
+     * Team ID to operate on
+     */
+    readonly xTeamId: string
+
+    readonly memberId: string
+
+    readonly teamMemberUpdateRoleRequestModel: TeamMemberUpdateRoleRequestModel
+}
+
+/**
+ * TeamMembersApi - object-oriented interface
+ */
+export class TeamMembersApi extends BaseAPI {
+    /**
+     * 
+     * @summary Leave the team
+     * @param {TeamMembersApiLeaveRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public leave(requestParameters: TeamMembersApiLeaveRequest, options?: RawAxiosRequestConfig) {
+        return TeamMembersApiFp(this.configuration).leave(requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List team members
+     * @param {TeamMembersApiListRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public list(requestParameters: TeamMembersApiListRequest, options?: RawAxiosRequestConfig) {
+        return TeamMembersApiFp(this.configuration).list(requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Remove a member from team
+     * @param {TeamMembersApiRemoveRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public remove(requestParameters: TeamMembersApiRemoveRequest, options?: RawAxiosRequestConfig) {
+        return TeamMembersApiFp(this.configuration).remove(requestParameters.xTeamId, requestParameters.memberId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Transfer team ownership
+     * @param {TeamMembersApiTransferOwnershipRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public transferOwnership(requestParameters: TeamMembersApiTransferOwnershipRequest, options?: RawAxiosRequestConfig) {
+        return TeamMembersApiFp(this.configuration).transferOwnership(requestParameters.xTeamId, requestParameters.teamTransferOwnershipRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Change member role
+     * @param {TeamMembersApiUpdateRoleRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateRole(requestParameters: TeamMembersApiUpdateRoleRequest, options?: RawAxiosRequestConfig) {
+        return TeamMembersApiFp(this.configuration).updateRole(requestParameters.xTeamId, requestParameters.memberId, requestParameters.teamMemberUpdateRoleRequestModel, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
