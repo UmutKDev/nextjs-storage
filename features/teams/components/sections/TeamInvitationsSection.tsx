@@ -19,7 +19,7 @@ import {
   useCancelInvitation,
 } from "../../hooks/useTeamMutations";
 import type { TeamInvitationResponseModel } from "@/types/team.types";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const roleLabels: Record<string, string> = {
   ADMIN: "Yönetici",

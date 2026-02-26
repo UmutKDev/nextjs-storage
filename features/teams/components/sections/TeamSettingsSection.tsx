@@ -16,7 +16,7 @@ import { isOwner, canManageTeam } from "../../utils/permissions";
 import DeleteTeamDialog from "../dialogs/DeleteTeamDialog";
 import LeaveTeamDialog from "../dialogs/LeaveTeamDialog";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useWorkspaceStore } from "../../stores/workspace.store";
 
 interface TeamSettingsSectionProps {

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { useCreateTeam } from "../../hooks/useTeamMutations";
 import { useWorkspaceStore } from "../../stores/workspace.store";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 interface CreateTeamDialogProps {
   open: boolean;

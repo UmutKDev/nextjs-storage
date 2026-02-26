@@ -9,6 +9,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { getDefaultQueryClient } from "@/lib/queryClient";
 import { accountSecurityApiFactory } from "@/Service/Factories";
+import { NotificationProvider } from "@/features/notifications";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   // SessionProvider enables useSession/useSession hooks in client components
@@ -16,10 +17,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
-        {children}
-        {/* Sync next-auth session -> Instance token cache once here */}
+        <NotificationProvider>
+          {children}
+        </NotificationProvider>
         <AuthTokenSync />
-        {/* Devtools only show up in development */}
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </SessionProvider>

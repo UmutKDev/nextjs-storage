@@ -47,7 +47,7 @@ import {
 import type { TeamMemberResponseModel } from "@/types/team.types";
 import RemoveMemberDialog from "../dialogs/RemoveMemberDialog";
 import TransferOwnershipDialog from "../dialogs/TransferOwnershipDialog";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const roleLabels: Record<string, string> = {
   [TeamRole.OWNER]: "Sahip",

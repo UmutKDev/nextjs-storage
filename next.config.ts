@@ -8,11 +8,18 @@ const nextConfig: NextConfig = {
     if (!isProd) {
       connectSrc.push("http://localhost:8080");
       connectSrc.push("http://127.0.0.1:8080");
+      connectSrc.push("ws://localhost:8080");
+      connectSrc.push("ws://127.0.0.1:8080");
     }
     if (apiUrl) {
       try {
         const parsed = new URL(apiUrl);
         connectSrc.push(parsed.origin);
+        // Allow WebSocket connections to the same API origin
+        const wsOrigin = parsed.origin
+          .replace("https://", "wss://")
+          .replace("http://", "ws://");
+        connectSrc.push(wsOrigin);
       } catch {
         // ignore invalid API URL
       }

@@ -17,7 +17,7 @@ import {
   useDeclineInvitation,
 } from "../hooks/useTeamMutations";
 import { useWorkspaceStore } from "../stores/workspace.store";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import type { TeamInvitationResponseModel } from "@/types/team.types";
 
 const roleLabels: Record<string, string> = {

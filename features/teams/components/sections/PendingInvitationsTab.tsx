@@ -11,7 +11,7 @@ import {
 } from "../../hooks/useTeamMutations";
 import { useWorkspaceStore } from "../../stores/workspace.store";
 import type { TeamInvitationResponseModel } from "@/types/team.types";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const roleLabels: Record<string, string> = {
   OWNER: "Sahip",
