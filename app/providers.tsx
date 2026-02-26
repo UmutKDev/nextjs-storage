@@ -17,9 +17,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
-        <NotificationProvider>
-          {children}
-        </NotificationProvider>
+        <NotificationProvider>{children}</NotificationProvider>
         <AuthTokenSync />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
