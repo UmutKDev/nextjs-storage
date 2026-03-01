@@ -132,21 +132,21 @@ export default function ExplorerContextMenu({
               disabled={isLoading}
               onClick={() => handleAction(() => previewFile(targetFile))}
             >
-              Önizle
+              Preview
             </MenuItem>
             <MenuItem
               icon={Pencil}
               disabled={isLoading}
               onClick={() => handleAction(() => editFile(targetFile))}
             >
-              Düzenle
+              Edit
             </MenuItem>
             <MenuItem
               icon={FolderInput}
               disabled={isLoading}
               onClick={() => handleAction(() => moveItems([key]))}
             >
-              Taşı
+              Move
             </MenuItem>
             {isArchive ? (
               <MenuItem
@@ -154,7 +154,7 @@ export default function ExplorerContextMenu({
                 disabled={!canStartExtraction}
                 onClick={() => handleAction(() => extractArchive(targetFile))}
               >
-                Arşiv çıkar
+                Extract archive
               </MenuItem>
             ) : null}
             {canCancelExtraction ? (
@@ -164,7 +164,7 @@ export default function ExplorerContextMenu({
                   handleAction(() => cancelArchiveExtraction(targetFile))
                 }
               >
-                Çıkarmayı iptal et
+                Cancel extraction
               </MenuItem>
             ) : null}
             <MenuItem
@@ -172,7 +172,7 @@ export default function ExplorerContextMenu({
               disabled={isLoading || Boolean(deletingStatusByKey[key])}
               onClick={() => handleAction(() => deleteItem(targetFile))}
             >
-              Sil
+              Delete
             </MenuItem>
           </>
         ) : null}
@@ -183,7 +183,7 @@ export default function ExplorerContextMenu({
               disabled={isLoading}
               onClick={() => handleAction(() => renameItem(targetDirectory))}
             >
-              Düzenle
+              Edit
             </MenuItem>
             {!directoryMetadata.isEncrypted ? (
               <MenuItem
@@ -193,7 +193,7 @@ export default function ExplorerContextMenu({
                   handleAction(() => convertFolder(targetDirectory))
                 }
               >
-                Şifrele
+                Encrypt
               </MenuItem>
             ) : null}
             {!directoryMetadata.isHidden ? (
@@ -202,7 +202,7 @@ export default function ExplorerContextMenu({
                 disabled={isLoading}
                 onClick={() => handleAction(() => hideFolder(targetDirectory))}
               >
-                Gizle
+                Hide
               </MenuItem>
             ) : null}
             {directoryMetadata.isHidden ? (
@@ -213,7 +213,7 @@ export default function ExplorerContextMenu({
                   handleAction(() => unhideFolder(targetDirectory))
                 }
               >
-                Gizliliği Kaldır
+                Unhide
               </MenuItem>
             ) : null}
             <MenuItem
@@ -221,7 +221,7 @@ export default function ExplorerContextMenu({
               disabled={isLoading || Boolean(deletingStatusByKey[key])}
               onClick={() => handleAction(() => deleteItem(targetDirectory))}
             >
-              Sil
+              Delete
             </MenuItem>
           </>
         ) : null}

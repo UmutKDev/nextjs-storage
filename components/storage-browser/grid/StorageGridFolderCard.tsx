@@ -143,7 +143,7 @@ export const StorageGridFolderCard = ({
               })
             }
             className="size-6 bg-background/90 backdrop-blur"
-            aria-label={`${directoryMetadata.displayName} klasorunu sec`}
+            aria-label={`${directoryMetadata.displayName} select folder`}
           />
         </div>
 
@@ -170,15 +170,15 @@ export const StorageGridFolderCard = ({
                   ) : (
                     <Lock className="h-3 w-3 md:h-3.5 md:w-3.5" />
                   )}
-                  {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
+                  {directoryMetadata.isUnlocked ? "Unlocked" : "Encrypted"}
                 </span>
               ) : directoryMetadata.isHidden ? (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 md:px-2 md:py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">
                   <EyeOff className="h-3 w-3 md:h-3.5 md:w-3.5" />
-                  Gizli
+                  Hidden
                 </span>
               ) : (
-                "Klasör"
+                "Folder"
               )}
             </div>
           </div>
@@ -208,7 +208,7 @@ export const StorageGridFolderCard = ({
                 data-dnd-ignore
               >
                 <Pencil className="mr-2 h-4 w-4" />
-                Düzenle
+                Edit
               </DropdownMenuItem>
               {!directoryMetadata.isEncrypted ? (
                 <DropdownMenuItem
@@ -223,7 +223,7 @@ export const StorageGridFolderCard = ({
                   data-dnd-ignore
                 >
                   <Lock className="mr-2 h-4 w-4" />
-                  Şifrele
+                  Encrypt
                 </DropdownMenuItem>
               ) : null}
               {!directoryMetadata.isHidden ? (
@@ -239,7 +239,7 @@ export const StorageGridFolderCard = ({
                   data-dnd-ignore
                 >
                   <EyeOff className="mr-2 h-4 w-4" />
-                  Gizle
+                  Hide
                 </DropdownMenuItem>
               ) : null}
               {directoryMetadata.isHidden ? (
@@ -255,7 +255,7 @@ export const StorageGridFolderCard = ({
                   data-dnd-ignore
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  Gizliliği Kaldır
+                  Unhide
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuItem
@@ -273,7 +273,7 @@ export const StorageGridFolderCard = ({
                 data-dnd-ignore
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Sil
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

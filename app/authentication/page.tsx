@@ -119,13 +119,11 @@ export default function LoginForm() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
         >
-          <div className="mb-4 text-4xl font-serif text-white/20">
-            &ldquo;
-          </div>
+          <div className="mb-4 text-4xl font-serif text-white/20">&ldquo;</div>
           <blockquote className="space-y-4">
             <p className="text-lg font-light leading-relaxed text-white/90">
-              Bu platform sayesinde tüm dosyalarım güvende ve her an elimin
-              altında. İş akışımı inanılmaz hızlandırdı.
+              Thanks to this platform, all my files are safe and always at my
+              fingertips. It incredibly accelerated my workflow.
             </p>
             <footer className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-zinc-400 to-zinc-600 flex items-center justify-center text-sm font-semibold text-white">
@@ -208,10 +206,10 @@ export default function LoginForm() {
               transition={{ delay: 0.2, duration: 0.5 }}
             >
               <h1 className="text-2xl font-semibold tracking-tight text-white">
-                Hesabınıza Giriş Yapın
+                Sign In to Your Account
               </h1>
               <p className="text-sm text-zinc-400">
-                Devam etmek için e-posta adresinizi ve şifrenizi girin
+                Enter your email and password to continue
               </p>
             </motion.div>
 

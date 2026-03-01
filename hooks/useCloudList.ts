@@ -47,13 +47,13 @@ export const STALE_TIME = 60 * 1000; // 1 minute
 
 export const IS_METADATA_PROCESSING_ENABLED = true;
 
-/** "/" veya boş string'i normalize eder */
+/** Normalizes "/" or empty string */
 const normalizePath = (path?: string): string => {
   if (!path || path === "/") return "";
   return path.replace(/^\/+/, "");
 };
 
-/** Query key oluşturur */
+/** Creates a query key */
 export const createCloudListQueryKey = (
   path: string,
   delimiter = true,
@@ -159,7 +159,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     [normalizedPath, delimiter, isMetadataProcessing, search],
   );
 
-  // Ana query
+  // Main query
   const breadcrumbQuery = useQuery({
     queryKey: breadcrumbQueryKey,
     queryFn: async ({ signal }) =>
@@ -223,7 +223,7 @@ export function useCloudList(path?: string, options?: UseCloudListOptions) {
     },
   });
 
-  // Invalidate helper - mevcut path için cache'i temizler
+  // Invalidate helper - clears the cache for the current path
   const invalidate = useCallback(
     () =>
       queryClient.invalidateQueries({

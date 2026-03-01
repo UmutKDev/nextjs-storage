@@ -50,7 +50,7 @@ export default function CreateEncryptedFolderModal({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Lock className="w-4 h-4 text-primary" />
-                Şifreli Klasör Oluştur
+                Create Encrypted Folder
               </div>
               <button
                 onClick={onClose}
@@ -62,17 +62,17 @@ export default function CreateEncryptedFolderModal({
 
             <div className="space-y-3 text-sm text-muted-foreground">
               <p>
-                Bu klasör, istemci tarafında şifreleme gerektirecek. Parolayı
-                hatırladığınızdan emin olun; kaybolursa içeriklere erişilemez.
+                This folder will require client-side encryption. Make sure you
+                remember the password; if lost, contents cannot be accessed.
               </p>
 
               <div className="space-y-2">
                 <label className="text-xs font-medium text-foreground">
-                  Klasör Adı
+                  Folder Name
                 </label>
                 <Input
                   value={folderName}
-                  placeholder="Örn. Gizli Dosyalar"
+                  placeholder="e.g. Secret Files"
                   onChange={(e) => onFolderNameChange(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") onSubmit();
@@ -83,12 +83,12 @@ export default function CreateEncryptedFolderModal({
 
               <div className="space-y-2">
                 <label className="text-xs font-medium text-foreground">
-                  Parola (en az 8 karakter)
+                  Password (at least 8 characters)
                 </label>
                 <Input
                   type="password"
                   value={passphrase}
-                  placeholder="Parola"
+                  placeholder="Password"
                   onChange={(e) => onPassphraseChange(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") onSubmit();
@@ -100,10 +100,10 @@ export default function CreateEncryptedFolderModal({
 
             <div className="flex items-center justify-end gap-3">
               <Button variant="ghost" size="sm" onClick={onClose}>
-                Vazgeç
+                Cancel
               </Button>
               <Button size="sm" onClick={onSubmit} disabled={loading}>
-                {loading ? "Oluşturuluyor..." : "Oluştur"}
+                {loading ? "Creating..." : "Create"}
               </Button>
             </div>
           </motion.div>

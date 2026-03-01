@@ -12,17 +12,19 @@ import { useExplorerEncryption } from "../contexts/ExplorerEncryptionContext";
 import { getParentPath, normalizeStoragePath } from "../utils/path";
 import type { ArchiveExtractJob } from "../types/explorer.types";
 import { getFileDisplayName } from "../utils/item";
+import { useNotificationContext } from "@/features/notifications/context/NotificationProvider";
+import { NotificationType } from "@/features/notifications/types/notification.types";
 
-const EXTRACT_POLL_INTERVAL_MS = 1500;
 const EXTRACT_JOB_CLEANUP_DELAY_MS = 10000;
 
 export function useExplorerArchiveExtract() {
   const queryClient = useQueryClient();
   const { getSessionToken } = useExplorerEncryption();
+  const { subscribe } = useNotificationContext();
   const [extractJobs, setExtractJobs] = React.useState<
     Record<string, ArchiveExtractJob>
   >({});
-  const extractToastStateRef = React.useRef<Record<string, string>>({});
+  const jobIdToKeyRef = React.useRef(new Map<string, string>());
 
   const invalidatePath = React.useCallback(
     async (path: string) => {
@@ -57,7 +59,6 @@ export function useExplorerArchiveExtract() {
         delete nextJobs[key];
         return nextJobs;
       });
-      delete extractToastStateRef.current[key];
     }, EXTRACT_JOB_CLEANUP_DELAY_MS);
   }, []);
 
@@ -98,106 +99,64 @@ export function useExplorerArchiveExtract() {
     [],
   );
 
-  const fetchArchiveExtractionStatus = React.useCallback(
-    async (key: string, jobId: string) => {
-      try {
-        const response = await cloudArchiveApiFactory.archiveExtractStatus({
-          jobId,
-        });
-        const result = response.data?.Result;
-        if (!result) return;
+  React.useEffect(() => {
+    const unsubscribe = subscribe((payload) => {
+      const rawJobId = payload.Data?.JobId;
+      if (!rawJobId) return;
+      const jobId = String(rawJobId);
 
-        setExtractJobs((previous) => {
-          const existing = previous[key];
-          const storedTotalEntries = existing?.progress?.totalEntries;
+      const key = jobIdToKeyRef.current.get(jobId);
+      if (!key) return;
 
-          const progress: ArchiveExtractJob["progress"] = result.Progress
-            ? {
-                phase: result.Progress.Phase,
-                entriesProcessed: result.Progress.EntriesProcessed,
-                totalEntries:
-                  result.Progress.TotalEntries ?? storedTotalEntries ?? null,
-                bytesRead: result.Progress.BytesRead,
-                totalBytes: result.Progress.TotalBytes,
-                currentEntry: result.Progress.CurrentEntry,
-              }
-            : existing?.progress;
+      switch (payload.Type) {
+        case NotificationType.ARCHIVE_EXTRACT_PROGRESS: {
+          const data = payload.Data as Record<string, unknown>;
+          updateExtractJob(key, {
+            state: "active",
+            progress: {
+              phase: data.Phase as "extract" | "create" | undefined,
+              entriesProcessed: data.EntriesProcessed as number | undefined,
+              totalEntries: data.TotalEntries as number | null | undefined,
+              bytesRead: data.BytesRead as number | undefined,
+              totalBytes: data.TotalBytes as number | null | undefined,
+              currentEntry: data.CurrentEntry as string | undefined,
+            },
+          });
+          break;
+        }
 
-          const updated: ArchiveExtractJob = existing
-            ? {
-                ...existing,
-                state: result.State,
-                format: result.Format,
-                progress,
-                extractedPath: result.ExtractedPath,
-                failedReason: result.FailedReason,
-                updatedAt: Date.now(),
-              }
-            : {
-                key,
-                state: result.State,
-                format: result.Format,
-                progress,
-                extractedPath: result.ExtractedPath,
-                failedReason: result.FailedReason,
-                updatedAt: Date.now(),
-              };
-
-          return { ...previous, [key]: updated };
-        });
-
-        if (
-          result.State === "completed" &&
-          extractToastStateRef.current[key] !== "completed"
-        ) {
-          const extractedPath = result.ExtractedPath;
+        case NotificationType.ARCHIVE_EXTRACT_COMPLETE: {
+          const data = payload.Data as Record<string, unknown>;
+          const extractedPath = data.ExtractedPath as string | undefined;
+          updateExtractJob(key, {
+            state: "completed",
+            extractedPath,
+          });
           const parentPath = getParentPath(key);
           if (extractedPath) {
-            await Promise.all([
+            void Promise.all([
               invalidatePath(parentPath),
               invalidatePath(extractedPath),
             ]);
           } else {
-            await invalidatePath(parentPath);
+            void invalidatePath(parentPath);
           }
           scheduleJobCleanup(key);
-          extractToastStateRef.current[key] = "completed";
+          jobIdToKeyRef.current.delete(jobId);
+          break;
         }
 
-        if (
-          result.State === "failed" &&
-          extractToastStateRef.current[key] !== "failed"
-        ) {
+        case NotificationType.ARCHIVE_EXTRACT_FAILED: {
+          updateExtractJob(key, { state: "failed" });
           scheduleJobCleanup(key);
-          extractToastStateRef.current[key] = "failed";
+          jobIdToKeyRef.current.delete(jobId);
+          break;
         }
-      } catch (error) {
-        console.error(error);
       }
-    },
-    [invalidatePath, scheduleJobCleanup],
-  );
-
-  React.useEffect(() => {
-    const pollStates = new Set(["active", "waiting", "delayed", "starting"]);
-    const jobsToPoll = Object.values(extractJobs).filter(
-      (job) => job.jobId && pollStates.has(job.state),
-    );
-
-    if (jobsToPoll.length === 0) return;
-
-    jobsToPoll.forEach((job) => {
-      if (job.jobId) void fetchArchiveExtractionStatus(job.key, job.jobId);
     });
 
-    const intervalId = setInterval(() => {
-      jobsToPoll.forEach((job) => {
-        if (job.jobId) void fetchArchiveExtractionStatus(job.key, job.jobId);
-      });
-    }, EXTRACT_POLL_INTERVAL_MS);
-
-    return () => clearInterval(intervalId);
-  }, [extractJobs, fetchArchiveExtractionStatus]);
+    return unsubscribe;
+  }, [subscribe, updateExtractJob, invalidatePath, scheduleJobCleanup]);
 
   const createArchiveExtractionJob = React.useCallback(
     async (
@@ -210,7 +169,6 @@ export function useExplorerArchiveExtract() {
         return;
       }
 
-      delete extractToastStateRef.current[key];
       updateExtractJob(key, {
         state: "starting",
         progress: totalEntries ? { totalEntries } : undefined,
@@ -230,28 +188,23 @@ export function useExplorerArchiveExtract() {
         if (!jobId) {
           updateExtractJob(key, { state: "failed" });
           scheduleJobCleanup(key);
-          extractToastStateRef.current[key] = "failed";
           return;
         }
+
+        jobIdToKeyRef.current.set(String(jobId), key);
+
         updateExtractJob(key, {
           jobId,
           state: "waiting",
           format: result.Format,
         });
-        await fetchArchiveExtractionStatus(key, jobId);
       } catch (error) {
         console.error(error);
         updateExtractJob(key, { state: "failed" });
         scheduleJobCleanup(key);
-        extractToastStateRef.current[key] = "failed";
       }
     },
-    [
-      fetchArchiveExtractionStatus,
-      getSessionToken,
-      scheduleJobCleanup,
-      updateExtractJob,
-    ],
+    [getSessionToken, scheduleJobCleanup, updateExtractJob],
   );
 
   const cancelArchiveExtractionJob = React.useCallback(
@@ -265,9 +218,9 @@ export function useExplorerArchiveExtract() {
         await cloudArchiveApiFactory.archiveExtractCancel({
           cloudArchiveExtractCancelRequestModel: { JobId: job.jobId },
         });
+        jobIdToKeyRef.current.delete(String(job.jobId));
         updateExtractJob(key, { state: "cancelled" });
         scheduleJobCleanup(key);
-        extractToastStateRef.current[key] = "cancelled";
       } catch (error) {
         console.error(error);
       }

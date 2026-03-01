@@ -84,8 +84,8 @@ export default function ExplorerToolbar() {
             onClick={selectAllVisibleItemsInView}
             className="shrink-0 whitespace-nowrap"
           >
-            <span className="md:hidden">Tümü</span>
-            <span className="hidden md:inline">Tümünü Seç</span>
+            <span className="md:hidden">All</span>
+            <span className="hidden md:inline">Select All</span>
           </Button>
           <Button
             size="sm"
@@ -97,9 +97,9 @@ export default function ExplorerToolbar() {
           >
             <FolderInput size={16} className="mr-2" />
             <span className="hidden sm:inline">
-              Taşı ({selectedItemKeys.size})
+              Move ({selectedItemKeys.size})
             </span>
-            <span className="sm:hidden">Taşı</span>
+            <span className="sm:hidden">Move</span>
           </Button>
           {selectedArchiveFiles.length > 0 ? (
             <Button
@@ -110,9 +110,9 @@ export default function ExplorerToolbar() {
             >
               <Archive size={16} className="mr-2" />
               <span className="hidden sm:inline">
-                Arşiv Çıkar ({selectedArchiveFiles.length})
+                Extract Archive ({selectedArchiveFiles.length})
               </span>
-              <span className="sm:hidden">Arşiv Çıkar</span>
+              <span className="sm:hidden">Extract Archive</span>
             </Button>
           ) : null}
           <Button
@@ -123,9 +123,9 @@ export default function ExplorerToolbar() {
           >
             <Archive size={16} className="mr-2" />
             <span className="hidden sm:inline">
-              Arşiv Oluştur ({selectedItemKeys.size})
+              Create Archive ({selectedItemKeys.size})
             </span>
-            <span className="sm:hidden">Arşiv Oluştur</span>
+            <span className="sm:hidden">Create Archive</span>
           </Button>
           <Button
             size="sm"
@@ -139,9 +139,9 @@ export default function ExplorerToolbar() {
           >
             <Trash2 size={16} className="mr-2" />
             <span className="hidden sm:inline">
-              Sil ({selectedItemKeys.size})
+              Delete ({selectedItemKeys.size})
             </span>
-            <span className="sm:hidden">Sil</span>
+            <span className="sm:hidden">Delete</span>
           </Button>
         </div>
       ) : (
@@ -154,7 +154,7 @@ export default function ExplorerToolbar() {
               className="shrink-0 whitespace-nowrap"
             >
               <EyeOff size={16} className="mr-2" />
-              <span className="hidden sm:inline">Gizle</span>
+              <span className="hidden sm:inline">Hide</span>
             </Button>
           ) : null}
           <SearchBar value={searchQuery} onChange={setSearchQuery} />

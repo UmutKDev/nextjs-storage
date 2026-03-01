@@ -30,11 +30,11 @@ export default function TransferOwnershipDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Sahiplik Transferi</AlertDialogTitle>
+          <AlertDialogTitle>Transfer Ownership</AlertDialogTitle>
           <AlertDialogDescription>
-            Takım sahipliğini <strong>&quot;{memberName}&quot;</strong> isimli
-            üyeye transfer etmek istediğinize emin misiniz? Bu işlemden sonra
-            siz Yönetici rolüne geçeceksiniz.
+            Are you sure you want to transfer team ownership to{" "}
+            <strong>&quot;{memberName}&quot;</strong>? After this, you will
+            become an Admin.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -43,11 +43,11 @@ export default function TransferOwnershipDialog({
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
-            İptal
+            Cancel
           </Button>
           <Button onClick={onConfirm} disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Transfer Et
+            Transfer
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

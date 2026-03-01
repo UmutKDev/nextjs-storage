@@ -14,10 +14,10 @@ import TeamDetailView from "./components/TeamDetailView";
 import PendingInvitationsTab from "./components/sections/PendingInvitationsTab";
 
 const roleLabels: Record<string, string> = {
-  [TeamRole.OWNER]: "Sahip",
-  [TeamRole.ADMIN]: "Yönetici",
-  [TeamRole.MEMBER]: "Üye",
-  [TeamRole.VIEWER]: "İzleyici",
+  [TeamRole.OWNER]: "Owner",
+  [TeamRole.ADMIN]: "Admin",
+  [TeamRole.MEMBER]: "Member",
+  [TeamRole.VIEWER]: "Viewer",
 };
 
 const roleBadgeVariants: Record<
@@ -55,7 +55,7 @@ export default function TeamsPage() {
             onClick={() => router.push("/teams")}
           >
             <ArrowLeft className="h-4 w-4" />
-            Takımlara Dön
+            Back to Teams
           </Button>
           <TeamDetailView
             teamId={selectedTeamId}
@@ -72,9 +72,9 @@ export default function TeamsPage() {
       <div className="container mx-auto max-w-5xl px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">Takım Yönetimi</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Team Management</h1>
           <p className="text-muted-foreground mt-1">
-            Takımlarınızı oluşturun, yönetin ve üyelerinizi davet edin.
+            Create, manage teams and invite your members.
           </p>
         </div>
 
@@ -82,10 +82,10 @@ export default function TeamsPage() {
         <Tabs defaultValue="teams" className="space-y-6">
           <TabsList className="h-10 rounded-xl bg-muted/50 p-1">
             <TabsTrigger value="teams" className="rounded-lg px-4">
-              Takımlarım
+              My Teams
             </TabsTrigger>
             <TabsTrigger value="invitations" className="rounded-lg px-4">
-              Bekleyen Davetler
+              Pending Invitations
               {pendingCount > 0 && (
                 <Badge
                   variant="destructive"
@@ -109,25 +109,24 @@ export default function TeamsPage() {
                   <Users className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-lg font-semibold mb-1">
-                  Henüz takımınız yok
+                  You have no teams yet
                 </h3>
                 <p className="text-muted-foreground text-sm max-w-sm mb-6">
-                  Bir takım oluşturarak dosyalarınızı ekip arkadaşlarınızla
-                  paylaşmaya başlayın.
+                  Start sharing files with your teammates by creating a team.
                 </p>
                 <Button
                   className="gap-2 rounded-xl"
                   onClick={() => setCreateDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4" />
-                  Yeni Takım Oluştur
+                  Create New Team
                 </Button>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    {teams.length} takım
+                    {teams.length} team
                   </p>
                   <Button
                     size="sm"
@@ -135,7 +134,7 @@ export default function TeamsPage() {
                     onClick={() => setCreateDialogOpen(true)}
                   >
                     <Plus className="h-4 w-4" />
-                    Yeni Takım
+                    New Team
                   </Button>
                 </div>
 
@@ -200,7 +199,7 @@ function TeamCard({
           </p>
         )}
         <p className="text-xs text-muted-foreground">
-          {team.MemberCount ?? 0} üye
+          {team.MemberCount ?? 0} members
         </p>
       </div>
     </button>

@@ -22,9 +22,9 @@ import type { TeamInvitationResponseModel } from "@/types/team.types";
 import { toast } from "sonner";
 
 const roleLabels: Record<string, string> = {
-  ADMIN: "Yönetici",
-  MEMBER: "Üye",
-  VIEWER: "İzleyici",
+  ADMIN: "Admin",
+  MEMBER: "Member",
+  VIEWER: "Viewer",
 };
 
 interface TeamInvitationsSectionProps {
@@ -53,20 +53,20 @@ export default function TeamInvitationsSection({
         email: email.trim(),
         role,
       });
-      toast.success(`${email} adresine davet gönderildi.`);
+      toast.success(`Invitation sent to ${email}.`);
       setEmail("");
       setRole("MEMBER");
     } catch {
-      toast.error("Davet gönderilirken bir hata oluştu.");
+      toast.error("An error occurred while sending the invitation.");
     }
   };
 
   const handleCancel = async (invitationId: string) => {
     try {
       await cancelInvitation.mutateAsync(invitationId);
-      toast.success("Davet iptal edildi.");
+      toast.success("Invitation cancelled.");
     } catch {
-      toast.error("Davet iptal edilirken bir hata oluştu.");
+      toast.error("An error occurred while cancelling the invitation.");
     }
   };
 
@@ -76,7 +76,7 @@ export default function TeamInvitationsSection({
       <div className="rounded-2xl border bg-card/50 p-6">
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
           <UserPlus className="h-4 w-4" />
-          Üye Davet Et
+          Invite Member
         </h3>
         <form
           onSubmit={handleInvite}
@@ -84,12 +84,12 @@ export default function TeamInvitationsSection({
         >
           <div className="flex-1">
             <Label htmlFor="invite-email" className="sr-only">
-              E-posta
+              E-mail
             </Label>
             <Input
               id="invite-email"
               type="email"
-              placeholder="E-posta adresi"
+              placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="rounded-xl"
@@ -100,9 +100,9 @@ export default function TeamInvitationsSection({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ADMIN">Yönetici</SelectItem>
-              <SelectItem value="MEMBER">Üye</SelectItem>
-              <SelectItem value="VIEWER">İzleyici</SelectItem>
+              <SelectItem value="ADMIN">Admin</SelectItem>
+              <SelectItem value="MEMBER">Member</SelectItem>
+              <SelectItem value="VIEWER">Viewer</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -115,7 +115,7 @@ export default function TeamInvitationsSection({
             ) : (
               <Mail className="h-4 w-4" />
             )}
-            Davet Gönder
+            Send Invitation
           </Button>
         </form>
       </div>
@@ -123,7 +123,7 @@ export default function TeamInvitationsSection({
       {/* Pending Invitations */}
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-          Bekleyen Davetler ({invitations.length})
+          Pending Invitations ({invitations.length})
         </h3>
 
         {invitationsQuery.isLoading ? (
@@ -132,7 +132,7 @@ export default function TeamInvitationsSection({
           </div>
         ) : invitations.length === 0 ? (
           <div className="text-center py-8 text-sm text-muted-foreground">
-            Bekleyen davet bulunmuyor.
+            No pending invitations.
           </div>
         ) : (
           <div className="space-y-2">
@@ -149,9 +149,9 @@ export default function TeamInvitationsSection({
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {new Date(invitation.CreatedAt).toLocaleDateString(
-                        "tr-TR",
+                        "en-US",
                       )}{" "}
-                      tarihinde gönderildi
+                      - sent
                     </div>
                   </div>
                 </div>

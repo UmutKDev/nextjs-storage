@@ -25,7 +25,7 @@ const getErrorMessage = (error: unknown) => {
     return data?.message || data?.title || error.message;
   }
   if (error instanceof Error) return error.message;
-  return "Klasör gizlenemedi.";
+  return "Failed to hide folder.";
 };
 
 export default function HideFolderDialog({
@@ -52,7 +52,7 @@ export default function HideFolderDialog({
 
   const handleSubmit = async () => {
     if (!passphrase.trim() || passphrase.length < 8) {
-      setError("Parola en az 8 karakter olmalı.");
+      setError("Password must be at least 8 characters.");
       return;
     }
 
@@ -103,7 +103,7 @@ export default function HideFolderDialog({
             <div className="flex items-center justify-between p-4 border-b border-muted/10">
               <div className="flex items-center gap-2">
                 <EyeOff className="text-primary" />
-                <div className="text-sm font-semibold">Klasörü gizle</div>
+                <div className="text-sm font-semibold">Hide folder</div>
               </div>
               <button
                 onClick={onClose}
@@ -125,8 +125,8 @@ export default function HideFolderDialog({
                 <span className="font-semibold text-foreground">
                   {folderName}
                 </span>{" "}
-                klasörünü gizlemek için bir parola belirleyin. Bu parolayı
-                kaybederseniz klasöre erişemezsiniz.
+                Set a password to hide this folder. If you lose this password,
+                you will not be able to access the folder.
               </p>
 
               <Input
@@ -134,7 +134,7 @@ export default function HideFolderDialog({
                 name="password"
                 type="password"
                 value={passphrase}
-                placeholder="Parola (en az 8 karakter)"
+                placeholder="Password (at least 8 characters)"
                 autoComplete="new-password"
                 autoFocus
                 onChange={(e) => setPassphrase(e.target.value)}
@@ -154,10 +154,10 @@ export default function HideFolderDialog({
                   onClick={onClose}
                   type="button"
                 >
-                  İptal
+                  Cancel
                 </Button>
                 <Button size="sm" type="submit" disabled={loading}>
-                  {loading ? "Gizleniyor..." : "Gizle"}
+                  {loading ? "Hiding..." : "Hide"}
                 </Button>
               </div>
             </form>

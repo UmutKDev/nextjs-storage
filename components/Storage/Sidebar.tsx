@@ -47,14 +47,14 @@ export default function Sidebar({ className }: SidebarProps) {
 
   const navItems = [
     {
-      label: "Dosyalarım",
+      label: "My Files",
       icon: HardDrive,
       path: "/",
       active: currentPath === "/" || currentPath === "",
       onClick: () => setCurrentPath(""),
     },
     {
-      label: "Son Kullanılanlar",
+      label: "Recent",
       icon: Clock,
       path: "/recent",
       active: false,
@@ -62,7 +62,7 @@ export default function Sidebar({ className }: SidebarProps) {
       disabled: true,
     },
     {
-      label: "Yıldızlı",
+      label: "Starred",
       icon: Star,
       path: "/starred",
       active: false,
@@ -70,7 +70,7 @@ export default function Sidebar({ className }: SidebarProps) {
       disabled: true,
     },
     {
-      label: "Çöp Kutusu",
+      label: "Trash",
       icon: Trash2,
       path: "/trash",
       active: false,
@@ -98,7 +98,7 @@ export default function Sidebar({ className }: SidebarProps) {
             disabled={!canUploadFiles}
           >
             <Plus className="w-5 h-5" />
-            Yeni Ekle
+            Add New
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56 p-2 rounded-xl">
@@ -110,7 +110,7 @@ export default function Sidebar({ className }: SidebarProps) {
             className="gap-2 p-3 rounded-lg cursor-pointer"
           >
             <UploadCloud className="w-4 h-4 text-blue-500" />
-            <span>Dosya Yükle</span>
+            <span>Upload File</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={
@@ -122,7 +122,7 @@ export default function Sidebar({ className }: SidebarProps) {
             className="gap-2 p-3 rounded-lg cursor-pointer"
           >
             <FolderPlus className="w-4 h-4 text-yellow-500" />
-            <span>Klasör Oluştur</span>
+            <span>Create Folder</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -130,7 +130,7 @@ export default function Sidebar({ className }: SidebarProps) {
       {/* Navigation */}
       <div className="flex-1 space-y-1">
         <div className="text-xs font-semibold text-muted-foreground mb-4 px-2 uppercase tracking-wider">
-          Menü
+          Menu
         </div>
         {navItems.map((item) => (
           <Button
@@ -161,7 +161,7 @@ export default function Sidebar({ className }: SidebarProps) {
         <div className="bg-muted/30 p-5 rounded-3xl border border-border/50 shadow-sm">
           <div className="flex items-center gap-2 mb-4 text-primary">
             <Cloud className="w-5 h-5" />
-            <span className="font-semibold text-sm">Bulut Alanı</span>
+            <span className="font-semibold text-sm">Cloud Space</span>
           </div>
 
           <StorageUsage usage={userStorageUsageQuery.data} className="w-full" />
@@ -171,7 +171,7 @@ export default function Sidebar({ className }: SidebarProps) {
             size="sm"
             className="w-full mt-5 rounded-xl text-xs h-9 shadow-md"
           >
-            Yükselt
+            Upgrade
           </Button>
         </div>
       </div>

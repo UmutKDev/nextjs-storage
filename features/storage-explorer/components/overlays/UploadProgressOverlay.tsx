@@ -18,10 +18,10 @@ export default function UploadProgressOverlay() {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-foreground">
-              Yukleme devam ediyor
+              Upload in progress
             </span>
             <span className="text-xs text-muted-foreground">
-              {activeUploads.length} dosya
+              {activeUploads.length} files
             </span>
           </div>
         </div>
@@ -31,7 +31,7 @@ export default function UploadProgressOverlay() {
       </div>
       <div className="mt-3">
         <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-muted-foreground">
-          <span>Toplam ilerleme</span>
+          <span>Total progress</span>
           <span>{aggregatedUploadProgress}%</span>
         </div>
         <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-muted/70">

@@ -23,7 +23,7 @@ export const useArchiveExtractStatus = () => {
     (extractJob: ArchiveExtractJob) => {
       const state = extractJob.state.toLowerCase();
       if (ARCHIVE_PENDING_STATES.has(state)) {
-        return "Arsiv cikarma beklemede";
+        return "Archive extraction pending";
       }
       if (state === "active") {
         const progress = extractJob.progress;
@@ -45,7 +45,7 @@ export const useArchiveExtractStatus = () => {
           : "";
 
         const phaseLabel =
-          phase === "create" ? "Dosyalar olusturuluyor" : "Arsiv cikariliyor";
+          phase === "create" ? "Creating files" : "Extracting archive";
 
         // Prioritize entry-based info (bytes are often 100% immediately)
         if (entriesProcessed !== null) {
@@ -53,7 +53,7 @@ export const useArchiveExtractStatus = () => {
             totalEntries !== null && totalEntries > 0
               ? ` / ${totalEntries}`
               : "";
-          return `${phaseLabel} ${entriesProcessed}${entryTotal} dosya${entryInfo}`;
+          return `${phaseLabel} ${entriesProcessed}${entryTotal} files${entryInfo}`;
         }
         // Fallback to bytes only when still reading the archive
         if (
@@ -68,11 +68,11 @@ export const useArchiveExtractStatus = () => {
         }
         return `${phaseLabel}${entryInfo}`;
       }
-      if (state === "completed") return "Arsiv cikarma tamamlandi";
+      if (state === "completed") return "Archive extraction completed";
       if (state === "failed")
-        return extractJob.failedReason || "Arsiv cikarma basarisiz";
-      if (state === "cancelled") return "Arsiv cikarma iptal edildi";
-      return "Arsiv cikarma durumu bilinmiyor";
+        return extractJob.failedReason || "Archive extraction failed";
+      if (state === "cancelled") return "Archive extraction cancelled";
+      return "Archive extraction status unknown";
     },
     [],
   );
@@ -117,10 +117,7 @@ export const useArchiveExtractStatus = () => {
         totalBytes > 0 &&
         bytesRead < totalBytes
       ) {
-        return Math.min(
-          99,
-          Math.round((bytesRead / totalBytes) * 100),
-        );
+        return Math.min(99, Math.round((bytesRead / totalBytes) * 100));
       }
 
       // Has progress data but can't compute percentage → indeterminate
@@ -133,7 +130,7 @@ export const useArchiveExtractStatus = () => {
     (createJob: ArchiveCreateJob) => {
       const state = createJob.state.toLowerCase();
       if (ARCHIVE_PENDING_STATES.has(state)) {
-        return "Arsiv olusturuluyor...";
+        return "Creating archive...";
       }
       if (state === "active") {
         const progress = createJob.progress;
@@ -153,22 +150,22 @@ export const useArchiveExtractStatus = () => {
             : null;
 
         if (bytesProcessed !== null && totalBytes !== null && totalBytes > 0) {
-          return `Arsiv olusturuluyor ${humanReadableFileSize(bytesProcessed)} / ${humanReadableFileSize(totalBytes)}`;
+          return `Creating archive ${humanReadableFileSize(bytesProcessed)} / ${humanReadableFileSize(totalBytes)}`;
         }
         if (entriesProcessed !== null) {
           const entryTotal =
             totalEntries !== null && totalEntries > 0
               ? ` / ${totalEntries}`
               : "";
-          return `Arsiv olusturuluyor ${entriesProcessed}${entryTotal}`;
+          return `Creating archive ${entriesProcessed}${entryTotal}`;
         }
-        return "Arsiv olusturuluyor...";
+        return "Creating archive...";
       }
-      if (state === "completed") return "Arsiv olusturuldu";
+      if (state === "completed") return "Archive created";
       if (state === "failed")
-        return createJob.failedReason || "Arsiv olusturma basarisiz";
-      if (state === "cancelled") return "Arsiv olusturma iptal edildi";
-      return "Arsiv olusturma durumu bilinmiyor";
+        return createJob.failedReason || "Archive creation failed";
+      if (state === "cancelled") return "Archive creation cancelled";
+      return "Archive creation status unknown";
     },
     [],
   );

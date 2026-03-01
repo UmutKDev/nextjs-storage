@@ -10,13 +10,11 @@ import type {
 } from "../types/notification.types";
 
 export function useNotifications(
-  options: UseNotificationsOptions = {},
+  options: UseNotificationsOptions,
 ): UseNotificationsReturn {
-  const { enabled = true, sessionId, onNotification } = options;
+  const { enabled = true, sessionId, subscribersRef } = options;
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const onNotificationRef = useRef(onNotification);
-  onNotificationRef.current = onNotification;
 
   useEffect(() => {
     if (!enabled || !sessionId) {
@@ -61,7 +59,13 @@ export function useNotifications(
     });
 
     socket.on("notification", (payload: NotificationPayload) => {
-      onNotificationRef.current?.(payload);
+      subscribersRef.current.forEach((fn) => {
+        try {
+          fn(payload);
+        } catch (e) {
+          console.error("[Notifications] Subscriber error:", e);
+        }
+      });
     });
 
     socket.io.on("reconnect", (attemptNumber) => {

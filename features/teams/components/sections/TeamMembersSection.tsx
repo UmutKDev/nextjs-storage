@@ -50,10 +50,10 @@ import TransferOwnershipDialog from "../dialogs/TransferOwnershipDialog";
 import { toast } from "sonner";
 
 const roleLabels: Record<string, string> = {
-  [TeamRole.OWNER]: "Sahip",
-  [TeamRole.ADMIN]: "Yönetici",
-  [TeamRole.MEMBER]: "Üye",
-  [TeamRole.VIEWER]: "İzleyici",
+  [TeamRole.OWNER]: "Owner",
+  [TeamRole.ADMIN]: "Admin",
+  [TeamRole.MEMBER]: "Member",
+  [TeamRole.VIEWER]: "Viewer",
 };
 
 const roleBadgeVariants: Record<
@@ -95,9 +95,9 @@ export default function TeamMembersSection({
         memberId,
         role: newRole as TeamMemberUpdateRoleRequestModelRoleEnum,
       });
-      toast.success("Rol güncellendi.");
+      toast.success("Role updated.");
     } catch {
-      toast.error("Rol güncellenirken bir hata oluştu.");
+      toast.error("An error occurred while updating the role.");
     }
   };
 
@@ -105,10 +105,10 @@ export default function TeamMembersSection({
     if (!removeMember) return;
     try {
       await removeMemberMutation.mutateAsync(removeMember.Id);
-      toast.success("Üye takımdan çıkarıldı.");
+      toast.success("Member removed from the team.");
       setRemoveMember(null);
     } catch {
-      toast.error("Üye çıkarılırken bir hata oluştu.");
+      toast.error("An error occurred while removing the member.");
     }
   };
 
@@ -116,10 +116,10 @@ export default function TeamMembersSection({
     if (!transferTarget) return;
     try {
       await transferMutation.mutateAsync(transferTarget.UserId);
-      toast.success("Sahiplik transfer edildi.");
+      toast.success("Ownership transferred.");
       setTransferTarget(null);
     } catch {
-      toast.error("Sahiplik transfer edilirken bir hata oluştu.");
+      toast.error("An error occurred while transferring ownership.");
     }
   };
 
@@ -135,7 +135,7 @@ export default function TeamMembersSection({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Üyeler ({members.length})
+          Members ({members.length})
         </h3>
       </div>
 
@@ -143,10 +143,10 @@ export default function TeamMembersSection({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Üye</TableHead>
-              <TableHead>Rol</TableHead>
+              <TableHead>Member</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead className="hidden sm:table-cell">
-                Katılım Tarihi
+                Joined Date
               </TableHead>
               {canManage && <TableHead className="w-12" />}
             </TableRow>
@@ -182,9 +182,9 @@ export default function TeamMembersSection({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ADMIN">Yönetici</SelectItem>
-                        <SelectItem value="MEMBER">Üye</SelectItem>
-                        <SelectItem value="VIEWER">İzleyici</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
+                        <SelectItem value="MEMBER">Member</SelectItem>
+                        <SelectItem value="VIEWER">Viewer</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
@@ -198,7 +198,7 @@ export default function TeamMembersSection({
                 </TableCell>
                 <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
                   {member.JoinedAt
-                    ? new Date(member.JoinedAt).toLocaleDateString("tr-TR")
+                    ? new Date(member.JoinedAt).toLocaleDateString("en-US")
                     : "-"}
                 </TableCell>
                 {canManage && (
@@ -221,7 +221,7 @@ export default function TeamMembersSection({
                               className="gap-2"
                             >
                               <Crown className="h-4 w-4" />
-                              Sahipliği Transfer Et
+                              Transfer Ownership
                             </DropdownMenuItem>
                           )}
                           {amOwner && <DropdownMenuSeparator />}
@@ -230,7 +230,7 @@ export default function TeamMembersSection({
                             className="gap-2 text-destructive focus:text-destructive"
                           >
                             <UserMinus className="h-4 w-4" />
-                            Takımdan Çıkar
+                            Remove from Team
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

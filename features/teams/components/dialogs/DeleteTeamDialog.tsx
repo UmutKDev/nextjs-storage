@@ -30,11 +30,11 @@ export default function DeleteTeamDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Takımı Sil</AlertDialogTitle>
+          <AlertDialogTitle>Delete Team</AlertDialogTitle>
           <AlertDialogDescription>
-            <strong>&quot;{teamName}&quot;</strong> takımını silmek istediğinize
-            emin misiniz? Bu işlem geri alınamaz ve tüm takım verileri
-            silinecektir.
+            Are you sure you want to delete the{" "}
+            <strong>&quot;{teamName}&quot;</strong> team? This action cannot be
+            undone and all team data will be deleted.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -43,7 +43,7 @@ export default function DeleteTeamDialog({
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
-            İptal
+            Cancel
           </Button>
           <Button
             variant="destructive"
@@ -51,7 +51,7 @@ export default function DeleteTeamDialog({
             disabled={isPending}
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sil
+            Delete
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

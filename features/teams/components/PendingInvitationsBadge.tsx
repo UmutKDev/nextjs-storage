@@ -21,10 +21,10 @@ import { toast } from "sonner";
 import type { TeamInvitationResponseModel } from "@/types/team.types";
 
 const roleLabels: Record<string, string> = {
-  OWNER: "Sahip",
-  ADMIN: "Yönetici",
-  MEMBER: "Üye",
-  VIEWER: "İzleyici",
+  OWNER: "Owner",
+  ADMIN: "Admin",
+  MEMBER: "Member",
+  VIEWER: "Viewer",
 };
 
 export default function PendingInvitationsBadge() {
@@ -51,7 +51,7 @@ export default function PendingInvitationsBadge() {
 
       <DropdownMenuContent align="end" className="w-80 p-0 rounded-xl">
         <DropdownMenuLabel className="px-4 py-3">
-          <span className="text-sm font-semibold">Bekleyen Davetler</span>
+          <span className="text-sm font-semibold">Pending Invitations</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
@@ -83,13 +83,13 @@ function InvitationItem({
       if (member) {
         useWorkspaceStore.getState().setActiveWorkspace({
           id: invitation.Id,
-          name: invitation.TeamName ?? "Takım",
+          name: invitation.TeamName ?? "Team",
           role: member.Role ?? "MEMBER",
         });
       }
-      toast.success(`"${invitation.TeamName}" takımına katıldınız.`);
+      toast.success(`You joined the "${invitation.TeamName}" team.`);
     } catch {
-      toast.error("Davet kabul edilirken bir hata oluştu.");
+      toast.error("An error occurred while accepting the invitation.");
     }
   };
 
@@ -98,9 +98,9 @@ function InvitationItem({
     e.stopPropagation();
     try {
       await declineMutation.mutateAsync(invitation.Id);
-      toast.success("Davet reddedildi.");
+      toast.success("Invitation declined.");
     } catch {
-      toast.error("Davet reddedilirken bir hata oluştu.");
+      toast.error("An error occurred while declining the invitation.");
     }
   };
 
@@ -122,14 +122,14 @@ function InvitationItem({
             {invitation.TeamName}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {invitation.InvitedByName} tarafından davet edildiniz
+            {invitation.InvitedByName} invited you
           </div>
           <div className="flex items-center gap-2 mt-1">
             <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
               {roleLabels[invitation.Role] ?? invitation.Role}
             </Badge>
             <span className="text-[10px] text-muted-foreground">
-              {daysLeft > 0 ? `${daysLeft} gün kaldı` : "Süresi doluyor"}
+              {daysLeft > 0 ? `${daysLeft} days left` : "Expiring soon"}
             </span>
           </div>
           <div className="flex items-center gap-2 mt-2">
@@ -144,7 +144,7 @@ function InvitationItem({
               ) : (
                 <Check className="h-3 w-3 mr-1" />
               )}
-              Kabul Et
+              Accept
             </Button>
             <Button
               size="sm"
@@ -158,7 +158,7 @@ function InvitationItem({
               ) : (
                 <X className="h-3 w-3 mr-1" />
               )}
-              Reddet
+              Decline
             </Button>
           </div>
         </div>

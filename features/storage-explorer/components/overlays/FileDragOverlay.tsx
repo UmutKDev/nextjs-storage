@@ -3,11 +3,7 @@
 import React from "react";
 import { UploadCloud } from "lucide-react";
 
-export default function FileDragOverlay({
-  isVisible,
-}: {
-  isVisible: boolean;
-}) {
+export default function FileDragOverlay({ isVisible }: { isVisible: boolean }) {
   if (!isVisible) return null;
 
   return (
@@ -24,14 +20,14 @@ export default function FileDragOverlay({
                 <UploadCloud className="h-6 w-6 text-foreground" />
               </div>
               <div className="mt-5 text-base font-semibold tracking-wide text-foreground">
-                Dosyaları buraya bırakın
+                Drop files here
               </div>
               <div className="mt-2 text-xs text-muted-foreground">
-                Yükleme otomatik olarak başlar
+                Upload starts automatically
               </div>
               <div className="mt-6 h-px w-full bg-gradient-to-r from-transparent via-foreground/15 to-transparent" />
               <div className="mt-4 flex items-center justify-center gap-2 text-[11px] uppercase tracking-[0.22em] text-muted-foreground/80">
-                Hazır
+                Ready
               </div>
             </div>
           </div>

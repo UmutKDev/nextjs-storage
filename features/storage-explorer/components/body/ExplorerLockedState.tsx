@@ -11,7 +11,7 @@ export default function ExplorerLockedState() {
   const { lockedFolderPath, requestFolderUnlock } = useExplorerEncryption();
   const { currentPath } = useExplorerQuery();
   const folderLabel =
-    currentPath.split("/").filter(Boolean).pop() || "bu klasör";
+    currentPath.split("/").filter(Boolean).pop() || "this folder";
 
   return (
     <div className="h-full flex flex-col items-center justify-center text-center gap-5 px-4 py-10">
@@ -20,11 +20,10 @@ export default function ExplorerLockedState() {
       </div>
       <div className="space-y-2 max-w-md">
         <div className="text-lg font-semibold text-foreground">
-          Şifrelenmiş klasör kilitli
+          Encrypted folder is locked
         </div>
         <p className="text-sm text-muted-foreground">
-          {folderLabel} şifrelenmiş durumda. İçeriği görüntülemek için parolayı
-          girerek bu klasörü kilitsiz hale getirin.
+          {folderLabel} is encrypted. Enter the password to unlock this folder.
         </p>
       </div>
       <Button
@@ -37,7 +36,7 @@ export default function ExplorerLockedState() {
         }
         size="sm"
       >
-        Klasörü Kilitsiz Yap
+        Unlock Folder
       </Button>
     </div>
   );

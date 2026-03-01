@@ -10,16 +10,18 @@ import {
 import { normalizeStoragePath, getParentPath } from "../utils/path";
 import type { ArchiveCreateJob } from "../types/explorer.types";
 import type { CloudArchiveCreateStartRequestModelFormatEnum } from "@/Service/Generates/api";
+import { useNotificationContext } from "@/features/notifications/context/NotificationProvider";
+import { NotificationType } from "@/features/notifications/types/notification.types";
 
-const CREATE_POLL_INTERVAL_MS = 1500;
 const CREATE_JOB_CLEANUP_DELAY_MS = 10000;
 
 export function useExplorerArchiveCreate() {
   const queryClient = useQueryClient();
+  const { subscribe } = useNotificationContext();
   const [createJobs, setCreateJobs] = React.useState<
     Record<string, ArchiveCreateJob>
   >({});
-  const createToastStateRef = React.useRef<Record<string, string>>({});
+  const jobIdToKeysRef = React.useRef(new Map<string, string[]>());
 
   const invalidatePath = React.useCallback(
     async (path: string) => {
@@ -46,26 +48,30 @@ export function useExplorerArchiveCreate() {
     [queryClient],
   );
 
-  const scheduleJobCleanup = React.useCallback((jobKey: string) => {
+  const scheduleJobsCleanup = React.useCallback((keys: string[]) => {
     setTimeout(() => {
       setCreateJobs((previous) => {
-        if (!previous[jobKey]) return previous;
         const nextJobs = { ...previous };
-        delete nextJobs[jobKey];
-        return nextJobs;
+        let changed = false;
+        for (const key of keys) {
+          if (nextJobs[key]) {
+            delete nextJobs[key];
+            changed = true;
+          }
+        }
+        return changed ? nextJobs : previous;
       });
-      delete createToastStateRef.current[jobKey];
     }, CREATE_JOB_CLEANUP_DELAY_MS);
   }, []);
 
-  const updateCreateJob = React.useCallback(
-    (jobKey: string, update: Partial<ArchiveCreateJob>) => {
+  const updateCreateJobs = React.useCallback(
+    (keys: string[], update: Partial<ArchiveCreateJob>) => {
       setCreateJobs((previous) => {
-        const existing = previous[jobKey];
-        if (!existing) {
-          return {
-            ...previous,
-            [jobKey]: {
+        const nextJobs = { ...previous };
+        for (const key of keys) {
+          const existing = nextJobs[key];
+          if (!existing) {
+            nextJobs[key] = {
               state: update.state ?? "waiting",
               jobId: update.jobId,
               format: update.format,
@@ -75,94 +81,72 @@ export function useExplorerArchiveCreate() {
               archiveSize: update.archiveSize,
               failedReason: update.failedReason,
               updatedAt: Date.now(),
-            },
-          };
+            };
+          } else {
+            nextJobs[key] = {
+              ...existing,
+              ...update,
+              updatedAt: Date.now(),
+            };
+          }
         }
-        return {
-          ...previous,
-          [jobKey]: {
-            ...existing,
-            ...update,
-            updatedAt: Date.now(),
-          },
-        };
+        return nextJobs;
       });
     },
     [],
   );
 
-  const fetchCreateStatus = React.useCallback(
-    async (jobKey: string, jobId: string) => {
-      try {
-        const response = await cloudArchiveApiFactory.archiveCreateStatus({
-          jobId,
-        });
-        const result = response.data?.Result;
-        if (!result) return;
+  React.useEffect(() => {
+    const unsubscribe = subscribe((payload) => {
+      const rawJobId = payload.Data?.JobId;
+      if (!rawJobId) return;
+      const jobId = String(rawJobId);
 
-        const raw = (result.Progress || {}) as Record<string, unknown>;
-        const progress: ArchiveCreateJob["progress"] = {
-          entriesProcessed: (raw.EntriesProcessed ?? raw.entriesProcessed) as number | undefined,
-          totalEntries: (raw.TotalEntries ?? raw.totalEntries) as number | null | undefined,
-          bytesProcessed: (raw.BytesProcessed ?? raw.bytesProcessed) as number | undefined,
-          totalBytes: (raw.TotalBytes ?? raw.totalBytes) as number | null | undefined,
-        };
+      const keys = jobIdToKeysRef.current.get(jobId);
+      if (!keys) return;
 
-        updateCreateJob(jobKey, {
-          state: result.State,
-          progress,
-          archiveKey: result.ArchiveKey,
-          archiveSize: result.ArchiveSize,
-          failedReason: result.FailedReason,
-        });
+      switch (payload.Type) {
+        case NotificationType.ARCHIVE_CREATE_PROGRESS: {
+          const data = payload.Data as Record<string, unknown>;
+          updateCreateJobs(keys, {
+            state: "active",
+            progress: {
+              entriesProcessed: data.EntriesProcessed as number | undefined,
+              totalEntries: data.TotalEntries as number | null | undefined,
+              bytesProcessed: data.BytesWritten as number | undefined,
+            },
+          });
+          break;
+        }
 
-        if (
-          result.State === "completed" &&
-          createToastStateRef.current[jobKey] !== "completed"
-        ) {
-          const archiveKey = result.ArchiveKey;
+        case NotificationType.ARCHIVE_CREATE_COMPLETE: {
+          const data = payload.Data as Record<string, unknown>;
+          const archiveKey = data.Key as string | undefined;
+          updateCreateJobs(keys, {
+            state: "completed",
+            archiveKey,
+            archiveSize: data.Size as number | undefined,
+          });
           if (archiveKey) {
             const parentPath = getParentPath(archiveKey);
-            await invalidatePath(parentPath);
+            void invalidatePath(parentPath);
           }
-          scheduleJobCleanup(jobKey);
-          createToastStateRef.current[jobKey] = "completed";
+          scheduleJobsCleanup(keys);
+          jobIdToKeysRef.current.delete(jobId);
+          break;
         }
 
-        if (
-          result.State === "failed" &&
-          createToastStateRef.current[jobKey] !== "failed"
-        ) {
-          scheduleJobCleanup(jobKey);
-          createToastStateRef.current[jobKey] = "failed";
+        case NotificationType.ARCHIVE_CREATE_FAILED: {
+          updateCreateJobs(keys, { state: "failed" });
+          scheduleJobsCleanup(keys);
+          jobIdToKeysRef.current.delete(jobId);
+          break;
         }
-      } catch (error) {
-        console.error(error);
       }
-    },
-    [invalidatePath, scheduleJobCleanup, updateCreateJob],
-  );
-
-  React.useEffect(() => {
-    const pollStates = new Set(["active", "waiting", "delayed", "starting"]);
-    const jobsToPoll = Object.entries(createJobs).filter(
-      ([, job]) => job.jobId && pollStates.has(job.state),
-    );
-
-    if (jobsToPoll.length === 0) return;
-
-    jobsToPoll.forEach(([jobKey, job]) => {
-      if (job.jobId) void fetchCreateStatus(jobKey, job.jobId);
     });
 
-    const intervalId = setInterval(() => {
-      jobsToPoll.forEach(([jobKey, job]) => {
-        if (job.jobId) void fetchCreateStatus(jobKey, job.jobId);
-      });
-    }, CREATE_POLL_INTERVAL_MS);
-
-    return () => clearInterval(intervalId);
-  }, [createJobs, fetchCreateStatus]);
+    return unsubscribe;
+  }, [subscribe, updateCreateJobs, invalidatePath, scheduleJobsCleanup]);
 
   const startArchiveCreation = React.useCallback(
     async (
@@ -170,10 +154,7 @@ export function useExplorerArchiveCreate() {
       format?: CloudArchiveCreateStartRequestModelFormatEnum,
       outputName?: string,
     ) => {
-      const jobKey = keys.join(",");
-
-      delete createToastStateRef.current[jobKey];
-      updateCreateJob(jobKey, { state: "starting", format });
+      updateCreateJobs(keys, { state: "starting", format });
 
       try {
         const response = await cloudArchiveApiFactory.archiveCreateStart({
@@ -186,26 +167,26 @@ export function useExplorerArchiveCreate() {
         const result = response.data?.Result;
         const jobId = result?.JobId;
         if (!jobId) {
-          updateCreateJob(jobKey, { state: "failed" });
-          scheduleJobCleanup(jobKey);
-          createToastStateRef.current[jobKey] = "failed";
+          updateCreateJobs(keys, { state: "failed" });
+          scheduleJobsCleanup(keys);
           return;
         }
-        updateCreateJob(jobKey, {
+
+        jobIdToKeysRef.current.set(String(jobId), keys);
+
+        updateCreateJobs(keys, {
           jobId,
           state: "waiting",
           format: result.Format,
           outputKey: result.OutputKey,
         });
-        await fetchCreateStatus(jobKey, jobId);
       } catch (error) {
         console.error(error);
-        updateCreateJob(jobKey, { state: "failed" });
-        scheduleJobCleanup(jobKey);
-        createToastStateRef.current[jobKey] = "failed";
+        updateCreateJobs(keys, { state: "failed" });
+        scheduleJobsCleanup(keys);
       }
     },
-    [fetchCreateStatus, scheduleJobCleanup, updateCreateJob],
+    [scheduleJobsCleanup, updateCreateJobs],
   );
 
   const cancelArchiveCreation = React.useCallback(
@@ -217,14 +198,17 @@ export function useExplorerArchiveCreate() {
         await cloudArchiveApiFactory.archiveCreateCancel({
           cloudArchiveCreateCancelRequestModel: { JobId: job.jobId },
         });
-        updateCreateJob(jobKey, { state: "cancelled" });
-        scheduleJobCleanup(jobKey);
-        createToastStateRef.current[jobKey] = "cancelled";
+        const allKeys = jobIdToKeysRef.current.get(String(job.jobId)) ?? [
+          jobKey,
+        ];
+        jobIdToKeysRef.current.delete(String(job.jobId));
+        updateCreateJobs(allKeys, { state: "cancelled" });
+        scheduleJobsCleanup(allKeys);
       } catch (error) {
         console.error(error);
       }
     },
-    [createJobs, scheduleJobCleanup, updateCreateJob],
+    [createJobs, scheduleJobsCleanup, updateCreateJobs],
   );
 
   return {

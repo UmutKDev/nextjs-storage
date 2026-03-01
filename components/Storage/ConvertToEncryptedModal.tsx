@@ -33,26 +33,25 @@ export default function ConvertToEncryptedModal({
           <div className="flex flex-col gap-1">
             <div className="text-sm font-semibold flex items-center gap-2">
               <Lock className="h-4 w-4 text-primary" />
-              Şifreli Klasöre Dönüştür
+              Convert to Encrypted Folder
             </div>
             {folderName ? (
               <p className="text-xs text-muted-foreground">
-                Hedef klasör:{" "}
+                Target folder:{" "}
                 <span className="font-medium text-foreground">
                   {folderName}
                 </span>
               </p>
             ) : null}
             <p className="text-xs text-muted-foreground">
-              Bu işlem seçilen klasörü istemci tarafında şifrelenmiş olarak
-              işaretler. Parolayı güvenle saklayın; kaybolursa içerikler
-              kurtarılamaz.
+              This operation marks the selected folder as client-side encrypted.
+              Keep the password safe; if lost, contents cannot be recovered.
             </p>
           </div>
           <button
             className="rounded p-1 hover:bg-muted/10"
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label="Close"
             disabled={loading}
           >
             <X className="h-4 w-4" />
@@ -61,11 +60,11 @@ export default function ConvertToEncryptedModal({
 
         <div className="space-y-2">
           <label className="text-xs font-medium text-foreground">
-            Parola (en az 8 karakter)
+            Password (at least 8 characters)
           </label>
           <Input
             type="password"
-            placeholder="Parola"
+            placeholder="Password"
             value={passphrase}
             onChange={(e) => onPassphraseChange(e.target.value)}
             disabled={loading}
@@ -84,10 +83,10 @@ export default function ConvertToEncryptedModal({
             onClick={onClose}
             disabled={loading}
           >
-            Vazgeç
+            Cancel
           </Button>
           <Button size="sm" onClick={onSubmit} disabled={loading}>
-            {loading ? "Dönüştürülüyor..." : "Dönüştür"}
+            {loading ? "Converting..." : "Convert"}
           </Button>
         </div>
       </div>

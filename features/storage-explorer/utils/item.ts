@@ -4,7 +4,7 @@ import type {
 } from "@/Service/Generates/api";
 
 export const getItemDisplayName = (
-  entry: CloudObjectModel | CloudDirectoryModel
+  entry: CloudObjectModel | CloudDirectoryModel,
 ) => {
   if ("Prefix" in entry) {
     const prefix = entry.Prefix ?? "";
@@ -15,5 +15,5 @@ export const getItemDisplayName = (
 };
 
 export const getFileDisplayName = (entry: CloudObjectModel) => {
-  return entry.Metadata?.Originalfilename || entry.Name || "dosya";
+  return entry.Metadata?.Originalfilename || entry.Name || "file";
 };

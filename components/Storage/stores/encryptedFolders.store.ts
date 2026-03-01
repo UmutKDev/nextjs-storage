@@ -170,7 +170,7 @@ export const useEncryptedFoldersStore =
               label ||
               normalized.split("/").filter(Boolean).pop() ||
               normalized ||
-              "bu klasör";
+              "this folder";
             set({ unlockPrompt: { path: targetPath, displayName, onSuccess } });
           },
           clearSession: (path) => {

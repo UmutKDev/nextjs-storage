@@ -152,7 +152,7 @@ export const StorageGridFileCard = ({
               })
             }
             className="size-6 bg-background/90 backdrop-blur"
-            aria-label={`${file.Name} sec`}
+            aria-label={`${file.Name} select`}
           />
         </div>
 
@@ -202,7 +202,7 @@ export const StorageGridFileCard = ({
                 data-dnd-ignore
               >
                 <Eye className="mr-2 h-4 w-4" />
-                Önizle
+                Preview
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(event) => {
@@ -216,7 +216,7 @@ export const StorageGridFileCard = ({
                 data-dnd-ignore
               >
                 <Pencil className="mr-2 h-4 w-4" />
-                Düzenle
+                Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(event) => {
@@ -230,7 +230,7 @@ export const StorageGridFileCard = ({
                 data-dnd-ignore
               >
                 <FolderInput className="mr-2 h-4 w-4" />
-                Taşı
+                Move
               </DropdownMenuItem>
               {isArchive ? (
                 <DropdownMenuItem
@@ -246,7 +246,7 @@ export const StorageGridFileCard = ({
                   data-dnd-ignore
                 >
                   <Archive className="mr-2 h-4 w-4" />
-                  Arşiv çıkar
+                  Extract archive
                 </DropdownMenuItem>
               ) : null}
               {canCancelExtraction ? (
@@ -262,7 +262,7 @@ export const StorageGridFileCard = ({
                   data-dnd-ignore
                 >
                   <XCircle className="mr-2 h-4 w-4" />
-                  Çıkarmayı iptal et
+                  Cancel extraction
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuItem
@@ -278,7 +278,7 @@ export const StorageGridFileCard = ({
                 data-dnd-ignore
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Sil
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

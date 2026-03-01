@@ -60,19 +60,19 @@ export function Navbar() {
             href="/"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            Anasayfa
+            Home
           </Link>
           <Link
             href="#features"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            Özellikler
+            Features
           </Link>
           <Link
             href="#pricing"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            Fiyatlandırma
+            Pricing
           </Link>
         </nav>
 
@@ -94,7 +94,7 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <Link href="/storage" className="hidden sm:block">
                 <Button size="sm" className="rounded-full px-4">
-                  Depoya Git
+                  Go to Storage
                 </Button>
               </Link>
               <PendingInvitationsBadge />
@@ -134,7 +134,7 @@ export function Navbar() {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <User className="mr-2 h-4 w-4" />
-                      <span>Profil</span>
+                      <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -144,7 +144,7 @@ export function Navbar() {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <UsersRound className="mr-2 h-4 w-4" />
-                      <span>Takımlarım</span>
+                      <span>My Teams</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -154,7 +154,7 @@ export function Navbar() {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Settings className="mr-2 h-4 w-4" />
-                      <span>Ayarlar</span>
+                      <span>Settings</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -163,7 +163,7 @@ export function Navbar() {
                     onClick={() => signOut()}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Çıkış Yap</span>
+                    <span>Log Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -172,12 +172,12 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <Link href="/authentication" className="hidden sm:block">
                 <Button variant="ghost" size="sm" className="rounded-full">
-                  Giriş Yap
+                  Log In
                 </Button>
               </Link>
               <Link href="/authentication">
                 <Button size="sm" className="rounded-full px-5">
-                  Kayıt Ol
+                  Sign Up
                 </Button>
               </Link>
             </div>
@@ -204,17 +204,17 @@ export function Navbar() {
         <div className="absolute top-16 left-0 right-0 border-t bg-background/95 backdrop-blur-lg p-4 shadow-lg md:hidden animate-in fade-in slide-in-from-top-2">
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>
             <Button variant="ghost" className="w-full justify-start rounded-xl">
-              Anasayfa
+              Home
             </Button>
           </Link>
           <Link href="#features" onClick={() => setMobileMenuOpen(false)}>
             <Button variant="ghost" className="w-full justify-start rounded-xl">
-              Özellikler
+              Features
             </Button>
           </Link>
           <Link href="/teams" onClick={() => setMobileMenuOpen(false)}>
             <Button variant="ghost" className="w-full justify-start rounded-xl">
-              Takımlarım
+              My Teams
             </Button>
           </Link>
           <Link href="/storage" onClick={() => setMobileMenuOpen(false)}>

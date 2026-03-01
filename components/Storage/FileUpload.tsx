@@ -165,7 +165,7 @@ export default function FileUpload() {
             ...rejected.map((f) => ({
               name: f.name,
               size: f.size,
-              reason: `Çok büyük — maksimum ${humanFileSize(maxUploadBytes)}`,
+              reason: `Too large — max ${humanFileSize(maxUploadBytes)}`,
             })),
           ]);
         }
@@ -209,7 +209,7 @@ export default function FileUpload() {
             ...rejected.map((f) => ({
               name: f.name,
               size: f.size,
-              reason: `Çok büyük — maksimum ${humanFileSize(maxUploadBytes)}`,
+              reason: `Too large — max ${humanFileSize(maxUploadBytes)}`,
             })),
           ]);
         }
@@ -233,9 +233,9 @@ export default function FileUpload() {
           <div className="flex items-start gap-3">
             <AlertCircle className="size-5 mt-0.5" />
             <div className="flex-1">
-              <strong className="block">Dosya yukleme devre disi</strong>
+              <strong className="block">File upload disabled</strong>
               <p className="mt-1 text-sm text-destructive/90">
-                Sifrelenmis klasor kilitli oldugu icin yukleme yapamazsiniz.
+                You cannot upload because the encrypted folder is locked.
               </p>
             </div>
           </div>
@@ -247,7 +247,7 @@ export default function FileUpload() {
             <AlertCircle className="size-5 mt-0.5" />
             <div className="flex-1">
               <div className="flex items-center justify-between gap-3">
-                <strong className="block">Dosya(lar) yüklenemedi</strong>
+                <strong className="block">File(s) could not be uploaded</strong>
                 <button
                   aria-label="Dismiss file warnings"
                   className="text-destructive/80 hover:text-destructive shrink-0"

@@ -263,29 +263,6 @@ export const CloudArchiveCreateStartResponseModelFormatEnum = {
 
 export type CloudArchiveCreateStartResponseModelFormatEnum = typeof CloudArchiveCreateStartResponseModelFormatEnum[keyof typeof CloudArchiveCreateStartResponseModelFormatEnum];
 
-export interface CloudArchiveCreateStatusResponseBaseModel {
-    'Result': CloudArchiveCreateStatusResponseModel;
-    'Status': BaseStatusModel;
-}
-export interface CloudArchiveCreateStatusResponseModel {
-    'JobId': string;
-    'State': CloudArchiveCreateStatusResponseModelStateEnum;
-    'Progress'?: object;
-    'ArchiveKey'?: string;
-    'ArchiveSize'?: number;
-    'FailedReason'?: string;
-}
-
-export const CloudArchiveCreateStatusResponseModelStateEnum = {
-    Waiting: 'waiting',
-    Delayed: 'delayed',
-    Active: 'active',
-    Completed: 'completed',
-    Failed: 'failed'
-} as const;
-
-export type CloudArchiveCreateStatusResponseModelStateEnum = typeof CloudArchiveCreateStatusResponseModelStateEnum[keyof typeof CloudArchiveCreateStatusResponseModelStateEnum];
-
 export interface CloudArchiveExtractCancelRequestModel {
     'JobId': string;
 }
@@ -296,22 +273,6 @@ export interface CloudArchiveExtractCancelResponseBaseModel {
 export interface CloudArchiveExtractCancelResponseModel {
     'Cancelled': boolean;
 }
-export interface CloudArchiveExtractProgressModel {
-    'Phase': CloudArchiveExtractProgressModelPhaseEnum;
-    'EntriesProcessed': number;
-    'TotalEntries'?: number;
-    'BytesRead': number;
-    'TotalBytes': number;
-    'CurrentEntry'?: string;
-}
-
-export const CloudArchiveExtractProgressModelPhaseEnum = {
-    Extract: 'extract',
-    Create: 'create'
-} as const;
-
-export type CloudArchiveExtractProgressModelPhaseEnum = typeof CloudArchiveExtractProgressModelPhaseEnum[keyof typeof CloudArchiveExtractProgressModelPhaseEnum];
-
 export interface CloudArchiveExtractStartRequestModel {
     /**
      * Key of the archive file to extract
@@ -342,37 +303,6 @@ export const CloudArchiveExtractStartResponseModelFormatEnum = {
 } as const;
 
 export type CloudArchiveExtractStartResponseModelFormatEnum = typeof CloudArchiveExtractStartResponseModelFormatEnum[keyof typeof CloudArchiveExtractStartResponseModelFormatEnum];
-
-export interface CloudArchiveExtractStatusResponseBaseModel {
-    'Result': CloudArchiveExtractStatusResponseModel;
-    'Status': BaseStatusModel;
-}
-export interface CloudArchiveExtractStatusResponseModel {
-    'JobId': string;
-    'State': CloudArchiveExtractStatusResponseModelStateEnum;
-    'Format'?: CloudArchiveExtractStatusResponseModelFormatEnum;
-    'Progress'?: CloudArchiveExtractProgressModel;
-    'ExtractedPath'?: string;
-    'FailedReason'?: string;
-}
-
-export const CloudArchiveExtractStatusResponseModelStateEnum = {
-    Waiting: 'waiting',
-    Delayed: 'delayed',
-    Active: 'active',
-    Completed: 'completed',
-    Failed: 'failed'
-} as const;
-
-export type CloudArchiveExtractStatusResponseModelStateEnum = typeof CloudArchiveExtractStatusResponseModelStateEnum[keyof typeof CloudArchiveExtractStatusResponseModelStateEnum];
-export const CloudArchiveExtractStatusResponseModelFormatEnum = {
-    Zip: 'zip',
-    Tar: 'tar',
-    TarGz: 'tar.gz',
-    Rar: 'rar'
-} as const;
-
-export type CloudArchiveExtractStatusResponseModelFormatEnum = typeof CloudArchiveExtractStatusResponseModelFormatEnum[keyof typeof CloudArchiveExtractStatusResponseModelFormatEnum];
 
 export interface CloudArchivePreviewEntryModel {
     'Path': string;
@@ -5149,7 +5079,7 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
-         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
+         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID. Progress and completion are pushed via WebSocket notifications.
          * @summary Start archive creation
          * @param {CloudArchiveCreateStartRequestModel} cloudArchiveCreateStartRequestModel 
          * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
@@ -5184,49 +5114,6 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(cloudArchiveCreateStartRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Returns the current status/progress of an archive creation job.
-         * @summary Get archive creation status
-         * @param {string} jobId 
-         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        archiveCreateStatus: async (jobId: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'jobId' is not null or undefined
-            assertParamExists('archiveCreateStatus', 'jobId', jobId)
-            const localVarPath = `/Api/Cloud/Archive/Create/Status`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-            if (jobId !== undefined) {
-                localVarQueryParameter['JobId'] = jobId;
-            }
-
-
-    
-            if (xTeamId != null) {
-                localVarHeaderParameter['x-team-id'] = String(xTeamId);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -5276,7 +5163,7 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
-         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
+         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction. Progress and completion are pushed via WebSocket notifications.
          * @summary Start archive extraction
          * @param {CloudArchiveExtractStartRequestModel} cloudArchiveExtractStartRequestModel 
          * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
@@ -5315,49 +5202,6 @@ export const CloudArchiveApiAxiosParamCreator = function (configuration?: Config
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(cloudArchiveExtractStartRequestModel, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Returns the current status/progress of an archive extraction job.
-         * @summary Get archive extraction status
-         * @param {string} jobId 
-         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        archiveExtractStatus: async (jobId: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'jobId' is not null or undefined
-            assertParamExists('archiveExtractStatus', 'jobId', jobId)
-            const localVarPath = `/Api/Cloud/Archive/Extract/Status`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication cookie required
-
-            if (jobId !== undefined) {
-                localVarQueryParameter['JobId'] = jobId;
-            }
-
-
-    
-            if (xTeamId != null) {
-                localVarHeaderParameter['x-team-id'] = String(xTeamId);
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -5435,7 +5279,7 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
+         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID. Progress and completion are pushed via WebSocket notifications.
          * @summary Start archive creation
          * @param {CloudArchiveCreateStartRequestModel} cloudArchiveCreateStartRequestModel 
          * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
@@ -5446,20 +5290,6 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateStart(cloudArchiveCreateStartRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveCreateStart']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns the current status/progress of an archive creation job.
-         * @summary Get archive creation status
-         * @param {string} jobId 
-         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async archiveCreateStatus(jobId: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveCreateStatusResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveCreateStatus(jobId, xTeamId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveCreateStatus']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -5477,7 +5307,7 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
+         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction. Progress and completion are pushed via WebSocket notifications.
          * @summary Start archive extraction
          * @param {CloudArchiveExtractStartRequestModel} cloudArchiveExtractStartRequestModel 
          * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
@@ -5489,20 +5319,6 @@ export const CloudArchiveApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractStart(cloudArchiveExtractStartRequestModel, xTeamId, xFolderSession, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveExtractStart']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Returns the current status/progress of an archive extraction job.
-         * @summary Get archive extraction status
-         * @param {string} jobId 
-         * @param {string} [xTeamId] Optional team ID. When provided, archive operations target the team storage.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async archiveExtractStatus(jobId: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudArchiveExtractStatusResponseBaseModel>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.archiveExtractStatus(jobId, xTeamId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudArchiveApi.archiveExtractStatus']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -5540,7 +5356,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
             return localVarFp.archiveCreateCancel(requestParameters.cloudArchiveCreateCancelRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
+         * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID. Progress and completion are pushed via WebSocket notifications.
          * @summary Start archive creation
          * @param {CloudArchiveApiArchiveCreateStartRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -5548,16 +5364,6 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          */
         archiveCreateStart(requestParameters: CloudArchiveApiArchiveCreateStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveCreateStartResponseBaseModel> {
             return localVarFp.archiveCreateStart(requestParameters.cloudArchiveCreateStartRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns the current status/progress of an archive creation job.
-         * @summary Get archive creation status
-         * @param {CloudArchiveApiArchiveCreateStatusRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        archiveCreateStatus(requestParameters: CloudArchiveApiArchiveCreateStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveCreateStatusResponseBaseModel> {
-            return localVarFp.archiveCreateStatus(requestParameters.jobId, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Cancels an archive extraction job if it is pending or running.
@@ -5570,7 +5376,7 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
             return localVarFp.archiveExtractCancel(requestParameters.cloudArchiveExtractCancelRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
+         * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction. Progress and completion are pushed via WebSocket notifications.
          * @summary Start archive extraction
          * @param {CloudArchiveApiArchiveExtractStartRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -5578,16 +5384,6 @@ export const CloudArchiveApiFactory = function (configuration?: Configuration, b
          */
         archiveExtractStart(requestParameters: CloudArchiveApiArchiveExtractStartRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveExtractStartResponseBaseModel> {
             return localVarFp.archiveExtractStart(requestParameters.cloudArchiveExtractStartRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Returns the current status/progress of an archive extraction job.
-         * @summary Get archive extraction status
-         * @param {CloudArchiveApiArchiveExtractStatusRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        archiveExtractStatus(requestParameters: CloudArchiveApiArchiveExtractStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudArchiveExtractStatusResponseBaseModel> {
-            return localVarFp.archiveExtractStatus(requestParameters.jobId, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Lists entries of an archive file without extracting. Supports .zip, .tar, .tar.gz, and .rar.
@@ -5627,18 +5423,6 @@ export interface CloudArchiveApiArchiveCreateStartRequest {
 }
 
 /**
- * Request parameters for archiveCreateStatus operation in CloudArchiveApi.
- */
-export interface CloudArchiveApiArchiveCreateStatusRequest {
-    readonly jobId: string
-
-    /**
-     * Optional team ID. When provided, archive operations target the team storage.
-     */
-    readonly xTeamId?: string
-}
-
-/**
  * Request parameters for archiveExtractCancel operation in CloudArchiveApi.
  */
 export interface CloudArchiveApiArchiveExtractCancelRequest {
@@ -5665,18 +5449,6 @@ export interface CloudArchiveApiArchiveExtractStartRequest {
      * Session token for encrypted folder access
      */
     readonly xFolderSession?: string
-}
-
-/**
- * Request parameters for archiveExtractStatus operation in CloudArchiveApi.
- */
-export interface CloudArchiveApiArchiveExtractStatusRequest {
-    readonly jobId: string
-
-    /**
-     * Optional team ID. When provided, archive operations target the team storage.
-     */
-    readonly xTeamId?: string
 }
 
 /**
@@ -5715,7 +5487,7 @@ export class CloudArchiveApi extends BaseAPI {
     }
 
     /**
-     * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID to track progress.
+     * Creates a .zip, .tar, or .tar.gz archive from the given keys (files and/or directories). Returns a job ID. Progress and completion are pushed via WebSocket notifications.
      * @summary Start archive creation
      * @param {CloudArchiveApiArchiveCreateStartRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -5723,17 +5495,6 @@ export class CloudArchiveApi extends BaseAPI {
      */
     public archiveCreateStart(requestParameters: CloudArchiveApiArchiveCreateStartRequest, options?: RawAxiosRequestConfig) {
         return CloudArchiveApiFp(this.configuration).archiveCreateStart(requestParameters.cloudArchiveCreateStartRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns the current status/progress of an archive creation job.
-     * @summary Get archive creation status
-     * @param {CloudArchiveApiArchiveCreateStatusRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public archiveCreateStatus(requestParameters: CloudArchiveApiArchiveCreateStatusRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archiveCreateStatus(requestParameters.jobId, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5748,7 +5509,7 @@ export class CloudArchiveApi extends BaseAPI {
     }
 
     /**
-     * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction.
+     * Starts an async job to extract a .zip, .tar, .tar.gz, or .rar archive. Optionally provide SelectedEntries for selective extraction. Progress and completion are pushed via WebSocket notifications.
      * @summary Start archive extraction
      * @param {CloudArchiveApiArchiveExtractStartRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -5756,17 +5517,6 @@ export class CloudArchiveApi extends BaseAPI {
      */
     public archiveExtractStart(requestParameters: CloudArchiveApiArchiveExtractStartRequest, options?: RawAxiosRequestConfig) {
         return CloudArchiveApiFp(this.configuration).archiveExtractStart(requestParameters.cloudArchiveExtractStartRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Returns the current status/progress of an archive extraction job.
-     * @summary Get archive extraction status
-     * @param {CloudArchiveApiArchiveExtractStatusRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public archiveExtractStatus(requestParameters: CloudArchiveApiArchiveExtractStatusRequest, options?: RawAxiosRequestConfig) {
-        return CloudArchiveApiFp(this.configuration).archiveExtractStatus(requestParameters.jobId, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -14,10 +14,10 @@ import type { TeamInvitationResponseModel } from "@/types/team.types";
 import { toast } from "sonner";
 
 const roleLabels: Record<string, string> = {
-  OWNER: "Sahip",
-  ADMIN: "Yönetici",
-  MEMBER: "Üye",
-  VIEWER: "İzleyici",
+  OWNER: "Owner",
+  ADMIN: "Admin",
+  MEMBER: "Member",
+  VIEWER: "Viewer",
 };
 
 export default function PendingInvitationsTab() {
@@ -38,9 +38,9 @@ export default function PendingInvitationsTab() {
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50 mb-4">
           <Mail className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold mb-1">Bekleyen davet yok</h3>
+        <h3 className="text-lg font-semibold mb-1">No pending invitations</h3>
         <p className="text-muted-foreground text-sm max-w-sm">
-          Size gönderilmiş bekleyen bir takım daveti bulunmuyor.
+          You have no pending team invitations.
         </p>
       </div>
     );
@@ -71,22 +71,22 @@ function InvitationCard({
       if (member) {
         useWorkspaceStore.getState().setActiveWorkspace({
           id: invitation.Id,
-          name: invitation.TeamName ?? "Takım",
+          name: invitation.TeamName ?? "Team",
           role: member.Role ?? "MEMBER",
         });
       }
-      toast.success(`"${invitation.TeamName}" takımına katıldınız.`);
+      toast.success(`You joined the "${invitation.TeamName}" team.`);
     } catch {
-      toast.error("Davet kabul edilirken bir hata oluştu.");
+      toast.error("An error occurred while accepting the invitation.");
     }
   };
 
   const handleDecline = async () => {
     try {
       await declineMutation.mutateAsync(invitation.Id);
-      toast.success("Davet reddedildi.");
+      toast.success("Invitation declined.");
     } catch {
-      toast.error("Davet reddedilirken bir hata oluştu.");
+      toast.error("An error occurred while declining the invitation.");
     }
   };
 
@@ -112,10 +112,10 @@ function InvitationCard({
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground">
-          {invitation.InvitedByName} tarafından davet edildiniz
+          {invitation.InvitedByName} invited you
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {daysLeft > 0 ? `${daysLeft} gün kaldı` : "Süresi doluyor"}
+          {daysLeft > 0 ? `${daysLeft} days left` : "Expiring soon"}
         </p>
         <div className="flex items-center gap-2 mt-3">
           <Button
@@ -129,7 +129,7 @@ function InvitationCard({
             ) : (
               <Check className="h-3 w-3" />
             )}
-            Kabul Et
+            Accept
           </Button>
           <Button
             size="sm"
@@ -143,7 +143,7 @@ function InvitationCard({
             ) : (
               <X className="h-3 w-3" />
             )}
-            Reddet
+            Decline
           </Button>
         </div>
       </div>

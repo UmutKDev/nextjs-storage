@@ -7,8 +7,8 @@ export default function ExplorerEmptyState() {
   return (
     <div className="h-full grid place-items-center">
       <EmptyState
-        title="Klasör Boş"
-        description="Bu klasörde henüz dosya veya klasör yok."
+        title="Empty Folder"
+        description="No files or folders in this directory yet."
       />
     </div>
   );

@@ -30,11 +30,11 @@ export default function LeaveTeamDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Takımdan Ayrıl</AlertDialogTitle>
+          <AlertDialogTitle>Leave Team</AlertDialogTitle>
           <AlertDialogDescription>
-            <strong>&quot;{teamName}&quot;</strong> takımından ayrılmak
-            istediğinize emin misiniz? Takım dosyalarına erişiminiz
-            kaldırılacaktır.
+            Are you sure you want to leave the{" "}
+            <strong>&quot;{teamName}&quot;</strong> team? Your access to team
+            files will be revoked.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -43,7 +43,7 @@ export default function LeaveTeamDialog({
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
-            İptal
+            Cancel
           </Button>
           <Button
             variant="destructive"
@@ -51,7 +51,7 @@ export default function LeaveTeamDialog({
             disabled={isPending}
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Ayrıl
+            Leave
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

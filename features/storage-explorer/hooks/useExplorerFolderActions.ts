@@ -192,7 +192,7 @@ export function useExplorerFolderActions() {
       const prefix = directory.Prefix ?? "";
       const normalizedPath = normalizeFolderPath(prefix);
       const folderDisplayName =
-        getFolderNameFromPrefix(prefix) || directory.Name || "bu klasör";
+        getFolderNameFromPrefix(prefix) || directory.Name || "this folder";
       const isEncryptedTarget = Boolean(
         normalizedPath &&
         (isFolderEncryptedExact(normalizedPath) || directory.IsEncrypted),
@@ -203,10 +203,10 @@ export function useExplorerFolderActions() {
         try {
           if (isEncryptedTarget) {
             if (!normalizedPath) {
-              throw new Error("Klasör yolu bulunamadı");
+              throw new Error("Folder path not found");
             }
             if (!passphrase) {
-              throw new Error("Klasör için parola gerekli");
+              throw new Error("Password required for folder");
             }
             await cloudDirectoriesApiFactory.directoryRename({
               directoryRenameRequestModel: {

@@ -25,7 +25,7 @@ const getErrorMessage = (error: unknown) => {
     return data?.message || data?.title || error.message;
   }
   if (error instanceof Error) return error.message;
-  return "Gizlilik kaldırılamadı.";
+  return "Failed to unhide folder.";
 };
 
 export default function UnhideFolderDialog({
@@ -52,7 +52,7 @@ export default function UnhideFolderDialog({
 
   const handleSubmit = async () => {
     if (!passphrase.trim() || passphrase.length < 8) {
-      setError("Parola en az 8 karakter olmalı.");
+      setError("Password must be at least 8 characters.");
       return;
     }
 
@@ -103,7 +103,7 @@ export default function UnhideFolderDialog({
             <div className="flex items-center justify-between p-4 border-b border-muted/10">
               <div className="flex items-center gap-2">
                 <Eye className="text-primary" />
-                <div className="text-sm font-semibold">Gizliliği kaldır</div>
+                <div className="text-sm font-semibold">Unhide folder</div>
               </div>
               <button
                 onClick={onClose}
@@ -125,7 +125,7 @@ export default function UnhideFolderDialog({
                 <span className="font-semibold text-foreground">
                   {folderName}
                 </span>{" "}
-                klasörünün gizliliğini kaldırmak için parolayı girin.
+                Enter the password to unhide this folder.
               </p>
 
               <Input
@@ -133,7 +133,7 @@ export default function UnhideFolderDialog({
                 name="password"
                 type="password"
                 value={passphrase}
-                placeholder="Parola (en az 8 karakter)"
+                placeholder="Password (at least 8 characters)"
                 autoComplete="current-password"
                 autoFocus
                 onChange={(e) => setPassphrase(e.target.value)}
@@ -153,10 +153,10 @@ export default function UnhideFolderDialog({
                   onClick={onClose}
                   type="button"
                 >
-                  İptal
+                  Cancel
                 </Button>
                 <Button size="sm" type="submit" disabled={loading}>
-                  {loading ? "Kaldırılıyor..." : "Gizliliği Kaldır"}
+                  {loading ? "Unhiding..." : "Unhide"}
                 </Button>
               </div>
             </form>

@@ -53,7 +53,7 @@ export default function TeamSettingsSection({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim().length < 2) {
-      toast.error("Takım adı en az 2 karakter olmalıdır.");
+      toast.error("Team name must be at least 2 characters.");
       return;
     }
     try {
@@ -61,9 +61,9 @@ export default function TeamSettingsSection({
         Name: name.trim(),
         Description: description.trim() || undefined,
       });
-      toast.success("Takım bilgileri güncellendi.");
+      toast.success("Team information updated.");
     } catch {
-      toast.error("Güncelleme sırasında bir hata oluştu.");
+      toast.error("An error occurred while updating.");
     }
   };
 
@@ -71,10 +71,10 @@ export default function TeamSettingsSection({
     try {
       await deleteTeam.mutateAsync();
       useWorkspaceStore.getState().clearWorkspace();
-      toast.success("Takım silindi.");
+      toast.success("Team deleted.");
       router.push("/teams");
     } catch {
-      toast.error("Takım silinirken bir hata oluştu.");
+      toast.error("An error occurred while deleting the team.");
     }
   };
 
@@ -82,10 +82,10 @@ export default function TeamSettingsSection({
     try {
       await leaveTeam.mutateAsync();
       useWorkspaceStore.getState().clearWorkspace();
-      toast.success("Takımdan ayrıldınız.");
+      toast.success("You left the team.");
       router.push("/teams");
     } catch {
-      toast.error("Takımdan ayrılırken bir hata oluştu.");
+      toast.error("An error occurred while leaving the team.");
     }
   };
 
@@ -102,10 +102,10 @@ export default function TeamSettingsSection({
       {/* Edit Team */}
       {canEdit && (
         <div className="rounded-2xl border bg-card/50 p-6">
-          <h3 className="text-sm font-semibold mb-4">Takım Bilgileri</h3>
+          <h3 className="text-sm font-semibold mb-4">Team Information</h3>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid gap-2">
-              <Label htmlFor="settings-name">Takım Adı</Label>
+              <Label htmlFor="settings-name">Team Name</Label>
               <Input
                 id="settings-name"
                 value={name}
@@ -115,13 +115,13 @@ export default function TeamSettingsSection({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="settings-desc">Açıklama</Label>
+              <Label htmlFor="settings-desc">Description</Label>
               <Input
                 id="settings-desc"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={500}
-                placeholder="Takım açıklaması (opsiyonel)"
+                placeholder="Team description (optional)"
                 className="rounded-xl"
               />
             </div>
@@ -135,7 +135,7 @@ export default function TeamSettingsSection({
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              Kaydet
+              Save
             </Button>
           </form>
         </div>
@@ -146,15 +146,15 @@ export default function TeamSettingsSection({
       {/* Danger Zone */}
       <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6">
         <h3 className="text-sm font-semibold text-destructive mb-4">
-          Tehlikeli Bölge
+          Danger Zone
         </h3>
         <div className="space-y-4">
           {amOwner ? (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Takımı Sil</p>
+                <p className="text-sm font-medium">Delete Team</p>
                 <p className="text-xs text-muted-foreground">
-                  Bu işlem geri alınamaz. Tüm takım verileri silinecektir.
+                  This action cannot be undone. All team data will be deleted.
                 </p>
               </div>
               <Button
@@ -164,15 +164,15 @@ export default function TeamSettingsSection({
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 <Trash2 className="h-4 w-4" />
-                Takımı Sil
+                Delete Team
               </Button>
             </div>
           ) : (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Takımdan Ayrıl</p>
+                <p className="text-sm font-medium">Leave Team</p>
                 <p className="text-xs text-muted-foreground">
-                  Bu takımdan ayrıldığınızda erişiminiz kaldırılacaktır.
+                  Your access will be revoked when you leave this team.
                 </p>
               </div>
               <Button
@@ -182,7 +182,7 @@ export default function TeamSettingsSection({
                 onClick={() => setLeaveDialogOpen(true)}
               >
                 <LogOut className="h-4 w-4" />
-                Ayrıl
+                Leave
               </Button>
             </div>
           )}

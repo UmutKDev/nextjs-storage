@@ -55,27 +55,27 @@ const TABS: {
 }[] = [
   {
     id: "profile",
-    label: "Profil Bilgileri",
+    label: "Profile Information",
     icon: User,
-    description: "Kişisel bilgilerinizi ve görünümünüzü yönetin.",
+    description: "Manage your personal information and appearance.",
   },
   {
     id: "security",
-    label: "Güvenlik",
+    label: "Security",
     icon: Shield,
-    description: "Şifre, 2FA ve Passkey ayarlarınız.",
+    description: "Password, 2FA and Passkey settings.",
   },
   {
     id: "billing",
-    label: "Abonelik & Plan",
+    label: "Subscription & Plan",
     icon: CreditCard,
-    description: "Abonelik durumu, limitler ve faturalandırma.",
+    description: "Subscription status, limits and billing.",
   },
   {
     id: "activity",
-    label: "Hesap Geçmişi",
+    label: "Account History",
     icon: Activity,
-    description: "Son girişler ve hesap aktiviteleri.",
+    description: "Recent logins and account activities.",
   },
 ];
 
@@ -84,19 +84,23 @@ const STATUS_CONFIG: Record<
   { label: string; color: string; bg: string }
 > = {
   ACTIVE: {
-    label: "Aktif",
+    label: "Active",
     color: "text-emerald-500",
     bg: "bg-emerald-500/10",
   },
-  INACTIVE: { label: "Pasif", color: "text-amber-500", bg: "bg-amber-500/10" },
-  PENDING: { label: "Beklemede", color: "text-blue-500", bg: "bg-blue-500/10" },
+  INACTIVE: {
+    label: "Inactive",
+    color: "text-amber-500",
+    bg: "bg-amber-500/10",
+  },
+  PENDING: { label: "Pending", color: "text-blue-500", bg: "bg-blue-500/10" },
   SUSPENDED: {
-    label: "Askıya Alındı",
+    label: "Suspended",
     color: "text-red-500",
     bg: "bg-red-500/10",
   },
   APPROVAL: {
-    label: "Onay Bekliyor",
+    label: "Pending Approval",
     color: "text-purple-500",
     bg: "bg-purple-500/10",
   },
@@ -194,7 +198,7 @@ export default function AccountPage() {
     const sub = profile.Subscription;
     const plan = sub.Subscription;
     return {
-      name: plan?.Name ?? "Özel Plan",
+      name: plan?.Name ?? "Custom Plan",
       rawStatus: plan?.Status,
       endAt: sub.EndAt,
       startAt: sub.StartAt,
@@ -253,7 +257,7 @@ export default function AccountPage() {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordForm.NewPassword !== passwordForm.NewPasswordConfirmation) {
-      setPasswordError("Yeni şifreler eşleşmiyor.");
+      setPasswordError("New passwords do not match.");
       return;
     }
     setPasswordError(null);
@@ -274,8 +278,8 @@ export default function AccountPage() {
   const renderProfileTab = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <ProfileSectionHeader
-        title="Profil Bilgileri"
-        description="Hesap bilgilerinizi buradan görüntüleyebilir ve güncelleyebilirsiniz."
+        title="Profile Information"
+        description="You can view and update your account information here."
       />
 
       {/* Profile Card */}
@@ -325,7 +329,7 @@ export default function AccountPage() {
                     className="flex items-center gap-2 text-base"
                   >
                     <User className="h-4 w-4 text-muted-foreground" />
-                    Ad Soyad
+                    Full Name
                   </Label>
                   <Input
                     id="fullName"
@@ -343,7 +347,7 @@ export default function AccountPage() {
                     className="flex items-center gap-2 text-base"
                   >
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    Telefon Numarası
+                    Phone Number
                   </Label>
                   <Input
                     id="phoneNumber"
@@ -362,7 +366,7 @@ export default function AccountPage() {
                     className="flex items-center gap-2 text-base"
                   >
                     <Mail className="h-4 w-4 text-muted-foreground" />
-                    E-posta Adresi
+                    Email Address
                   </Label>
                   <Input
                     value={profile?.Email || ""}
@@ -370,7 +374,7 @@ export default function AccountPage() {
                     className="bg-muted/50 h-11"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Güvenlik nedenleriyle e-posta adresi değiştirilemez.
+                    Email address cannot be changed for security reasons.
                   </p>
                 </div>
               </div>
@@ -383,7 +387,7 @@ export default function AccountPage() {
                   {updateProfileMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Değişiklikleri Kaydet
+                  Save Changes
                 </Button>
               </div>
             </form>
@@ -396,8 +400,8 @@ export default function AccountPage() {
   const renderSecurityTab = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <ProfileSectionHeader
-        title="Güvenlik"
-        description="Şifrenizi güncelleyin ve iki faktörlü kimlik doğrulamayı yönetin."
+        title="Security"
+        description="Update your password and manage two-factor authentication."
       />
 
       {/* Password Change */}
@@ -408,9 +412,9 @@ export default function AccountPage() {
               <Lock className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">Şifre Değiştir</CardTitle>
+              <CardTitle className="text-lg">Change Password</CardTitle>
               <CardDescription>
-                Hesabınızın güvenliği için güçlü bir şifre kullanın.
+                Use a strong password for your account security.
               </CardDescription>
             </div>
           </div>
@@ -418,7 +422,7 @@ export default function AccountPage() {
         <CardContent className="p-6">
           <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-2xl">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword">Mevcut Şifre</Label>
+              <Label htmlFor="currentPassword">Current Password</Label>
               <Input
                 id="currentPassword"
                 type="password"
@@ -435,7 +439,7 @@ export default function AccountPage() {
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="newPassword">Yeni Şifre</Label>
+                <Label htmlFor="newPassword">New Password</Label>
                 <Input
                   id="newPassword"
                   type="password"
@@ -451,7 +455,7 @@ export default function AccountPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="newConfirm">Yeni Şifre (Tekrar)</Label>
+                <Label htmlFor="newConfirm">Confirm New Password</Label>
                 <Input
                   id="newConfirm"
                   type="password"
@@ -484,7 +488,7 @@ export default function AccountPage() {
                 {changePasswordMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Şifreyi Güncelle
+                Update Password
               </Button>
             </div>
           </form>
@@ -506,8 +510,8 @@ export default function AccountPage() {
   const renderBillingTab = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <ProfileSectionHeader
-        title="Abonelik ve Plan"
-        description="Mevcut planınızı görüntüleyin ve depolama limitlerinizi kontrol edin."
+        title="Subscription and Plan"
+        description="View your current plan and check your storage limits."
       />
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -517,12 +521,12 @@ export default function AccountPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-xl text-primary">
-                  {subscriptionInfo?.name || "Yükleniyor..."}
+                  {subscriptionInfo?.name || "Loading..."}
                 </CardTitle>
                 <CardDescription>
                   {subscriptionInfo?.cycle === "MONTHLY"
-                    ? "Aylık Faturalandırma"
-                    : "Plan Detayları"}
+                    ? "Monthly Billing"
+                    : "Plan Details"}
                 </CardDescription>
               </div>
               {subscriptionInfo && (
@@ -533,7 +537,7 @@ export default function AccountPage() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-medium">
-                <span>Depolama Kullanımı</span>
+                <span>Storage Usage</span>
                 {subscriptionInfo?.limit && (
                   <span>
                     TODO /{" "}
@@ -547,29 +551,29 @@ export default function AccountPage() {
                 <div className="h-full bg-primary w-1/4 rounded-full" />
               </div>
               <p className="text-xs text-muted-foreground">
-                Kullanılan alan verisi henüz bu sayfada gösterilmiyor.
+                Storage usage data is not yet shown on this page.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4 pt-4">
               <InfoItem
                 icon={Calendar}
-                label="Başlangıç Tarihi"
+                label="Start Date"
                 value={
                   subscriptionInfo?.startAt
                     ? new Date(subscriptionInfo.startAt).toLocaleDateString(
-                        "tr-TR",
+                        "en-US",
                       )
                     : "-"
                 }
               />
               <InfoItem
                 icon={Calendar}
-                label="Yenilenme Tarihi"
+                label="Renewal Date"
                 value={
                   subscriptionInfo?.endAt
                     ? new Date(subscriptionInfo.endAt).toLocaleDateString(
-                        "tr-TR",
+                        "en-US",
                       )
                     : "-"
                 }
@@ -581,7 +585,7 @@ export default function AccountPage() {
               variant="outline"
               className="w-full sm:w-auto border-primary/20 hover:bg-primary/10"
             >
-              Planı Yönet
+              Manage Plan
             </Button>
           </CardFooter>
         </Card>
@@ -589,15 +593,15 @@ export default function AccountPage() {
         {/* Benefits Card */}
         <Card className="border-muted/50 shadow-sm h-full">
           <CardHeader>
-            <CardTitle className="text-base">Plan Özellikleri</CardTitle>
+            <CardTitle className="text-base">Plan Features</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
               {[
-                "Sınırsız Klasörleme",
-                "Yüksek Hızlı Yükleme",
-                "Gelişmiş Güvenlik",
-                "7/24 Destek",
+                "Unlimited Folders",
+                "High-Speed Upload",
+                "Advanced Security",
+                "24/7 Support",
               ].map((feature, i) => (
                 <li
                   key={i}
@@ -617,8 +621,8 @@ export default function AccountPage() {
   const renderActivityTab = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <ProfileSectionHeader
-        title="Hesap Geçmişi"
-        description="Hesabınızla ilgili önemli tarihçeler ve durum bilgileri."
+        title="Account History"
+        description="Important history and status information about your account."
       />
 
       <div className="grid gap-8 md:grid-cols-2">
@@ -626,7 +630,7 @@ export default function AccountPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Activity className="h-5 w-5 text-blue-500" />
-              Aktivite Zaman Çizelgesi
+              Activity Timeline
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -636,10 +640,10 @@ export default function AccountPage() {
                   <div className="h-3 w-3 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20" />
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold">Son Giriş</span>
+                  <span className="text-sm font-semibold">Last Login</span>
                   <span className="text-xs text-muted-foreground">
                     {profile?.Date?.LastLogin
-                      ? new Date(profile.Date.LastLogin).toLocaleString("tr-TR")
+                      ? new Date(profile.Date.LastLogin).toLocaleString("en-US")
                       : "-"}
                   </span>
                 </div>
@@ -650,10 +654,10 @@ export default function AccountPage() {
                   <div className="h-3 w-3 rounded-full bg-blue-500 ring-4 ring-blue-500/20" />
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold">Son Güncelleme</span>
+                  <span className="text-sm font-semibold">Last Update</span>
                   <span className="text-xs text-muted-foreground">
                     {profile?.Date?.Updated
-                      ? new Date(profile.Date.Updated).toLocaleString("tr-TR")
+                      ? new Date(profile.Date.Updated).toLocaleString("en-US")
                       : "-"}
                   </span>
                 </div>
@@ -664,10 +668,12 @@ export default function AccountPage() {
                   <div className="h-3 w-3 rounded-full bg-muted-foreground ring-4 ring-muted/20" />
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold">Hesap Oluşturma</span>
+                  <span className="text-sm font-semibold">
+                    Account Creation
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {profile?.Date?.Created
-                      ? new Date(profile.Date.Created).toLocaleString("tr-TR")
+                      ? new Date(profile.Date.Created).toLocaleString("en-US")
                       : "-"}
                   </span>
                 </div>
@@ -680,13 +686,13 @@ export default function AccountPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Hash className="h-5 w-5 text-purple-500" />
-              Teknik Detaylar
+              Technical Details
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 rounded-lg bg-muted/40 border space-y-1">
               <p className="text-xs font-semibold text-muted-foreground uppercase">
-                Hesap ID
+                Account ID
               </p>
               <div className="font-mono text-sm bg-background p-2 rounded border flex items-center justify-between">
                 <span className="truncate">{profile?.Id}</span>
@@ -695,7 +701,7 @@ export default function AccountPage() {
 
             <div className="p-4 rounded-lg bg-muted/40 border space-y-1">
               <p className="text-xs font-semibold text-muted-foreground uppercase">
-                Hesap Durumu
+                Account Status
               </p>
               <div className="pt-1">
                 {profile?.Status && <StatusBadge status={profile.Status} />}
@@ -712,9 +718,11 @@ export default function AccountPage() {
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Hesap Ayarları</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Account Settings
+          </h1>
           <p className="text-muted-foreground mt-2 text-lg">
-            Kişisel profilinizi ve hesap tercihlerinizi tek bir yerden yönetin.
+            Manage your personal profile and account preferences from one place.
           </p>
         </div>
 
@@ -771,7 +779,7 @@ export default function AccountPage() {
             {isLoading || !profile ? (
               <div className="flex flex-col items-center justify-center h-64 space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-muted-foreground">Profil yükleniyor...</p>
+                <p className="text-muted-foreground">Loading profile...</p>
               </div>
             ) : (
               <>

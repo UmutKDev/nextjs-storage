@@ -44,14 +44,14 @@ export default function PasskeyManager() {
     mutationFn: async (name: string) => {
       const swa = await import("@simplewebauthn/browser");
       if (!swa.browserSupportsWebAuthn())
-        throw new Error("Passkey desteklenmiyor");
+        throw new Error("Passkey not supported");
 
       const beginRes = await accountSecurityApiFactory.passkeyRegisterBegin({
         passkeyRegistrationBeginRequestModel: { DeviceName: name },
       });
 
       const options = beginRes.data?.Result?.Options;
-      if (!options) throw new Error("Başlatma seçenekleri alınamadı");
+      if (!options) throw new Error("Failed to get initialization options");
 
       const credential = await swa.startRegistration(options);
 
@@ -72,7 +72,7 @@ export default function PasskeyManager() {
     },
     onError: (err) => {
       console.error(err);
-      setRegisterError("Passkey eklenirken teknik bir hata oluştu.");
+      setRegisterError("A technical error occurred while adding passkey.");
     },
   });
 
@@ -85,7 +85,7 @@ export default function PasskeyManager() {
       setDeleteError(null);
     },
     onError: () => {
-      setDeleteError("Passkey silinemedi. Lütfen tekrar deneyin.");
+      setDeleteError("Failed to delete passkey. Please try again.");
     },
   });
 
@@ -132,9 +132,9 @@ export default function PasskeyManager() {
               <Fingerprint className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <CardTitle className="text-lg">Passkey Yönetimi</CardTitle>
+              <CardTitle className="text-lg">Passkey Management</CardTitle>
               <CardDescription>
-                Şifresiz, biyometrik giriş anahtarları.
+                Passwordless, biometric login keys.
               </CardDescription>
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function PasskeyManager() {
           {!supportsPasskey ? (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
               <AlertOctagon className="h-4 w-4" />
-              Bu tarayıcı veya cihaz passkey desteklemiyor.
+              This browser or device does not support passkey.
             </div>
           ) : (
             <div className="space-y-3">
@@ -164,16 +164,16 @@ export default function PasskeyManager() {
                   onClick={() => setIsAddingNew(true)}
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Yeni Passkey Ekle
+                  Add New Passkey
                 </Button>
               ) : (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-200">
                   <label className="text-sm font-medium mb-1.5 block">
-                    Cihaz İsmi
+                    Device Name
                   </label>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Örn: Kişisel MacBook, iPhone 15"
+                      placeholder="e.g. Personal MacBook, iPhone 15"
                       value={deviceName}
                       onChange={(e) => {
                         setDeviceName(e.target.value);
@@ -191,7 +191,7 @@ export default function PasskeyManager() {
                       {registerMutation.status === "pending" ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        "Ekle"
+                        "Add"
                       )}
                     </Button>
                     <Button
@@ -218,14 +218,12 @@ export default function PasskeyManager() {
           {passkeysQuery.isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-3">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Anahtarlar yükleniyor...
-              </p>
+              <p className="text-sm text-muted-foreground">Loading keys...</p>
             </div>
           ) : passkeys.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center text-muted-foreground">
               <KeyRound className="h-12 w-12 stroke-1 opacity-20 mb-3" />
-              <p>Henüz tanımlı bir passkey bulunmuyor.</p>
+              <p>No passkeys defined yet.</p>
             </div>
           ) : (
             <ul className="divide-y relative">
@@ -244,11 +242,11 @@ export default function PasskeyManager() {
                       </p>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
                         <span className="shrink-0 bg-muted px-1.5 py-0.5 rounded">
-                          {p.DeviceType || "Cihaz"}
+                          {p.DeviceType || "Device"}
                         </span>
                         <span className="hidden sm:inline opacity-50">•</span>
                         <span className="truncate">
-                          Son kullanım:{" "}
+                          Last used:{" "}
                           {p.LastUsedAt
                             ? new Date(p.LastUsedAt).toLocaleDateString("tr-TR")
                             : "-"}

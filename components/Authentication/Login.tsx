@@ -182,7 +182,7 @@ export const Login = () => {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      setError("Lütfen geçerli bir e-posta adresi girin.");
+      setError("Please enter a valid email address.");
       return;
     }
     setLoading(true);
@@ -198,7 +198,7 @@ export const Login = () => {
       const checkResult = res.data.Result;
 
       if (!checkResult) {
-        throw new Error("Hesap bulunamadı. Lütfen kayıt olun.");
+        throw new Error("Account not found. Please sign up.");
       }
 
       const hasPasskeyEnabled = checkResult.HasPasskey;
@@ -234,7 +234,7 @@ export const Login = () => {
     } catch (err: unknown) {
       console.error(err);
       const errorObj = err as Error;
-      setError(errorObj.message || "E-posta kontrolü başarısız.");
+      setError(errorObj.message || "Email verification failed.");
     } finally {
       setLoading(false);
     }
@@ -263,7 +263,7 @@ export const Login = () => {
     } catch (err: unknown) {
       console.error(err);
       const errorObj = err as Error;
-      setError(errorObj.message || "Giriş yapılamadı.");
+      setError(errorObj.message || "Login failed.");
     } finally {
       setLoading(false);
     }
@@ -272,7 +272,7 @@ export const Login = () => {
   // Step 2: Login with Passkey
   const handlePasskeyLogin = async () => {
     if (!email) {
-      setError("E-posta adresi eksik.");
+      setError("Email address is missing.");
       return;
     }
     setLoading(true);
@@ -283,7 +283,7 @@ export const Login = () => {
         await import("@simplewebauthn/browser");
 
       if (!browserSupportsWebAuthn()) {
-        throw new Error("Tarayıcı passkey desteklemiyor.");
+        throw new Error("Browser does not support passkey.");
       }
 
       const beginRes = await authenticationApiFactory.passkeyLoginBegin({
@@ -291,7 +291,7 @@ export const Login = () => {
       });
 
       const options = beginRes.data?.Result?.Options;
-      if (!options) throw new Error("Passkey verisi alınamadı.");
+      if (!options) throw new Error("Failed to get passkey data.");
 
       const credential = await startAuthentication(options);
 
@@ -309,7 +309,7 @@ export const Login = () => {
     } catch (err: unknown) {
       console.error(err);
       const errorObj = err as Error;
-      let msg = "Passkey girişi başarısız.";
+      let msg = "Passkey login failed.";
       if (errorObj.message && !errorObj.message.includes("{"))
         msg = errorObj.message;
       setError(msg);
@@ -345,14 +345,14 @@ export const Login = () => {
     <form onSubmit={handleEmailSubmit} className="grid gap-4">
       <div className="grid gap-2">
         <Label htmlFor="email" className="text-sm font-medium text-zinc-300">
-          E-posta Adresi
+          Email Address
         </Label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 pointer-events-none" />
           <Input
             id="email"
             type="email"
-            placeholder="isim@ornek.com"
+            placeholder="name@example.com"
             autoCapitalize="none"
             autoComplete="email webauthn"
             autoCorrect="off"
@@ -373,7 +373,7 @@ export const Login = () => {
         {loading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
-          "Devam Et"
+          "Continue"
         )}
       </Button>
     </form>
@@ -394,7 +394,7 @@ export const Login = () => {
           }}
           type="button"
         >
-          Değiştir
+          Change
         </button>
       </div>
 
@@ -412,9 +412,9 @@ export const Login = () => {
             <Lock className="h-4 w-4 text-zinc-400" />
           </div>
           <div className="text-left">
-            <div className="font-medium">Şifre ile devam et</div>
+            <div className="font-medium">Continue with password</div>
             <div className="text-xs text-zinc-500">
-              Şifrenizi kullanarak giriş yapın
+              Sign in using your password
             </div>
           </div>
         </motion.button>
@@ -434,9 +434,9 @@ export const Login = () => {
             )}
           </div>
           <div className="text-left">
-            <div className="font-medium">Passkey ile devam et</div>
+            <div className="font-medium">Continue with passkey</div>
             <div className="text-xs text-zinc-500">
-              Biyometrik veya güvenlik anahtarı kullanın
+              Use biometric or security key
             </div>
           </div>
         </motion.button>
@@ -465,7 +465,7 @@ export const Login = () => {
           }}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Geri
+          Back
         </button>
       </div>
 
@@ -475,13 +475,13 @@ export const Login = () => {
             htmlFor="password"
             className="text-sm font-medium text-zinc-300"
           >
-            Şifre
+            Password
           </Label>
           <Link
             href="/forgot-password"
             className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
           >
-            Şifremi unuttum?
+            Forgot password?
           </Link>
         </div>
         <div className="relative">
@@ -511,7 +511,7 @@ export const Login = () => {
           <div className="flex items-center gap-2 mb-1">
             <Shield className="h-4 w-4 text-zinc-500" />
             <Label className="text-sm font-medium text-zinc-300">
-              Doğrulama Kodu
+              Verification Code
             </Label>
           </div>
           <div className="flex justify-center gap-2">
@@ -541,7 +541,7 @@ export const Login = () => {
             ))}
           </div>
           <p className="text-center text-xs text-zinc-500">
-            Authenticator uygulamanızdaki 6 haneli kodu girin
+            Enter the 6-digit code from your Authenticator app
           </p>
         </motion.div>
       )}
@@ -554,9 +554,9 @@ export const Login = () => {
         {loading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : hasTwoFactor ? (
-          "Doğrula ve Giriş Yap"
+          "Verify and Login"
         ) : (
-          "Giriş Yap"
+          "Login"
         )}
       </Button>
     </form>
@@ -579,7 +579,7 @@ export const Login = () => {
               className="border-red-500/30 bg-red-500/10 backdrop-blur-sm"
             >
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Hata</AlertTitle>
+              <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           </motion.div>
@@ -645,12 +645,12 @@ export const Login = () => {
             transition={{ duration: 0.2 }}
             className="text-center text-sm text-zinc-500"
           >
-            Hesabınız yok mu?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/register"
               className="font-medium text-zinc-300 hover:text-white transition-colors"
             >
-              Kayıt Ol
+              Sign Up
             </Link>
           </motion.p>
         )}

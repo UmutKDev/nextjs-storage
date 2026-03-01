@@ -2,7 +2,7 @@ import React from "react";
 import { useEncryptedFolders } from "@/components/Storage/stores/encryptedFolders.store";
 import type { Directory } from "@/components/storage-browser/types/storage-browser.types";
 
-const DIRECTORY_NAME_FALLBACK = "Klasör";
+const DIRECTORY_NAME_FALLBACK = "Folder";
 
 const normalizeDirectoryPath = (prefix?: string | null) => {
   if (!prefix) return "";

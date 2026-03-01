@@ -32,10 +32,10 @@ export default function ArchiveExtractSelectionDialog({
         if (!nextOpen) onClose();
       }}
       onConfirm={createExtractionJobs}
-      title={`${files.length} arsiv dosyasi cikarilsin mi?`}
-      description="Bu islem secilen her arsiv dosyasindan yeni bir klasor olusturur."
-      headerLabel="Toplu arsiv cikarma"
-      confirmLabel="Tumunu cikar"
+      title={`${files.length} archive files to extract?`}
+      description="This will create a new folder for each selected archive file."
+      headerLabel="Bulk archive extraction"
+      confirmLabel="Extract all"
       confirmVariant="primary"
       icon={<Archive className="text-primary" />}
       note={null}

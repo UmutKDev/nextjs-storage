@@ -105,7 +105,14 @@ export default function ArchivePreviewExtractDialog({
     } finally {
       setLoading(false);
     }
-  }, [file, allSelected, selectedEntries, createArchiveExtractionJob, onClose, previewState.data?.TotalEntries]);
+  }, [
+    file,
+    allSelected,
+    selectedEntries,
+    createArchiveExtractionJob,
+    onClose,
+    previewState.data?.TotalEntries,
+  ]);
 
   return (
     <BaseDialog
@@ -136,7 +143,7 @@ export default function ArchivePreviewExtractDialog({
         {previewState.loading ? (
           <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">Arsiv icerigi yukleniyor...</span>
+            <span className="text-sm">Loading archive content...</span>
           </div>
         ) : previewState.error ? (
           <div className="flex items-center justify-center py-12 gap-2 text-destructive">
@@ -145,7 +152,9 @@ export default function ArchivePreviewExtractDialog({
           </div>
         ) : entries.length === 0 ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <span className="text-sm">Arsiv bos veya icerik okunamadi</span>
+            <span className="text-sm">
+              Archive is empty or content could not be read
+            </span>
           </div>
         ) : (
           <>
@@ -160,12 +169,12 @@ export default function ArchivePreviewExtractDialog({
                 ) : (
                   <Square className="h-4 w-4" />
                 )}
-                {allSelected ? "Secimi kaldir" : "Tumunu sec"}
+                {allSelected ? "Deselect all" : "Select all"}
               </button>
               <span className="text-xs text-muted-foreground ml-auto">
-                {selectedEntries.size} / {entries.length} secili
+                {selectedEntries.size} / {entries.length} selected
                 {previewState.data?.TotalEntries
-                  ? ` (toplam ${previewState.data.TotalEntries} oge)`
+                  ? ` (${previewState.data.TotalEntries} total)`
                   : ""}
               </span>
             </div>
@@ -215,7 +224,7 @@ export default function ArchivePreviewExtractDialog({
           disabled={loading}
           className="rounded-md px-3 py-1 text-sm hover:bg-muted/10 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Iptal
+          Cancel
         </button>
         <button
           onClick={handleExtract}
@@ -228,8 +237,8 @@ export default function ArchivePreviewExtractDialog({
             <div className="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
           ) : null}
           {selectedEntries.size > 0 && !allSelected
-            ? `Secilenleri cikar (${selectedEntries.size})`
-            : "Tumunu cikar"}
+            ? `Extract selected (${selectedEntries.size})`
+            : "Extract all"}
         </button>
       </div>
     </BaseDialog>

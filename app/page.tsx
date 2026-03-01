@@ -30,19 +30,19 @@ export default async function Home() {
           <div className="flex flex-col items-center text-center space-y-8 z-10 relative">
             <div className="inline-flex items-center rounded-full border bg-background/50 px-3 py-1 text-sm text-muted-foreground backdrop-blur-md shadow-sm ring-1 ring-ring/10">
               <span className="mr-2 flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-              Yeni Nesil Bulut Deneyimi
+              Next-Gen Cloud Experience
             </div>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-foreground max-w-5xl">
-              Dosyalarınız için <br className="hidden md:block" />
+              For your files <br className="hidden md:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/50">
-                akıllı depolama.
+                smart storage.
               </span>
             </h1>
 
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed md:text-2xl">
-              Güvenli, hızlı ve her yerden erişilebilir. CloudStorage ile
-              dijital dünyanızı düzenleyin.
+              Secure, fast, and accessible from anywhere. Organize your digital
+              world with CloudStorage.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
@@ -52,7 +52,7 @@ export default async function Home() {
                     size="lg"
                     className="h-12 px-8 rounded-full text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
                   >
-                    Depoya Git <ArrowRight className="w-4 h-4 ml-2" />
+                    Go to Storage <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
               ) : (
@@ -62,7 +62,7 @@ export default async function Home() {
                       size="lg"
                       className="h-12 px-8 rounded-full text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
                     >
-                      Hemen Başla
+                      Get Started
                     </Button>
                   </Link>
                 </>
@@ -99,15 +99,15 @@ export default async function Home() {
                   </div>
                   <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-primary/10 text-primary text-sm font-medium">
                     <HardDrive className="w-4 h-4" />
-                    Dosyalarım
+                    My Files
                   </div>
                   <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-muted-foreground text-sm hover:bg-muted/50">
                     <Cloud className="w-4 h-4" />
-                    Paylaşılanlar
+                    Shared
                   </div>
                   <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-muted-foreground text-sm hover:bg-muted/50">
                     <Smartphone className="w-4 h-4" />
-                    Yedeklemeler
+                    Backups
                   </div>
                   <div className="mt-auto">
                     <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
@@ -124,7 +124,7 @@ export default async function Home() {
                 <div className="flex-1 p-4 flex flex-col gap-4">
                   {/* Toolbar */}
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">Dosyalarım</h3>
+                    <h3 className="font-semibold">My Files</h3>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
@@ -152,7 +152,7 @@ export default async function Home() {
                         <MoreHorizontal className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
                       </div>
                       <div className="text-sm font-medium truncate">
-                        Projeler
+                        Projects
                       </div>
                       <div className="text-xs text-muted-foreground">
                         12 items
@@ -163,9 +163,7 @@ export default async function Home() {
                         <Folder className="w-8 h-8 text-blue-500 fill-blue-500/20" />
                         <MoreHorizontal className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
                       </div>
-                      <div className="text-sm font-medium truncate">
-                        Fotoğraflar
-                      </div>
+                      <div className="text-sm font-medium truncate">Photos</div>
                       <div className="text-xs text-muted-foreground">
                         456 items
                       </div>
@@ -181,7 +179,7 @@ export default async function Home() {
                           <FileText className="w-8 h-8 text-muted-foreground/50" />
                         </div>
                         <div className="text-sm font-medium truncate">
-                          Doküman_{i}.pdf
+                          Document_{i}.pdf
                         </div>
                         <div className="text-xs text-muted-foreground">
                           2.4 MB
@@ -205,11 +203,11 @@ export default async function Home() {
         <div className="container mx-auto max-w-6xl">
           <div className="mb-16 text-center">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-              Neden CloudStorage?
+              Why CloudStorage?
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Verilerinizi güvende tutmak ve iş akışınızı hızlandırmak için
-              tasarlanmış modern özellikler.
+              Modern features designed to keep your data safe and accelerate
+              your workflow.
             </p>
           </div>
 
@@ -225,11 +223,11 @@ export default async function Home() {
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold mb-3">
-                    Sınırsız Depolama Alanı
+                    Unlimited Storage Space
                   </h3>
                   <p className="text-muted-foreground max-w-md text-base leading-relaxed">
-                    İhtiyacınız olan alan kadar ödeyin. Fotoğraflarınız,
-                    videolarınız ve belgeleriniz için genişleyebilir altyapı.
+                    Pay only for the space you need. Scalable infrastructure for
+                    your photos, videos, and documents.
                   </p>
                 </div>
               </div>
@@ -243,10 +241,10 @@ export default async function Home() {
                   <Smartphone className="w-6 h-6" />
                 </div>
                 <div className="mt-8">
-                  <h3 className="text-2xl font-bold mb-3">Mobil Uyumlu</h3>
+                  <h3 className="text-2xl font-bold mb-3">Mobile Friendly</h3>
                   <p className="text-muted-foreground text-base leading-relaxed">
-                    iOS ve Android uygulamalarımızla dosyalarınız her an
-                    cebinizde. Tüm cihazlarınızla anlık senkronizasyon.
+                    With our iOS and Android apps, your files are always in your
+                    pocket. Instant sync with all your devices.
                   </p>
                 </div>
                 <div className="mt-8 flex justify-center translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
@@ -274,11 +272,11 @@ export default async function Home() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold mb-2">
-                    Uçtan Uca Şifreleme
+                    End-to-End Encryption
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    Verileriniz sunucularımıza ulaşmadan önce AES-256 ile
-                    şifrelenir. Anahtar sadece sizde kalır.
+                    Your data is encrypted with AES-256 before reaching our
+                    servers. The key stays only with you.
                   </p>
                 </div>
               </div>
@@ -292,11 +290,11 @@ export default async function Home() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold mb-2">
-                    Işık Hızında Transfer
+                    Lightning-Fast Transfer
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    Global CDN ağımız sayesinde dosya yükleme ve indirme
-                    işlemleri maksimum bant genişliğinde.
+                    Thanks to our global CDN network, file upload and download
+                    operations at maximum bandwidth.
                   </p>
                 </div>
               </div>
@@ -317,14 +315,14 @@ export default async function Home() {
             </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2024 CloudStorage Inc. Tüm hakları saklıdır.
+            © 2024 CloudStorage Inc. All rights reserved.
           </p>
           <div className="flex gap-8 text-sm font-medium text-muted-foreground">
             <Link href="#" className="hover:text-foreground transition-colors">
-              Gizlilik
+              Privacy
             </Link>
             <Link href="#" className="hover:text-foreground transition-colors">
-              Şartlar
+              Terms
             </Link>
             <Link href="#" className="hover:text-foreground transition-colors">
               Twitter

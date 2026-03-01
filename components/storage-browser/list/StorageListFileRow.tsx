@@ -145,7 +145,7 @@ export const StorageListFileRow = ({
               })
             }
             className="size-6 md:size-6 bg-background/90"
-            aria-label={`${file.Metadata?.Originalfilename || file.Name} sec`}
+            aria-label={`${file.Metadata?.Originalfilename || file.Name} select`}
           />
         </div>
         <div className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-muted/20 shrink-0">
@@ -201,7 +201,7 @@ export const StorageListFileRow = ({
                   data-dnd-ignore
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  Önizle
+                  Preview
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={(event) => {
@@ -215,7 +215,7 @@ export const StorageListFileRow = ({
                   data-dnd-ignore
                 >
                   <Pencil className="mr-2 h-4 w-4" />
-                  Düzenle
+                  Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={(event) => {
@@ -229,7 +229,7 @@ export const StorageListFileRow = ({
                   data-dnd-ignore
                 >
                   <FolderInput className="mr-2 h-4 w-4" />
-                  Taşı
+                  Move
                 </DropdownMenuItem>
                 {isArchive ? (
                   <DropdownMenuItem
@@ -245,7 +245,7 @@ export const StorageListFileRow = ({
                     data-dnd-ignore
                   >
                     <Archive className="mr-2 h-4 w-4" />
-                    Arşiv çıkar
+                    Extract archive
                   </DropdownMenuItem>
                 ) : null}
                 {canCancelExtraction ? (
@@ -261,7 +261,7 @@ export const StorageListFileRow = ({
                     data-dnd-ignore
                   >
                     <XCircle className="mr-2 h-4 w-4" />
-                    Çıkarmayı iptal et
+                    Cancel extraction
                   </DropdownMenuItem>
                 ) : null}
                 <DropdownMenuItem
@@ -277,7 +277,7 @@ export const StorageListFileRow = ({
                   data-dnd-ignore
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Sil
+                  Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

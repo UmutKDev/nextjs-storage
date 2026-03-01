@@ -114,7 +114,7 @@ export function ExplorerEncryptionProvider({
     const folderName =
       getFolderNameFromPrefix(accessDeniedPath) ||
       accessDeniedPath.split("/").filter(Boolean).pop() ||
-      "şifreli klasör";
+      "encrypted folder";
 
     const invalidateAccessDeniedQueries = async () => {
       await Promise.all([

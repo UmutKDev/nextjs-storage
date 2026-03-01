@@ -30,8 +30,12 @@ export default function StorageUsage({
     <div className={cn("flex flex-col gap-3", className)}>
       <div className="flex items-end justify-between">
         <div className="flex flex-col">
-          <span className="text-2xl font-bold tracking-tight">{Math.round(percent)}%</span>
-          <span className="text-xs text-muted-foreground font-medium">Kullanılıyor</span>
+          <span className="text-2xl font-bold tracking-tight">
+            {Math.round(percent)}%
+          </span>
+          <span className="text-xs text-muted-foreground font-medium">
+            Used
+          </span>
         </div>
         <div className="text-xs text-muted-foreground mb-1">
           <span className="font-medium text-foreground">{used}</span> / {total}
@@ -39,10 +43,10 @@ export default function StorageUsage({
       </div>
 
       <Progress value={percent} className="h-2 w-full" />
-      
+
       {usage.IsLimitExceeded && (
         <p className="text-xs text-destructive font-medium mt-1">
-          Depolama alanı sınırını aştınız!
+          You have exceeded the storage limit!
         </p>
       )}
     </div>

@@ -1,3 +1,5 @@
+import type { MutableRefObject } from "react";
+
 export enum NotificationType {
   // File Operations
   UPLOAD_COMPLETE = "UPLOAD_COMPLETE",
@@ -18,6 +20,14 @@ export enum NotificationType {
   SUBSCRIPTION_CHANGED = "SUBSCRIPTION_CHANGED",
   SUBSCRIPTION_CANCELLED = "SUBSCRIPTION_CANCELLED",
 
+  // Archive
+  ARCHIVE_CREATE_PROGRESS = "ARCHIVE_CREATE_PROGRESS",
+  ARCHIVE_CREATE_COMPLETE = "ARCHIVE_CREATE_COMPLETE",
+  ARCHIVE_CREATE_FAILED = "ARCHIVE_CREATE_FAILED",
+  ARCHIVE_EXTRACT_PROGRESS = "ARCHIVE_EXTRACT_PROGRESS",
+  ARCHIVE_EXTRACT_COMPLETE = "ARCHIVE_EXTRACT_COMPLETE",
+  ARCHIVE_EXTRACT_FAILED = "ARCHIVE_EXTRACT_FAILED",
+
   // Errors
   ERROR = "ERROR",
   RATE_LIMIT = "RATE_LIMIT",
@@ -34,8 +44,10 @@ export interface NotificationPayload {
 export interface UseNotificationsOptions {
   enabled?: boolean;
   sessionId?: string | null;
-  onNotification?: (payload: NotificationPayload) => void;
+  subscribersRef: MutableRefObject<Set<NotificationSubscriber>>;
 }
+
+export type NotificationSubscriber = (payload: NotificationPayload) => void;
 
 export interface UseNotificationsReturn {
   isConnected: boolean;

@@ -65,7 +65,7 @@ const onError = (error: AxiosError<any>) => {
     if (process.env.NODE_ENV === "development") {
       console.log(error.response.data);
     }
-    return Promise.reject("Bir hata oluştu.");
+    return Promise.reject("An error occurred.");
   }
 
   return Promise.reject(error);

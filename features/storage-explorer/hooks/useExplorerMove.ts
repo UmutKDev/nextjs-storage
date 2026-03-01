@@ -46,7 +46,7 @@ export function useExplorerMove() {
         const destinationLabel =
           getFolderNameFromPrefix(destinationKey) ||
           normalizedDestination ||
-          "şifreli klasör";
+          "encrypted folder";
         requestFolderUnlock({
           path: normalizedDestination,
           label: destinationLabel,

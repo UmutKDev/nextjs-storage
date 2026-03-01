@@ -12,10 +12,10 @@ import TeamInvitationsSection from "./sections/TeamInvitationsSection";
 import TeamSettingsSection from "./sections/TeamSettingsSection";
 
 const roleLabels: Record<string, string> = {
-  [TeamRole.OWNER]: "Sahip",
-  [TeamRole.ADMIN]: "Yönetici",
-  [TeamRole.MEMBER]: "Üye",
-  [TeamRole.VIEWER]: "İzleyici",
+  [TeamRole.OWNER]: "Owner",
+  [TeamRole.ADMIN]: "Admin",
+  [TeamRole.MEMBER]: "Member",
+  [TeamRole.VIEWER]: "Viewer",
 };
 
 interface TeamDetailViewProps {
@@ -52,7 +52,7 @@ export default function TeamDetailView({
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold">
-              {detail?.Name ?? teamName ?? "Takım"}
+              {detail?.Name ?? teamName ?? "Team"}
             </h2>
             {role && (
               <Badge variant="secondary" className="text-xs">
@@ -66,7 +66,7 @@ export default function TeamDetailView({
             </p>
           )}
           <p className="text-xs text-muted-foreground mt-1">
-            {detail?.MemberCount ?? 0} üye
+            {detail?.MemberCount ?? 0} members
           </p>
         </div>
       </div>
@@ -76,17 +76,17 @@ export default function TeamDetailView({
         <TabsList className="h-10 rounded-xl bg-muted/50 p-1">
           <TabsTrigger value="members" className="rounded-lg px-4 gap-2">
             <Users className="h-3.5 w-3.5" />
-            Üyeler
+            Members
           </TabsTrigger>
           {canManage && (
             <TabsTrigger value="invitations" className="rounded-lg px-4 gap-2">
               <Mail className="h-3.5 w-3.5" />
-              Davetler
+              Invitations
             </TabsTrigger>
           )}
           <TabsTrigger value="settings" className="rounded-lg px-4 gap-2">
             <Settings className="h-3.5 w-3.5" />
-            Ayarlar
+            Settings
           </TabsTrigger>
         </TabsList>
 

@@ -67,7 +67,7 @@ export default function CreateFolderModal({
                 htmlFor="encrypted"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Şifrele
+                Encrypt
               </label>
             </div>
           )}
@@ -81,7 +81,7 @@ export default function CreateFolderModal({
             >
               <Input
                 type="password"
-                placeholder="Parola (en az 8 karakter)"
+                placeholder="Password (at least 8 characters)"
                 value={passphrase}
                 onChange={(e) => onPassphraseChange(e.target.value)}
                 className="mt-2"

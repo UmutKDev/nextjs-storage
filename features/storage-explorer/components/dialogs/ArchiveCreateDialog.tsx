@@ -69,7 +69,7 @@ export default function ArchiveCreateDialog({
       <div className="flex items-center justify-between p-4 border-b border-muted/10">
         <div className="flex items-center gap-2">
           <Archive className="text-primary" />
-          <div className="text-sm font-semibold">Arsiv olustur</div>
+          <div className="text-sm font-semibold">Create archive</div>
         </div>
         <button onClick={onClose} className="rounded-md p-1 hover:bg-muted/10">
           <X />
@@ -78,7 +78,7 @@ export default function ArchiveCreateDialog({
 
       <div className="p-4 text-sm space-y-4">
         <div className="text-muted-foreground">
-          {keys.length} oge secildi. Bir arsiv dosyasi olusturulacak.
+          {keys.length} items selected. An archive file will be created.
         </div>
 
         <div className="space-y-2">
@@ -103,16 +103,16 @@ export default function ArchiveCreateDialog({
 
         <div className="space-y-2">
           <label className="text-xs font-medium text-foreground">
-            Dosya adi (opsiyonel)
+            Filename (optional)
           </label>
           <Input
             value={outputName}
             onChange={(e) => setOutputName(e.target.value)}
-            placeholder="Otomatik olusturulacak"
+            placeholder="Auto-generated"
             className="h-8 text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Bos birakilirsa sunucu tarafindan otomatik isimlendirilir.
+            If left blank, the server will auto-name it.
           </p>
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function ArchiveCreateDialog({
           disabled={loading}
           className="rounded-md px-3 py-1 text-sm hover:bg-muted/10 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Iptal
+          Cancel
         </button>
         <button
           onClick={handleCreate}
@@ -133,7 +133,7 @@ export default function ArchiveCreateDialog({
           {loading ? (
             <div className="h-3 w-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
           ) : null}
-          Olustur
+          Create
         </button>
       </div>
     </BaseDialog>

@@ -82,7 +82,7 @@ export default function TwoFactorManager() {
       statusQuery.refetch();
     },
     onError: () => {
-      setVerifyError("Doğrulama kodu hatalı.");
+      setVerifyError("Verification code is incorrect.");
     },
   });
 
@@ -98,7 +98,7 @@ export default function TwoFactorManager() {
       setDisableError(null);
     },
     onError: () => {
-      setDisableError("Devre dışı bırakılamadı. Kod hatalı olabilir.");
+      setDisableError("Failed to disable. Code may be incorrect.");
     },
   });
 
@@ -119,7 +119,9 @@ export default function TwoFactorManager() {
       setRegenError(null);
     },
     onError: () => {
-      setRegenError("Kodlar yenilenemedi. Doğrulama kodu hatalı olabilir.");
+      setRegenError(
+        "Failed to refresh codes. Verification code may be incorrect.",
+      );
     },
   });
 
@@ -161,9 +163,11 @@ export default function TwoFactorManager() {
               )}
             </div>
             <div>
-              <CardTitle className="text-lg">İki Faktörlü Doğrulama</CardTitle>
+              <CardTitle className="text-lg">
+                Two-Factor Authentication
+              </CardTitle>
               <CardDescription>
-                Hesabınızı SMS veya Authenticator uygulaması ile koruyun.
+                Protect your account with SMS or an Authenticator app.
               </CardDescription>
             </div>
           </div>
@@ -171,7 +175,7 @@ export default function TwoFactorManager() {
             variant={isEnabled ? "default" : "secondary"}
             className={isEnabled ? "bg-emerald-600 hover:bg-emerald-700" : ""}
           >
-            {isEnabled ? "Aktif" : "Pasif"}
+            {isEnabled ? "Active" : "Inactive"}
           </Badge>
         </div>
       </CardHeader>
@@ -187,11 +191,11 @@ export default function TwoFactorManager() {
                 </div>
                 <div className="max-w-xs space-y-2">
                   <h4 className="font-semibold text-foreground">
-                    2FA Henüz Etkin Değil
+                    2FA Not Yet Enabled
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Hesap güvenliğinizi artırmak için iki faktörlü doğrulamayı
-                    etkinleştirmenizi öneririz.
+                    We recommend enabling two-factor authentication to increase
+                    your account security.
                   </p>
                 </div>
                 <Button
@@ -202,7 +206,7 @@ export default function TwoFactorManager() {
                   {setupMutation.status === "pending" && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Kurulumu Başlat
+                  Start Setup
                 </Button>
               </div>
             ) : (
@@ -213,16 +217,16 @@ export default function TwoFactorManager() {
                       <QRCodeCanvas value={setupData.OtpAuthUrl} size={180} />
                     )}
                     <p className="text-xs text-muted-foreground text-center max-w-50">
-                      Google Authenticator veya benzeri bir uygulama ile bu QR
-                      kodu taratın.
+                      Scan this QR code with Google Authenticator or a similar
+                      app.
                     </p>
                   </div>
 
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Manuel Kurulum</h4>
+                      <h4 className="font-medium text-sm">Manual Setup</h4>
                       <p className="text-sm text-muted-foreground">
-                        QR kodu okutamıyorsanız bu anahtarı kullanın:
+                        If you can&apos;t scan the QR code, use this key:
                       </p>
                       <div className="flex items-center gap-2">
                         <code className="flex-1 bg-muted px-3 py-2 rounded text-xs font-mono break-all border">
@@ -246,10 +250,10 @@ export default function TwoFactorManager() {
                     <Separator />
 
                     <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Doğrulama Kodu</h4>
+                      <h4 className="font-medium text-sm">Verification Code</h4>
                       <div className="flex gap-2">
                         <Input
-                          placeholder="Uygulamadaki 6 haneli kod"
+                          placeholder="6-digit code from the app"
                           value={code}
                           onChange={(e) => {
                             setCode(e.target.value);
@@ -268,7 +272,7 @@ export default function TwoFactorManager() {
                           {verifyMutation.status === "pending" && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           )}
-                          Doğrula
+                          Verify
                         </Button>
                       </div>
                       {verifyError && (
@@ -278,7 +282,7 @@ export default function TwoFactorManager() {
                         </div>
                       )}
                       <p className="text-xs text-muted-foreground mt-2">
-                        Kurulumu tamamlamak için kodu girin.
+                        Enter the code to complete setup.
                       </p>
                     </div>
                   </div>
@@ -291,7 +295,7 @@ export default function TwoFactorManager() {
                     onClick={() => setShowSetup(false)}
                     className="text-muted-foreground"
                   >
-                    İptal Et
+                    Cancel
                   </Button>
                 </div>
               </div>
@@ -302,19 +306,19 @@ export default function TwoFactorManager() {
           <div className="space-y-6">
             <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-800 dark:text-emerald-400">
               <CheckCircle2 className="h-4 w-4 stroke-emerald-600 dark:stroke-emerald-400" />
-              <AlertTitle>Hesabınız Güvende</AlertTitle>
+              <AlertTitle>Your Account is Secure</AlertTitle>
               <AlertDescription>
-                İki faktörlü doğrulama şu anda etkin. Giriş yaparken doğrulama
-                kodu istenecek.
+                Two-factor authentication is currently enabled. A verification
+                code will be required when signing in.
               </AlertDescription>
             </Alert>
 
             <div className="space-y-6 pt-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border rounded-xl bg-muted/30">
                 <div className="space-y-1">
-                  <p className="font-semibold text-sm">Yedek Kodlar</p>
+                  <p className="font-semibold text-sm">Backup Codes</p>
                   {/* <p className="text-xs text-muted-foreground max-w-[200px]">
-                    Kalan geçerli kod sayısı:{" "}
+                    Remaining valid codes:{" "}
                     <span className="font-semibold text-foreground">
                       {statusQuery.data?.RecoveryCodesLeft ?? 0}
                     </span>
@@ -323,7 +327,7 @@ export default function TwoFactorManager() {
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-2">
                     <Input
-                      placeholder="Kod"
+                      placeholder="Code"
                       className="w-24 text-center h-9 font-mono text-xs"
                       maxLength={6}
                       value={code}
@@ -342,7 +346,7 @@ export default function TwoFactorManager() {
                       <RefreshCw
                         className={`mr-2 h-3.5 w-3.5 ${regenMutation.status === "pending" ? "animate-spin" : ""}`}
                       />
-                      Yenile
+                      Refresh
                     </Button>
                   </div>
                   {regenError && (
@@ -357,16 +361,16 @@ export default function TwoFactorManager() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <p className="font-semibold text-sm text-destructive">
-                      Devre Dışı Bırak
+                      Disable
                     </p>
                     <p className="text-xs text-destructive/80 max-w-[250px]">
-                      Bu işlem hesabınızın güvenliğini azaltacaktır.
+                      This action will reduce your account security.
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <div className="flex items-center gap-2">
                       <Input
-                        placeholder="Kod"
+                        placeholder="Code"
                         className="w-24 text-center h-9 font-mono text-xs bg-background"
                         maxLength={6}
                         value={code}
@@ -382,7 +386,7 @@ export default function TwoFactorManager() {
                         disabled={disableMutation.status === "pending" || !code}
                         className="shrink-0 px-4"
                       >
-                        Devre Dışı Bırak
+                        Disable
                       </Button>
                     </div>
                     {disableError && (
@@ -394,8 +398,8 @@ export default function TwoFactorManager() {
                 </div>
                 {!code && !disableError && (
                   <p className="text-[10px] text-destructive/70 pt-3 border-t border-destructive/10">
-                    * İşlem yapmak için geçerli bir doğrulama kodu girmeniz
-                    gerekir.
+                    * You need to enter a valid verification code to perform
+                    this action.
                   </p>
                 )}
               </div>

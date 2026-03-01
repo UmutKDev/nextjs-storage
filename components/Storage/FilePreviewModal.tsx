@@ -46,19 +46,19 @@ function formatOriginalSize(file: CloudObjectModel) {
   const hasDims =
     width && height && Number.isFinite(width) && Number.isFinite(height);
   const dims = hasDims ? `${Math.round(width)}x${Math.round(height)}` : null;
-  return `Orijinal boyut: ${size}${dims ? ` • ${dims}` : ""}`;
+  return `Original size: ${size}${dims ? ` • ${dims}` : ""}`;
 }
 
 function formatScaledSize(
   file: CloudObjectModel,
   options?: { isFullScreen?: boolean },
 ) {
-  if (!isImageFile(file)) return "Ölçekli boyut: —";
+  if (!isImageFile(file)) return "Scaled size: —";
   const scaled = getScaledImageDimensions(file, {
     target: options?.isFullScreen ? "fullscreen" : "preview",
   });
-  if (!scaled) return "Ölçekli boyut: —";
-  return `Ölçekli boyut: ${scaled.width}x${scaled.height}`;
+  if (!scaled) return "Scaled size: —";
+  return `Scaled size: ${scaled.width}x${scaled.height}`;
 }
 
 export default function FilePreviewModal({
@@ -242,7 +242,7 @@ export default function FilePreviewModal({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  title="İndir"
+                  title="Download"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <DownloadCloud size={18} />
@@ -255,7 +255,7 @@ export default function FilePreviewModal({
                     void handleDownload(downloadUrl);
                   }}
                 >
-                  Orijinal
+                  Original
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   disabled={!hasScaledDownload}
@@ -264,7 +264,7 @@ export default function FilePreviewModal({
                     void handleDownload(scaledDownloadUrl ?? downloadUrl);
                   }}
                 >
-                  Ölçekli
+                  Scaled
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -275,7 +275,7 @@ export default function FilePreviewModal({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              title="Paylaş"
+              title="Share"
               onClick={(e) => {
                 e.stopPropagation();
                 void handleShare();
@@ -292,7 +292,7 @@ export default function FilePreviewModal({
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             onClick={() => onDelete?.(file)}
-            title="Sil"
+            title="Delete"
           >
             <Trash2 size={18} />
           </Button>
@@ -304,7 +304,7 @@ export default function FilePreviewModal({
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-foreground"
             onClick={() => setIsFullScreen(!isFullScreen)}
-            title={isFullScreen ? "Küçült" : "Tam Ekran"}
+            title={isFullScreen ? "Minimize" : "Full Screen"}
           >
             {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
           </Button>
@@ -346,7 +346,7 @@ export default function FilePreviewModal({
               : "text-foreground hover:text-foreground hover:bg-muted"
           }`}
           onClick={onClose}
-          title="Kapat"
+          title="Close"
         >
           <X size={20} />
         </Button>
@@ -388,7 +388,7 @@ export default function FilePreviewModal({
         <div>{formatOriginalSize(file)}</div>
         <div>{formatScaledSize(file, { isFullScreen })}</div>
         <div>
-          Değiştirilme:{" "}
+          Modified:{" "}
           {file.LastModified
             ? new Date(file.LastModified).toLocaleString()
             : "—"}

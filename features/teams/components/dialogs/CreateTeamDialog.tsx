@@ -34,7 +34,7 @@ export default function CreateTeamDialog({
     e.preventDefault();
 
     if (name.trim().length < 2) {
-      toast.error("Takım adı en az 2 karakter olmalıdır.");
+      toast.error("Team name must be at least 2 characters.");
       return;
     }
 
@@ -51,14 +51,14 @@ export default function CreateTeamDialog({
           name: newTeam.Name,
           role: newTeam.MyRole ?? "OWNER",
         });
-        toast.success(`"${newTeam.Name}" takımı oluşturuldu.`);
+        toast.success(`"${newTeam.Name}" team created.`);
       }
 
       setName("");
       setDescription("");
       onOpenChange(false);
     } catch {
-      toast.error("Takım oluşturulurken bir hata oluştu.");
+      toast.error("An error occurred while creating the team.");
     }
   };
 
@@ -67,42 +67,42 @@ export default function CreateTeamDialog({
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Yeni Takım Oluştur</DialogTitle>
+            <DialogTitle>Create New Team</DialogTitle>
             <DialogDescription>
-              Takımınız için bir ad ve açıklama belirleyin. Takım
-              oluşturulduktan sonra üye davet edebilirsiniz.
+              Set a name and description for your team. After the team is
+              created, you can invite members.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="team-name">
-                Takım Adı <span className="text-destructive">*</span>
+                Team Name <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="team-name"
-                placeholder="Takım adını girin"
+                placeholder="Enter team name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={100}
                 autoFocus
               />
               <p className="text-xs text-muted-foreground">
-                2-100 karakter arası olmalıdır.
+                Must be between 2-100 characters.
               </p>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="team-description">Açıklama</Label>
+              <Label htmlFor="team-description">Description</Label>
               <Input
                 id="team-description"
-                placeholder="Takım açıklaması (opsiyonel)"
+                placeholder="Team description (optional)"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={500}
               />
               <p className="text-xs text-muted-foreground">
-                Maksimum 500 karakter.
+                Maximum 500 characters.
               </p>
             </div>
           </div>
@@ -114,7 +114,7 @@ export default function CreateTeamDialog({
               onClick={() => onOpenChange(false)}
               disabled={createTeam.isPending}
             >
-              İptal
+              Cancel
             </Button>
             <Button
               type="submit"
@@ -123,7 +123,7 @@ export default function CreateTeamDialog({
               {createTeam.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Oluştur
+              Create
             </Button>
           </DialogFooter>
         </form>

@@ -65,7 +65,7 @@ export default function MoveFileModal({
         const label =
           dir.Name ||
           normalized.split("/").filter(Boolean).pop() ||
-          "şifreli klasör";
+          "encrypted folder";
         promptUnlock({
           path: normalized,
           label,
@@ -199,7 +199,7 @@ export default function MoveFileModal({
                           ) : (
                             <Lock className="h-3 w-3" />
                           )}
-                          {unlocked ? "Kilitsiz" : "Şifreli"}
+                          {unlocked ? "Unlocked" : "Encrypted"}
                         </span>
                       )}
                     </button>

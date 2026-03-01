@@ -141,7 +141,7 @@ export const StorageListFolderRow = ({
               })
             }
             className="size-6 md:size-6 bg-background/90"
-            aria-label={`${directoryMetadata.displayName} klasorunu sec`}
+            aria-label={`${directoryMetadata.displayName} select folder`}
           />
         </div>
         <div className="w-8 h-8 md:w-8 md:h-8 flex items-center justify-center rounded-md bg-blue-500/10 text-blue-500 shrink-0">
@@ -165,13 +165,13 @@ export const StorageListFolderRow = ({
               ) : (
                 <Lock className="h-3 w-3" />
               )}
-              {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
+              {directoryMetadata.isUnlocked ? "Unlocked" : "Encrypted"}
             </div>
           ) : null}
           {directoryMetadata.isHidden ? (
             <div className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-600 sm:hidden">
               <EyeOff className="h-3 w-3" />
-              Gizli
+              Hidden
             </div>
           ) : null}
         </div>
@@ -191,16 +191,16 @@ export const StorageListFolderRow = ({
                 <Lock className="h-3.5 w-3.5" />
               )}
               <span className="hidden sm:inline">
-                {directoryMetadata.isUnlocked ? "Kilitsiz" : "Şifreli"}
+                {directoryMetadata.isUnlocked ? "Unlocked" : "Encrypted"}
               </span>
             </span>
           ) : directoryMetadata.isHidden ? (
             <span className="inline-flex items-center gap-1 font-medium text-slate-500">
               <EyeOff className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Gizli</span>
+              <span className="hidden sm:inline">Hidden</span>
             </span>
           ) : (
-            <span className="hidden sm:inline">Klasör</span>
+            <span className="hidden sm:inline">Folder</span>
           )}
         </div>
 
@@ -228,7 +228,7 @@ export const StorageListFolderRow = ({
                 data-dnd-ignore
               >
                 <Pencil className="mr-2 h-4 w-4" />
-                Düzenle
+                Edit
               </DropdownMenuItem>
               {!directoryMetadata.isEncrypted ? (
                 <DropdownMenuItem
@@ -243,7 +243,7 @@ export const StorageListFolderRow = ({
                   data-dnd-ignore
                 >
                   <Lock className="mr-2 h-4 w-4" />
-                  Şifrele
+                  Encrypt
                 </DropdownMenuItem>
               ) : null}
               {!directoryMetadata.isHidden ? (
@@ -259,7 +259,7 @@ export const StorageListFolderRow = ({
                   data-dnd-ignore
                 >
                   <EyeOff className="mr-2 h-4 w-4" />
-                  Gizle
+                  Hide
                 </DropdownMenuItem>
               ) : null}
               {directoryMetadata.isHidden ? (
@@ -275,7 +275,7 @@ export const StorageListFolderRow = ({
                   data-dnd-ignore
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  Gizliliği Kaldır
+                  Unhide
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuItem
@@ -293,7 +293,7 @@ export const StorageListFolderRow = ({
                 data-dnd-ignore
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Sil
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

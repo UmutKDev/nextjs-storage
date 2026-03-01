@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials) {
-          throw new Error("Giriş bilgileri eksik.");
+          throw new Error("Login credentials are missing.");
         }
 
         const { email, password, twoFactorCode, passkey } = credentials;
@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
         // --- Passkey Login Flow ---
         if (passkey) {
           if (!email) {
-            throw new Error("Passkey girişi için e-posta gereklidir.");
+            throw new Error("Email is required for passkey login.");
           }
 
           const credentialJson =
@@ -62,7 +62,7 @@ export const authOptions: NextAuthOptions = {
 
           const result = res.data?.Result;
           if (!result?.SessionId) {
-            throw new Error("Passkey doğrulaması başarısız.");
+            throw new Error("Passkey verification failed.");
           }
 
           return {
@@ -74,7 +74,7 @@ export const authOptions: NextAuthOptions = {
 
         // --- Standard Email/Password Login Flow ---
         if (!email || !password) {
-          throw new Error("E-posta ve şifre zorunludur.");
+          throw new Error("Email and password are required.");
         }
 
         const res = await authenticationApiFactory.login({
@@ -86,9 +86,7 @@ export const authOptions: NextAuthOptions = {
 
         const result = res.data?.Result;
         if (!result?.SessionId) {
-          throw new Error(
-            "Giriş yapılamadı, lütfen bilgilerinizi kontrol edin.",
-          );
+          throw new Error("Login failed. Please check your credentials.");
         }
 
         // If 2FA is required and code is provided, verify it
@@ -108,7 +106,7 @@ export const authOptions: NextAuthOptions = {
 
           const verifyResult = verifyRes.data?.Result;
           if (!verifyResult.SessionId) {
-            throw new Error("2FA kodu hatalı.");
+            throw new Error("2FA code is incorrect.");
           }
 
           // 2FA verified successfully

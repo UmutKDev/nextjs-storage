@@ -30,10 +30,10 @@ export default function RemoveMemberDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Üyeyi Çıkar</AlertDialogTitle>
+          <AlertDialogTitle>Remove Member</AlertDialogTitle>
           <AlertDialogDescription>
-            <strong>&quot;{memberName}&quot;</strong> isimli üyeyi takımdan
-            çıkarmak istediğinize emin misiniz?
+            Are you sure you want to remove{" "}
+            <strong>&quot;{memberName}&quot;</strong> from the team?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -42,7 +42,7 @@ export default function RemoveMemberDialog({
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
-            İptal
+            Cancel
           </Button>
           <Button
             variant="destructive"
@@ -50,7 +50,7 @@ export default function RemoveMemberDialog({
             disabled={isPending}
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Çıkar
+            Remove
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

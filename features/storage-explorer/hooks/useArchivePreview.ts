@@ -30,7 +30,7 @@ export function useArchivePreview() {
       } catch {
         setPreviewState({
           loading: false,
-          error: "Arsiv icerigi yuklenemedi",
+          error: "Failed to load archive content",
         });
       }
     },

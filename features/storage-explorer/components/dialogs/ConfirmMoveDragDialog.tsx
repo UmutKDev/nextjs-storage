@@ -6,14 +6,12 @@ import { useExplorerMove } from "../../hooks/useExplorerMove";
 
 type ConfirmMoveDragDialogProps = {
   open: boolean;
-  payload:
-    | {
-        sourceKeys: string[];
-        targetKey: string;
-        sourceName?: string;
-        targetName?: string;
-      }
-    | null;
+  payload: {
+    sourceKeys: string[];
+    targetKey: string;
+    sourceName?: string;
+    targetName?: string;
+  } | null;
   onClose: () => void;
 };
 
@@ -35,10 +33,10 @@ export default function ConfirmMoveDragDialog({
       onOpenChange={(nextOpen) => {
         if (!nextOpen) onClose();
       }}
-      title={`Taşı: ${payload?.sourceName ?? ""}`}
-      description={`"${
+      title={`Move: ${payload?.sourceName ?? ""}`}
+      description={`Are you sure you want to move "${
         payload?.sourceName ?? ""
-      }" öğesini "${payload?.targetName ?? ""}" klasörüne taşımak istediğinizden emin misiniz?`}
+      }" to "${payload?.targetName ?? ""}"?`}
       onConfirm={updateDraggedItemLocation}
     />
   );

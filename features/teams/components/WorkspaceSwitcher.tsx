@@ -27,10 +27,10 @@ import type { TeamResponseModel } from "@/types/team.types";
 import CreateTeamDialog from "./dialogs/CreateTeamDialog";
 
 const roleLabels: Record<string, string> = {
-  [TeamRole.OWNER]: "Sahip",
-  [TeamRole.ADMIN]: "Yönetici",
-  [TeamRole.MEMBER]: "Üye",
-  [TeamRole.VIEWER]: "İzleyici",
+  [TeamRole.OWNER]: "Owner",
+  [TeamRole.ADMIN]: "Admin",
+  [TeamRole.MEMBER]: "Member",
+  [TeamRole.VIEWER]: "Viewer",
 };
 
 const roleBadgeVariants: Record<
@@ -96,10 +96,10 @@ export default function WorkspaceSwitcher() {
               </div>
               <div className="flex flex-col items-start min-w-0">
                 <span className="text-sm font-medium truncate max-w-[130px]">
-                  {isPersonal ? "Kişisel Alan" : activeTeamName}
+                  {isPersonal ? "Personal Space" : activeTeamName}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {isPersonal ? "Kişisel depolama" : "Takım alanı"}
+                  {isPersonal ? "Personal storage" : "Team space"}
                 </span>
               </div>
             </div>
@@ -109,7 +109,7 @@ export default function WorkspaceSwitcher() {
 
         <DropdownMenuContent align="start" className="w-64 p-2 rounded-xl">
           <DropdownMenuLabel className="text-xs text-muted-foreground font-medium px-2">
-            Çalışma Alanı
+            Workspace
           </DropdownMenuLabel>
 
           {/* Personal workspace */}
@@ -121,9 +121,9 @@ export default function WorkspaceSwitcher() {
               <HardDrive className="h-4 w-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium">Kişisel Alan</div>
+              <div className="text-sm font-medium">Personal Space</div>
               <div className="text-[10px] text-muted-foreground">
-                Kişisel depolama
+                Personal storage
               </div>
             </div>
             {isPersonal && <Check className="h-4 w-4 text-primary shrink-0" />}
@@ -134,7 +134,7 @@ export default function WorkspaceSwitcher() {
             <>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs text-muted-foreground font-medium px-2">
-                Takımlar
+                Teams
               </DropdownMenuLabel>
             </>
           )}
@@ -169,7 +169,7 @@ export default function WorkspaceSwitcher() {
                   )}
                 </div>
                 <div className="text-[10px] text-muted-foreground">
-                  {team.MemberCount ?? 0} üye
+                  {team.MemberCount ?? 0} members
                 </div>
               </div>
               {activeTeamId === team.Id && (
@@ -188,7 +188,7 @@ export default function WorkspaceSwitcher() {
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-dashed border-primary/30">
               <Plus className="h-4 w-4" />
             </div>
-            <span className="text-sm font-medium">Yeni Takım Oluştur</span>
+            <span className="text-sm font-medium">Create New Team</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

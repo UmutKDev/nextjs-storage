@@ -91,6 +91,7 @@ export const ArchiveJobIndicator = ({
           state={job.state}
           type={job.type}
           isActive={isActive}
+          variant="grid"
           className="size-7 drop-shadow"
         />
 
@@ -128,6 +129,7 @@ export const ArchiveJobIndicator = ({
         state={job.state}
         type={job.type}
         isActive={isActive}
+        variant="list"
         className="size-3.5 shrink-0"
       />
 
@@ -171,15 +173,25 @@ function StatusIcon({
   state,
   type,
   isActive,
+  variant,
   className,
 }: {
   state: string;
   type: "extract" | "create";
   isActive: boolean;
+  variant: "grid" | "list";
   className?: string;
 }) {
   if (isActive) {
-    return <Loader2 className={cn(className, "animate-spin text-white/80")} />;
+    return (
+      <Loader2
+        className={cn(
+          className,
+          "animate-spin",
+          variant === "grid" ? "text-white/80" : "text-primary",
+        )}
+      />
+    );
   }
   if (state === "completed") {
     return (

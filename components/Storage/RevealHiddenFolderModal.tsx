@@ -32,7 +32,7 @@ export default function RevealHiddenFolderModal({
 
   const handleReveal = async () => {
     if (!passphrase.trim()) {
-      setError("Parola gerekli.");
+      setError("Password required.");
       return;
     }
 
@@ -43,7 +43,7 @@ export default function RevealHiddenFolderModal({
       setError(null);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Gizli klasörler gösterilemedi.",
+        err instanceof Error ? err.message : "Failed to show hidden folders.",
       );
     } finally {
       setLoading(false);
@@ -80,9 +80,7 @@ export default function RevealHiddenFolderModal({
             <div className="flex items-center justify-between p-4 border-b border-muted/10">
               <div className="flex items-center gap-2">
                 <EyeOff className="text-primary" />
-                <div className="text-sm font-semibold">
-                  Gizli klasörleri göster
-                </div>
+                <div className="text-sm font-semibold">Show hidden folders</div>
               </div>
               <button
                 onClick={onClose}
@@ -101,11 +99,11 @@ export default function RevealHiddenFolderModal({
               }}
             >
               <p className="text-muted-foreground">
-                Gizli klasörleri görmek için parolanızı girin{" "}
+                Enter your password to see hidden folders{" "}
                 <span className="font-semibold text-foreground">
-                  {folderName ?? "bu dizin"}
+                  {folderName ?? "this directory"}
                 </span>
-                . Oturum süresince geçerlidir.
+                . Valid for the session duration.
               </p>
 
               <Input
@@ -113,7 +111,7 @@ export default function RevealHiddenFolderModal({
                 name="password"
                 type="password"
                 value={passphrase}
-                placeholder="Parola (en az 8 karakter)"
+                placeholder="Password (at least 8 characters)"
                 autoComplete="current-password"
                 autoFocus
                 onChange={(e) => setPassphrase(e.target.value)}
@@ -133,10 +131,10 @@ export default function RevealHiddenFolderModal({
                   onClick={onClose}
                   type="button"
                 >
-                  İptal
+                  Cancel
                 </Button>
                 <Button size="sm" type="submit" disabled={loading}>
-                  {loading ? "Gösteriliyor..." : "Göster"}
+                  {loading ? "Revealing..." : "Show"}
                 </Button>
               </div>
             </form>

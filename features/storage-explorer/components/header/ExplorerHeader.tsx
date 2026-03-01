@@ -11,10 +11,10 @@ import { useWorkspace } from "@/features/teams/stores/workspace.store";
 import { TeamRole } from "@/types/team.types";
 
 const roleLabels: Record<string, string> = {
-  [TeamRole.OWNER]: "Sahip",
-  [TeamRole.ADMIN]: "Yönetici",
-  [TeamRole.MEMBER]: "Üye",
-  [TeamRole.VIEWER]: "İzleyici",
+  [TeamRole.OWNER]: "Owner",
+  [TeamRole.ADMIN]: "Admin",
+  [TeamRole.MEMBER]: "Member",
+  [TeamRole.VIEWER]: "Viewer",
 };
 
 export default function ExplorerHeader() {
