@@ -75,7 +75,10 @@ export function useExplorerMove() {
           {
             idempotencyKey: createIdempotencyKey(),
             cloudMoveRequestModel: {
-              SourceKeys: sourceKeys,
+              Items: sourceKeys.map((key) => ({
+                Key: key,
+                IsDirectory: key.endsWith("/"),
+              })),
               DestinationKey: destinationKey === "" ? "/" : destinationKey,
             },
           },

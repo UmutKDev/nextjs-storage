@@ -436,6 +436,19 @@ export interface CloudGetMultipartPartUrlResponseModel {
     'Url': string;
     'Expires': number;
 }
+export interface CloudGetMultipartPartUrlsBatchRequestModel {
+    'Key': string;
+    'UploadId': string;
+    'TotalParts'?: number;
+    'PartNumbers'?: Array<number>;
+}
+export interface CloudGetMultipartPartUrlsBatchResponseBaseModel {
+    'Result': CloudGetMultipartPartUrlsBatchResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudGetMultipartPartUrlsBatchResponseModel {
+    'Parts': Array<CloudMultipartPartUrlModel>;
+}
 export interface CloudListResponseBaseModel {
     'Result': CloudListResponseModel;
     'Status': BaseStatusModel;
@@ -450,13 +463,22 @@ export interface CloudMetadataDefaultModel {
     'Width': string;
     'Height': string;
 }
+export interface CloudMoveItemModel {
+    'Key': string;
+    'IsDirectory'?: boolean;
+}
 export interface CloudMoveRequestModel {
-    'SourceKeys': Array<string>;
+    'Items': Array<CloudMoveItemModel>;
     'DestinationKey': string;
 }
 export interface CloudMultipartPartModel {
     'PartNumber': number;
     'ETag': string;
+}
+export interface CloudMultipartPartUrlModel {
+    'PartNumber': number;
+    'Url': string;
+    'Expires': number;
 }
 export interface CloudObjectBaseModel {
     'Result': CloudObjectModel;
@@ -1331,6 +1353,2304 @@ export interface UserSubscriptionResponseModel {
     'Subscription'?: SubscriptionResponseModel;
     'Date': BaseDateModel;
 }
+export interface WebhookCreateRequestModel {
+    'Name': string;
+    'Url': string;
+    'Events': Array<WebhookCreateRequestModelEventsEnum>;
+    'MaxRetries'?: number;
+    'TimeoutSeconds'?: number;
+    'Headers'?: object;
+}
+
+export const WebhookCreateRequestModelEventsEnum = {
+    FileUploaded: 'file.uploaded',
+    FileDeleted: 'file.deleted',
+    FileMoved: 'file.moved',
+    FileUpdated: 'file.updated',
+    DirectoryCreated: 'directory.created',
+    DirectoryDeleted: 'directory.deleted',
+    DirectoryRenamed: 'directory.renamed',
+    ArchiveExtractComplete: 'archive.extract.complete',
+    ArchiveExtractFailed: 'archive.extract.failed',
+    ArchiveCreateComplete: 'archive.create.complete',
+    ArchiveCreateFailed: 'archive.create.failed',
+    QuotaWarning: 'quota.warning',
+    QuotaExceeded: 'quota.exceeded',
+    ApiKeyRotated: 'api_key.rotated',
+    ApiKeyRevoked: 'api_key.revoked'
+} as const;
+
+export type WebhookCreateRequestModelEventsEnum = typeof WebhookCreateRequestModelEventsEnum[keyof typeof WebhookCreateRequestModelEventsEnum];
+
+export interface WebhookUpdateRequestModel {
+    'Name'?: string;
+    'Url'?: string;
+    'Events'?: Array<WebhookUpdateRequestModelEventsEnum>;
+    'MaxRetries'?: number;
+    'TimeoutSeconds'?: number;
+    'Headers'?: object;
+}
+
+export const WebhookUpdateRequestModelEventsEnum = {
+    FileUploaded: 'file.uploaded',
+    FileDeleted: 'file.deleted',
+    FileMoved: 'file.moved',
+    FileUpdated: 'file.updated',
+    DirectoryCreated: 'directory.created',
+    DirectoryDeleted: 'directory.deleted',
+    DirectoryRenamed: 'directory.renamed',
+    ArchiveExtractComplete: 'archive.extract.complete',
+    ArchiveExtractFailed: 'archive.extract.failed',
+    ArchiveCreateComplete: 'archive.create.complete',
+    ArchiveCreateFailed: 'archive.create.failed',
+    QuotaWarning: 'quota.warning',
+    QuotaExceeded: 'quota.exceeded',
+    ApiKeyRotated: 'api_key.rotated',
+    ApiKeyRevoked: 'api_key.revoked'
+} as const;
+
+export type WebhookUpdateRequestModelEventsEnum = typeof WebhookUpdateRequestModelEventsEnum[keyof typeof WebhookUpdateRequestModelEventsEnum];
+
+
+/**
+ * APIDirectoriesApi - axios parameter creator
+ */
+export const APIDirectoriesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create: async (xApiSecret: string, xApiKey: string, directoryCreateRequestModel: DirectoryCreateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('create', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('create', 'xApiKey', xApiKey)
+            // verify required parameter 'directoryCreateRequestModel' is not null or undefined
+            assertParamExists('create', 'directoryCreateRequestModel', directoryCreateRequestModel)
+            const localVarPath = `/Api/v1/Directories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryCreateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteDirectory: async (xApiSecret: string, xApiKey: string, directoryDeleteRequestModel: DirectoryDeleteRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('deleteDirectory', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('deleteDirectory', 'xApiKey', xApiKey)
+            // verify required parameter 'directoryDeleteRequestModel' is not null or undefined
+            assertParamExists('deleteDirectory', 'directoryDeleteRequestModel', directoryDeleteRequestModel)
+            const localVarPath = `/Api/v1/Directories`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(directoryDeleteRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * APIDirectoriesApi - functional programming interface
+ */
+export const APIDirectoriesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = APIDirectoriesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {DirectoryCreateRequestModel} directoryCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async create(xApiSecret: string, xApiKey: string, directoryCreateRequestModel: DirectoryCreateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.create(xApiSecret, xApiKey, directoryCreateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIDirectoriesApi.create']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {DirectoryDeleteRequestModel} directoryDeleteRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteDirectory(xApiSecret: string, xApiKey: string, directoryDeleteRequestModel: DirectoryDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteDirectory(xApiSecret, xApiKey, directoryDeleteRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIDirectoriesApi.deleteDirectory']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * APIDirectoriesApi - factory interface
+ */
+export const APIDirectoriesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = APIDirectoriesApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {APIDirectoriesApiCreateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(requestParameters: APIDirectoriesApiCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.create(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.directoryCreateRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIDirectoriesApiDeleteDirectoryRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteDirectory(requestParameters: APIDirectoriesApiDeleteDirectoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteDirectory(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.directoryDeleteRequestModel, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for create operation in APIDirectoriesApi.
+ */
+export interface APIDirectoriesApiCreateRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly directoryCreateRequestModel: DirectoryCreateRequestModel
+}
+
+/**
+ * Request parameters for deleteDirectory operation in APIDirectoriesApi.
+ */
+export interface APIDirectoriesApiDeleteDirectoryRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly directoryDeleteRequestModel: DirectoryDeleteRequestModel
+}
+
+/**
+ * APIDirectoriesApi - object-oriented interface
+ */
+export class APIDirectoriesApi extends BaseAPI {
+    /**
+     * 
+     * @param {APIDirectoriesApiCreateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public create(requestParameters: APIDirectoriesApiCreateRequest, options?: RawAxiosRequestConfig) {
+        return APIDirectoriesApiFp(this.configuration).create(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.directoryCreateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIDirectoriesApiDeleteDirectoryRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteDirectory(requestParameters: APIDirectoriesApiDeleteDirectoryRequest, options?: RawAxiosRequestConfig) {
+        return APIDirectoriesApiFp(this.configuration).deleteDirectory(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.directoryDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * APIDownloadApi - axios parameter creator
+ */
+export const APIDownloadApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        download: async (xApiSecret: string, xApiKey: string, key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('download', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('download', 'xApiKey', xApiKey)
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('download', 'key', key)
+            const localVarPath = `/Api/v1/Download`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * APIDownloadApi - functional programming interface
+ */
+export const APIDownloadApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = APIDownloadApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async download(xApiSecret: string, xApiKey: string, key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.download(xApiSecret, xApiKey, key, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIDownloadApi.download']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * APIDownloadApi - factory interface
+ */
+export const APIDownloadApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = APIDownloadApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {APIDownloadApiDownloadRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        download(requestParameters: APIDownloadApiDownloadRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.download(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.key, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for download operation in APIDownloadApi.
+ */
+export interface APIDownloadApiDownloadRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly key: string
+}
+
+/**
+ * APIDownloadApi - object-oriented interface
+ */
+export class APIDownloadApi extends BaseAPI {
+    /**
+     * 
+     * @param {APIDownloadApiDownloadRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public download(requestParameters: APIDownloadApiDownloadRequest, options?: RawAxiosRequestConfig) {
+        return APIDownloadApiFp(this.configuration).download(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * APIStorageApi - axios parameter creator
+ */
+export const APIStorageApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} idempotencyKey 
+         * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        _delete: async (xApiSecret: string, xApiKey: string, idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('_delete', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('_delete', 'xApiKey', xApiKey)
+            // verify required parameter 'idempotencyKey' is not null or undefined
+            assertParamExists('_delete', 'idempotencyKey', idempotencyKey)
+            // verify required parameter 'cloudDeleteRequestModel' is not null or undefined
+            assertParamExists('_delete', 'cloudDeleteRequestModel', cloudDeleteRequestModel)
+            const localVarPath = `/Api/v1/Storage/Delete`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            if (idempotencyKey != null) {
+                localVarHeaderParameter['idempotency-key'] = String(idempotencyKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudDeleteRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        find: async (xApiSecret: string, xApiKey: string, key: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('find', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('find', 'xApiKey', xApiKey)
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('find', 'key', key)
+            const localVarPath = `/Api/v1/Storage/Find`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] 
+         * @param {boolean} [delimiter] 
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list: async (xApiSecret: string, xApiKey: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('list', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('list', 'xApiKey', xApiKey)
+            const localVarPath = `/Api/v1/Storage/List`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (search !== undefined) {
+                localVarQueryParameter['Search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['Skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['Take'] = take;
+            }
+
+            if (path !== undefined) {
+                localVarQueryParameter['Path'] = path;
+            }
+
+            if (delimiter !== undefined) {
+                localVarQueryParameter['Delimiter'] = delimiter;
+            }
+
+            if (isMetadataProcessing !== undefined) {
+                localVarQueryParameter['IsMetadataProcessing'] = isMetadataProcessing;
+            }
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} idempotencyKey 
+         * @param {CloudMoveRequestModel} cloudMoveRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        move: async (xApiSecret: string, xApiKey: string, idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('move', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('move', 'xApiKey', xApiKey)
+            // verify required parameter 'idempotencyKey' is not null or undefined
+            assertParamExists('move', 'idempotencyKey', idempotencyKey)
+            // verify required parameter 'cloudMoveRequestModel' is not null or undefined
+            assertParamExists('move', 'cloudMoveRequestModel', cloudMoveRequestModel)
+            const localVarPath = `/Api/v1/Storage/Move`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            if (idempotencyKey != null) {
+                localVarHeaderParameter['idempotency-key'] = String(idempotencyKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudMoveRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} query Search query - partial filename match (case-insensitive, min 2 chars)
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] Restrict search to a specific directory path
+         * @param {string} [extension] Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        search: async (xApiSecret: string, xApiKey: string, query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('search', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('search', 'xApiKey', xApiKey)
+            // verify required parameter 'query' is not null or undefined
+            assertParamExists('search', 'query', query)
+            const localVarPath = `/Api/v1/Storage/Search`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (search !== undefined) {
+                localVarQueryParameter['Search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['Skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['Take'] = take;
+            }
+
+            if (query !== undefined) {
+                localVarQueryParameter['Query'] = query;
+            }
+
+            if (path !== undefined) {
+                localVarQueryParameter['Path'] = path;
+            }
+
+            if (extension !== undefined) {
+                localVarQueryParameter['Extension'] = extension;
+            }
+
+            if (isMetadataProcessing !== undefined) {
+                localVarQueryParameter['IsMetadataProcessing'] = isMetadataProcessing;
+            }
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * APIStorageApi - functional programming interface
+ */
+export const APIStorageApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = APIStorageApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} idempotencyKey 
+         * @param {CloudDeleteRequestModel} cloudDeleteRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async _delete(xApiSecret: string, xApiKey: string, idempotencyKey: string, cloudDeleteRequestModel: CloudDeleteRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator._delete(xApiSecret, xApiKey, idempotencyKey, cloudDeleteRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIStorageApi._delete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} key 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async find(xApiSecret: string, xApiKey: string, key: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.find(xApiSecret, xApiKey, key, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIStorageApi.find']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] 
+         * @param {boolean} [delimiter] 
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async list(xApiSecret: string, xApiKey: string, search?: string, skip?: number, take?: number, path?: string, delimiter?: boolean, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(xApiSecret, xApiKey, search, skip, take, path, delimiter, isMetadataProcessing, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIStorageApi.list']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} idempotencyKey 
+         * @param {CloudMoveRequestModel} cloudMoveRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async move(xApiSecret: string, xApiKey: string, idempotencyKey: string, cloudMoveRequestModel: CloudMoveRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.move(xApiSecret, xApiKey, idempotencyKey, cloudMoveRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIStorageApi.move']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} query Search query - partial filename match (case-insensitive, min 2 chars)
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {string} [path] Restrict search to a specific directory path
+         * @param {string} [extension] Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
+         * @param {boolean} [isMetadataProcessing] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async search(xApiSecret: string, xApiKey: string, query: string, search?: string, skip?: number, take?: number, path?: string, extension?: string, isMetadataProcessing?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.search(xApiSecret, xApiKey, query, search, skip, take, path, extension, isMetadataProcessing, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIStorageApi.search']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * APIStorageApi - factory interface
+ */
+export const APIStorageApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = APIStorageApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {APIStorageApiDeleteRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        _delete(requestParameters: APIStorageApiDeleteRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp._delete(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIStorageApiFindRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        find(requestParameters: APIStorageApiFindRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.find(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.key, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIStorageApiListRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list(requestParameters: APIStorageApiListRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.list(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIStorageApiMoveRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        move(requestParameters: APIStorageApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.move(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIStorageApiSearchRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        search(requestParameters: APIStorageApiSearchRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.search(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for _delete operation in APIStorageApi.
+ */
+export interface APIStorageApiDeleteRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly idempotencyKey: string
+
+    readonly cloudDeleteRequestModel: CloudDeleteRequestModel
+}
+
+/**
+ * Request parameters for find operation in APIStorageApi.
+ */
+export interface APIStorageApiFindRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly key: string
+}
+
+/**
+ * Request parameters for list operation in APIStorageApi.
+ */
+export interface APIStorageApiListRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
+    readonly path?: string
+
+    readonly delimiter?: boolean
+
+    readonly isMetadataProcessing?: boolean
+}
+
+/**
+ * Request parameters for move operation in APIStorageApi.
+ */
+export interface APIStorageApiMoveRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly idempotencyKey: string
+
+    readonly cloudMoveRequestModel: CloudMoveRequestModel
+}
+
+/**
+ * Request parameters for search operation in APIStorageApi.
+ */
+export interface APIStorageApiSearchRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    /**
+     * Search query - partial filename match (case-insensitive, min 2 chars)
+     */
+    readonly query: string
+
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+
+    /**
+     * Restrict search to a specific directory path
+     */
+    readonly path?: string
+
+    /**
+     * Filter by file extension (e.g. \&quot;pdf\&quot;, \&quot;jpg\&quot;). Without leading dot.
+     */
+    readonly extension?: string
+
+    readonly isMetadataProcessing?: boolean
+}
+
+/**
+ * APIStorageApi - object-oriented interface
+ */
+export class APIStorageApi extends BaseAPI {
+    /**
+     * 
+     * @param {APIStorageApiDeleteRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public _delete(requestParameters: APIStorageApiDeleteRequest, options?: RawAxiosRequestConfig) {
+        return APIStorageApiFp(this.configuration)._delete(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIStorageApiFindRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public find(requestParameters: APIStorageApiFindRequest, options?: RawAxiosRequestConfig) {
+        return APIStorageApiFp(this.configuration).find(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.key, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIStorageApiListRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public list(requestParameters: APIStorageApiListRequest, options?: RawAxiosRequestConfig) {
+        return APIStorageApiFp(this.configuration).list(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIStorageApiMoveRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public move(requestParameters: APIStorageApiMoveRequest, options?: RawAxiosRequestConfig) {
+        return APIStorageApiFp(this.configuration).move(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIStorageApiSearchRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public search(requestParameters: APIStorageApiSearchRequest, options?: RawAxiosRequestConfig) {
+        return APIStorageApiFp(this.configuration).search(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.query, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.extension, requestParameters.isMetadataProcessing, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * APIUploadApi - axios parameter creator
+ */
+export const APIUploadApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        abortMultipartUpload: async (xApiSecret: string, xApiKey: string, cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('abortMultipartUpload', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('abortMultipartUpload', 'xApiKey', xApiKey)
+            // verify required parameter 'cloudAbortMultipartUploadRequestModel' is not null or undefined
+            assertParamExists('abortMultipartUpload', 'cloudAbortMultipartUploadRequestModel', cloudAbortMultipartUploadRequestModel)
+            const localVarPath = `/Api/v1/Upload/AbortMultipartUpload`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudAbortMultipartUploadRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} idempotencyKey 
+         * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        completeMultipartUpload: async (xApiSecret: string, xApiKey: string, idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('completeMultipartUpload', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('completeMultipartUpload', 'xApiKey', xApiKey)
+            // verify required parameter 'idempotencyKey' is not null or undefined
+            assertParamExists('completeMultipartUpload', 'idempotencyKey', idempotencyKey)
+            // verify required parameter 'cloudCompleteMultipartUploadRequestModel' is not null or undefined
+            assertParamExists('completeMultipartUpload', 'cloudCompleteMultipartUploadRequestModel', cloudCompleteMultipartUploadRequestModel)
+            const localVarPath = `/Api/v1/Upload/CompleteMultipartUpload`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            if (idempotencyKey != null) {
+                localVarHeaderParameter['idempotency-key'] = String(idempotencyKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudCompleteMultipartUploadRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {CloudCreateMultipartUploadRequestModel} cloudCreateMultipartUploadRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createMultipartUpload: async (xApiSecret: string, xApiKey: string, cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('createMultipartUpload', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('createMultipartUpload', 'xApiKey', xApiKey)
+            // verify required parameter 'cloudCreateMultipartUploadRequestModel' is not null or undefined
+            assertParamExists('createMultipartUpload', 'cloudCreateMultipartUploadRequestModel', cloudCreateMultipartUploadRequestModel)
+            const localVarPath = `/Api/v1/Upload/CreateMultipartUpload`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudCreateMultipartUploadRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {CloudGetMultipartPartUrlRequestModel} cloudGetMultipartPartUrlRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMultipartPartUrl: async (xApiSecret: string, xApiKey: string, cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('getMultipartPartUrl', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('getMultipartPartUrl', 'xApiKey', xApiKey)
+            // verify required parameter 'cloudGetMultipartPartUrlRequestModel' is not null or undefined
+            assertParamExists('getMultipartPartUrl', 'cloudGetMultipartPartUrlRequestModel', cloudGetMultipartPartUrlRequestModel)
+            const localVarPath = `/Api/v1/Upload/GetMultipartPartUrl`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudGetMultipartPartUrlRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {CloudGetMultipartPartUrlsBatchRequestModel} cloudGetMultipartPartUrlsBatchRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMultipartPartUrls: async (xApiSecret: string, xApiKey: string, cloudGetMultipartPartUrlsBatchRequestModel: CloudGetMultipartPartUrlsBatchRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('getMultipartPartUrls', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('getMultipartPartUrls', 'xApiKey', xApiKey)
+            // verify required parameter 'cloudGetMultipartPartUrlsBatchRequestModel' is not null or undefined
+            assertParamExists('getMultipartPartUrls', 'cloudGetMultipartPartUrlsBatchRequestModel', cloudGetMultipartPartUrlsBatchRequestModel)
+            const localVarPath = `/Api/v1/Upload/GetMultipartPartUrls`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudGetMultipartPartUrlsBatchRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * APIUploadApi - functional programming interface
+ */
+export const APIUploadApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = APIUploadApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {CloudAbortMultipartUploadRequestModel} cloudAbortMultipartUploadRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async abortMultipartUpload(xApiSecret: string, xApiKey: string, cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.abortMultipartUpload(xApiSecret, xApiKey, cloudAbortMultipartUploadRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIUploadApi.abortMultipartUpload']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} idempotencyKey 
+         * @param {CloudCompleteMultipartUploadRequestModel} cloudCompleteMultipartUploadRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async completeMultipartUpload(xApiSecret: string, xApiKey: string, idempotencyKey: string, cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.completeMultipartUpload(xApiSecret, xApiKey, idempotencyKey, cloudCompleteMultipartUploadRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIUploadApi.completeMultipartUpload']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {CloudCreateMultipartUploadRequestModel} cloudCreateMultipartUploadRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createMultipartUpload(xApiSecret: string, xApiKey: string, cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createMultipartUpload(xApiSecret, xApiKey, cloudCreateMultipartUploadRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIUploadApi.createMultipartUpload']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {CloudGetMultipartPartUrlRequestModel} cloudGetMultipartPartUrlRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMultipartPartUrl(xApiSecret: string, xApiKey: string, cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMultipartPartUrl(xApiSecret, xApiKey, cloudGetMultipartPartUrlRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIUploadApi.getMultipartPartUrl']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {CloudGetMultipartPartUrlsBatchRequestModel} cloudGetMultipartPartUrlsBatchRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMultipartPartUrls(xApiSecret: string, xApiKey: string, cloudGetMultipartPartUrlsBatchRequestModel: CloudGetMultipartPartUrlsBatchRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMultipartPartUrls(xApiSecret, xApiKey, cloudGetMultipartPartUrlsBatchRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIUploadApi.getMultipartPartUrls']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * APIUploadApi - factory interface
+ */
+export const APIUploadApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = APIUploadApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {APIUploadApiAbortMultipartUploadRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        abortMultipartUpload(requestParameters: APIUploadApiAbortMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.abortMultipartUpload(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.cloudAbortMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIUploadApiCompleteMultipartUploadRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        completeMultipartUpload(requestParameters: APIUploadApiCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.completeMultipartUpload(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIUploadApiCreateMultipartUploadRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createMultipartUpload(requestParameters: APIUploadApiCreateMultipartUploadRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.createMultipartUpload(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.cloudCreateMultipartUploadRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIUploadApiGetMultipartPartUrlRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMultipartPartUrl(requestParameters: APIUploadApiGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getMultipartPartUrl(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.cloudGetMultipartPartUrlRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIUploadApiGetMultipartPartUrlsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMultipartPartUrls(requestParameters: APIUploadApiGetMultipartPartUrlsRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getMultipartPartUrls(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.cloudGetMultipartPartUrlsBatchRequestModel, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for abortMultipartUpload operation in APIUploadApi.
+ */
+export interface APIUploadApiAbortMultipartUploadRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly cloudAbortMultipartUploadRequestModel: CloudAbortMultipartUploadRequestModel
+}
+
+/**
+ * Request parameters for completeMultipartUpload operation in APIUploadApi.
+ */
+export interface APIUploadApiCompleteMultipartUploadRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly idempotencyKey: string
+
+    readonly cloudCompleteMultipartUploadRequestModel: CloudCompleteMultipartUploadRequestModel
+}
+
+/**
+ * Request parameters for createMultipartUpload operation in APIUploadApi.
+ */
+export interface APIUploadApiCreateMultipartUploadRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly cloudCreateMultipartUploadRequestModel: CloudCreateMultipartUploadRequestModel
+}
+
+/**
+ * Request parameters for getMultipartPartUrl operation in APIUploadApi.
+ */
+export interface APIUploadApiGetMultipartPartUrlRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel
+}
+
+/**
+ * Request parameters for getMultipartPartUrls operation in APIUploadApi.
+ */
+export interface APIUploadApiGetMultipartPartUrlsRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly cloudGetMultipartPartUrlsBatchRequestModel: CloudGetMultipartPartUrlsBatchRequestModel
+}
+
+/**
+ * APIUploadApi - object-oriented interface
+ */
+export class APIUploadApi extends BaseAPI {
+    /**
+     * 
+     * @param {APIUploadApiAbortMultipartUploadRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public abortMultipartUpload(requestParameters: APIUploadApiAbortMultipartUploadRequest, options?: RawAxiosRequestConfig) {
+        return APIUploadApiFp(this.configuration).abortMultipartUpload(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.cloudAbortMultipartUploadRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIUploadApiCompleteMultipartUploadRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public completeMultipartUpload(requestParameters: APIUploadApiCompleteMultipartUploadRequest, options?: RawAxiosRequestConfig) {
+        return APIUploadApiFp(this.configuration).completeMultipartUpload(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.idempotencyKey, requestParameters.cloudCompleteMultipartUploadRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIUploadApiCreateMultipartUploadRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createMultipartUpload(requestParameters: APIUploadApiCreateMultipartUploadRequest, options?: RawAxiosRequestConfig) {
+        return APIUploadApiFp(this.configuration).createMultipartUpload(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.cloudCreateMultipartUploadRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIUploadApiGetMultipartPartUrlRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMultipartPartUrl(requestParameters: APIUploadApiGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig) {
+        return APIUploadApiFp(this.configuration).getMultipartPartUrl(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.cloudGetMultipartPartUrlRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIUploadApiGetMultipartPartUrlsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMultipartPartUrls(requestParameters: APIUploadApiGetMultipartPartUrlsRequest, options?: RawAxiosRequestConfig) {
+        return APIUploadApiFp(this.configuration).getMultipartPartUrls(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.cloudGetMultipartPartUrlsBatchRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * APIUsageApi - axios parameter creator
+ */
+export const APIUsageApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        current: async (xApiSecret: string, xApiKey: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('current', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('current', 'xApiKey', xApiKey)
+            const localVarPath = `/Api/v1/Usage/Current`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * APIUsageApi - functional programming interface
+ */
+export const APIUsageApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = APIUsageApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async current(xApiSecret: string, xApiKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.current(xApiSecret, xApiKey, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIUsageApi.current']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * APIUsageApi - factory interface
+ */
+export const APIUsageApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = APIUsageApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {APIUsageApiCurrentRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        current(requestParameters: APIUsageApiCurrentRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.current(requestParameters.xApiSecret, requestParameters.xApiKey, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for current operation in APIUsageApi.
+ */
+export interface APIUsageApiCurrentRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+}
+
+/**
+ * APIUsageApi - object-oriented interface
+ */
+export class APIUsageApi extends BaseAPI {
+    /**
+     * 
+     * @param {APIUsageApiCurrentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public current(requestParameters: APIUsageApiCurrentRequest, options?: RawAxiosRequestConfig) {
+        return APIUsageApiFp(this.configuration).current(requestParameters.xApiSecret, requestParameters.xApiKey, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * APIWebhooksApi - axios parameter creator
+ */
+export const APIWebhooksApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {WebhookCreateRequestModel} webhookCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create: async (xApiSecret: string, xApiKey: string, webhookCreateRequestModel: WebhookCreateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('create', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('create', 'xApiKey', xApiKey)
+            // verify required parameter 'webhookCreateRequestModel' is not null or undefined
+            assertParamExists('create', 'webhookCreateRequestModel', webhookCreateRequestModel)
+            const localVarPath = `/Api/v1/Webhooks`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(webhookCreateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deliveries: async (xApiSecret: string, xApiKey: string, id: string, search?: string, skip?: number, take?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('deliveries', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('deliveries', 'xApiKey', xApiKey)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('deliveries', 'id', id)
+            const localVarPath = `/Api/v1/Webhooks/{Id}/Deliveries`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (search !== undefined) {
+                localVarQueryParameter['Search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['Skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['Take'] = take;
+            }
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        findById: async (xApiSecret: string, xApiKey: string, id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('findById', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('findById', 'xApiKey', xApiKey)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('findById', 'id', id)
+            const localVarPath = `/Api/v1/Webhooks/{Id}`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list: async (xApiSecret: string, xApiKey: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('list', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('list', 'xApiKey', xApiKey)
+            const localVarPath = `/Api/v1/Webhooks`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        remove: async (xApiSecret: string, xApiKey: string, id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('remove', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('remove', 'xApiKey', xApiKey)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('remove', 'id', id)
+            const localVarPath = `/Api/v1/Webhooks/{Id}`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        test: async (xApiSecret: string, xApiKey: string, id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('test', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('test', 'xApiKey', xApiKey)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('test', 'id', id)
+            const localVarPath = `/Api/v1/Webhooks/{Id}/Test`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {WebhookUpdateRequestModel} webhookUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update: async (xApiSecret: string, xApiKey: string, id: string, webhookUpdateRequestModel: WebhookUpdateRequestModel, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xApiSecret' is not null or undefined
+            assertParamExists('update', 'xApiSecret', xApiSecret)
+            // verify required parameter 'xApiKey' is not null or undefined
+            assertParamExists('update', 'xApiKey', xApiKey)
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('update', 'id', id)
+            // verify required parameter 'webhookUpdateRequestModel' is not null or undefined
+            assertParamExists('update', 'webhookUpdateRequestModel', webhookUpdateRequestModel)
+            const localVarPath = `/Api/v1/Webhooks/{Id}`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xApiSecret != null) {
+                localVarHeaderParameter['x-api-secret'] = String(xApiSecret);
+            }
+            if (xApiKey != null) {
+                localVarHeaderParameter['x-api-key'] = String(xApiKey);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(webhookUpdateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * APIWebhooksApi - functional programming interface
+ */
+export const APIWebhooksApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = APIWebhooksApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {WebhookCreateRequestModel} webhookCreateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async create(xApiSecret: string, xApiKey: string, webhookCreateRequestModel: WebhookCreateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.create(xApiSecret, xApiKey, webhookCreateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIWebhooksApi.create']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deliveries(xApiSecret: string, xApiKey: string, id: string, search?: string, skip?: number, take?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deliveries(xApiSecret, xApiKey, id, search, skip, take, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIWebhooksApi.deliveries']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async findById(xApiSecret: string, xApiKey: string, id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.findById(xApiSecret, xApiKey, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIWebhooksApi.findById']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async list(xApiSecret: string, xApiKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.list(xApiSecret, xApiKey, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIWebhooksApi.list']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async remove(xApiSecret: string, xApiKey: string, id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.remove(xApiSecret, xApiKey, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIWebhooksApi.remove']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async test(xApiSecret: string, xApiKey: string, id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.test(xApiSecret, xApiKey, id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIWebhooksApi.test']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} xApiSecret 
+         * @param {string} xApiKey 
+         * @param {string} id 
+         * @param {WebhookUpdateRequestModel} webhookUpdateRequestModel 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async update(xApiSecret: string, xApiKey: string, id: string, webhookUpdateRequestModel: WebhookUpdateRequestModel, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.update(xApiSecret, xApiKey, id, webhookUpdateRequestModel, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['APIWebhooksApi.update']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * APIWebhooksApi - factory interface
+ */
+export const APIWebhooksApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = APIWebhooksApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {APIWebhooksApiCreateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(requestParameters: APIWebhooksApiCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.create(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.webhookCreateRequestModel, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIWebhooksApiDeliveriesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deliveries(requestParameters: APIWebhooksApiDeliveriesRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deliveries(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, requestParameters.search, requestParameters.skip, requestParameters.take, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIWebhooksApiFindByIdRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        findById(requestParameters: APIWebhooksApiFindByIdRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.findById(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIWebhooksApiListRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        list(requestParameters: APIWebhooksApiListRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.list(requestParameters.xApiSecret, requestParameters.xApiKey, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIWebhooksApiRemoveRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        remove(requestParameters: APIWebhooksApiRemoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.remove(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIWebhooksApiTestRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        test(requestParameters: APIWebhooksApiTestRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.test(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {APIWebhooksApiUpdateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        update(requestParameters: APIWebhooksApiUpdateRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.update(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, requestParameters.webhookUpdateRequestModel, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for create operation in APIWebhooksApi.
+ */
+export interface APIWebhooksApiCreateRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly webhookCreateRequestModel: WebhookCreateRequestModel
+}
+
+/**
+ * Request parameters for deliveries operation in APIWebhooksApi.
+ */
+export interface APIWebhooksApiDeliveriesRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly id: string
+
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+}
+
+/**
+ * Request parameters for findById operation in APIWebhooksApi.
+ */
+export interface APIWebhooksApiFindByIdRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly id: string
+}
+
+/**
+ * Request parameters for list operation in APIWebhooksApi.
+ */
+export interface APIWebhooksApiListRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+}
+
+/**
+ * Request parameters for remove operation in APIWebhooksApi.
+ */
+export interface APIWebhooksApiRemoveRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly id: string
+}
+
+/**
+ * Request parameters for test operation in APIWebhooksApi.
+ */
+export interface APIWebhooksApiTestRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly id: string
+}
+
+/**
+ * Request parameters for update operation in APIWebhooksApi.
+ */
+export interface APIWebhooksApiUpdateRequest {
+    readonly xApiSecret: string
+
+    readonly xApiKey: string
+
+    readonly id: string
+
+    readonly webhookUpdateRequestModel: WebhookUpdateRequestModel
+}
+
+/**
+ * APIWebhooksApi - object-oriented interface
+ */
+export class APIWebhooksApi extends BaseAPI {
+    /**
+     * 
+     * @param {APIWebhooksApiCreateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public create(requestParameters: APIWebhooksApiCreateRequest, options?: RawAxiosRequestConfig) {
+        return APIWebhooksApiFp(this.configuration).create(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.webhookCreateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIWebhooksApiDeliveriesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deliveries(requestParameters: APIWebhooksApiDeliveriesRequest, options?: RawAxiosRequestConfig) {
+        return APIWebhooksApiFp(this.configuration).deliveries(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, requestParameters.search, requestParameters.skip, requestParameters.take, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIWebhooksApiFindByIdRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public findById(requestParameters: APIWebhooksApiFindByIdRequest, options?: RawAxiosRequestConfig) {
+        return APIWebhooksApiFp(this.configuration).findById(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIWebhooksApiListRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public list(requestParameters: APIWebhooksApiListRequest, options?: RawAxiosRequestConfig) {
+        return APIWebhooksApiFp(this.configuration).list(requestParameters.xApiSecret, requestParameters.xApiKey, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIWebhooksApiRemoveRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public remove(requestParameters: APIWebhooksApiRemoveRequest, options?: RawAxiosRequestConfig) {
+        return APIWebhooksApiFp(this.configuration).remove(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIWebhooksApiTestRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public test(requestParameters: APIWebhooksApiTestRequest, options?: RawAxiosRequestConfig) {
+        return APIWebhooksApiFp(this.configuration).test(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {APIWebhooksApiUpdateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public update(requestParameters: APIWebhooksApiUpdateRequest, options?: RawAxiosRequestConfig) {
+        return APIWebhooksApiFp(this.configuration).update(requestParameters.xApiSecret, requestParameters.xApiKey, requestParameters.id, requestParameters.webhookUpdateRequestModel, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
 
 /**
  * AccountApi - axios parameter creator
@@ -6889,6 +9209,52 @@ export const CloudUploadApiAxiosParamCreator = function (configuration?: Configu
             };
         },
         /**
+         * Returns expiring URLs for multiple parts at once. Accepts either TotalParts or specific PartNumbers.
+         * @summary Get multipart upload part URLs in batch
+         * @param {CloudGetMultipartPartUrlsBatchRequestModel} cloudGetMultipartPartUrlsBatchRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        uploadGetMultipartPartUrlsBatch: async (cloudGetMultipartPartUrlsBatchRequestModel: CloudGetMultipartPartUrlsBatchRequestModel, xTeamId?: string, xFolderSession?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudGetMultipartPartUrlsBatchRequestModel' is not null or undefined
+            assertParamExists('uploadGetMultipartPartUrlsBatch', 'cloudGetMultipartPartUrlsBatchRequestModel', cloudGetMultipartPartUrlsBatchRequestModel)
+            const localVarPath = `/Api/Cloud/Upload/GetMultipartPartUrls`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            if (xFolderSession != null) {
+                localVarHeaderParameter['x-folder-session'] = String(xFolderSession);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudGetMultipartPartUrlsBatchRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
          * @summary Upload a multipart part
          * @param {string} contentMd5 
@@ -7036,6 +9402,21 @@ export const CloudUploadApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Returns expiring URLs for multiple parts at once. Accepts either TotalParts or specific PartNumbers.
+         * @summary Get multipart upload part URLs in batch
+         * @param {CloudGetMultipartPartUrlsBatchRequestModel} cloudGetMultipartPartUrlsBatchRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, uploads target the team storage.
+         * @param {string} [xFolderSession] Session token for encrypted folder access
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async uploadGetMultipartPartUrlsBatch(cloudGetMultipartPartUrlsBatchRequestModel: CloudGetMultipartPartUrlsBatchRequestModel, xTeamId?: string, xFolderSession?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudGetMultipartPartUrlsBatchResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadGetMultipartPartUrlsBatch(cloudGetMultipartPartUrlsBatchRequestModel, xTeamId, xFolderSession, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudUploadApi.uploadGetMultipartPartUrlsBatch']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
          * @summary Upload a multipart part
          * @param {string} contentMd5 
@@ -7104,6 +9485,16 @@ export const CloudUploadApiFactory = function (configuration?: Configuration, ba
             return localVarFp.uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
+         * Returns expiring URLs for multiple parts at once. Accepts either TotalParts or specific PartNumbers.
+         * @summary Get multipart upload part URLs in batch
+         * @param {CloudUploadApiUploadGetMultipartPartUrlsBatchRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        uploadGetMultipartPartUrlsBatch(requestParameters: CloudUploadApiUploadGetMultipartPartUrlsBatchRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudGetMultipartPartUrlsBatchResponseBaseModel> {
+            return localVarFp.uploadGetMultipartPartUrlsBatch(requestParameters.cloudGetMultipartPartUrlsBatchRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Accepts a single file part for a multipart upload. The request must be multipart/form-data.
          * @summary Upload a multipart part
          * @param {CloudUploadApiUploadPartRequest} requestParameters Request parameters.
@@ -7169,6 +9560,23 @@ export interface CloudUploadApiUploadCreateMultipartUploadRequest {
  */
 export interface CloudUploadApiUploadGetMultipartPartUrlRequest {
     readonly cloudGetMultipartPartUrlRequestModel: CloudGetMultipartPartUrlRequestModel
+
+    /**
+     * Optional team ID. When provided, uploads target the team storage.
+     */
+    readonly xTeamId?: string
+
+    /**
+     * Session token for encrypted folder access
+     */
+    readonly xFolderSession?: string
+}
+
+/**
+ * Request parameters for uploadGetMultipartPartUrlsBatch operation in CloudUploadApi.
+ */
+export interface CloudUploadApiUploadGetMultipartPartUrlsBatchRequest {
+    readonly cloudGetMultipartPartUrlsBatchRequestModel: CloudGetMultipartPartUrlsBatchRequestModel
 
     /**
      * Optional team ID. When provided, uploads target the team storage.
@@ -7252,6 +9660,17 @@ export class CloudUploadApi extends BaseAPI {
      */
     public uploadGetMultipartPartUrl(requestParameters: CloudUploadApiUploadGetMultipartPartUrlRequest, options?: RawAxiosRequestConfig) {
         return CloudUploadApiFp(this.configuration).uploadGetMultipartPartUrl(requestParameters.cloudGetMultipartPartUrlRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns expiring URLs for multiple parts at once. Accepts either TotalParts or specific PartNumbers.
+     * @summary Get multipart upload part URLs in batch
+     * @param {CloudUploadApiUploadGetMultipartPartUrlsBatchRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public uploadGetMultipartPartUrlsBatch(requestParameters: CloudUploadApiUploadGetMultipartPartUrlsBatchRequest, options?: RawAxiosRequestConfig) {
+        return CloudUploadApiFp(this.configuration).uploadGetMultipartPartUrlsBatch(requestParameters.cloudGetMultipartPartUrlsBatchRequestModel, requestParameters.xTeamId, requestParameters.xFolderSession, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -7781,6 +10200,312 @@ export class HomeApi extends BaseAPI {
      */
     public home(options?: RawAxiosRequestConfig) {
         return HomeApiFp(this.configuration).home(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * NotificationApi - axios parameter creator
+ */
+export const NotificationApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        history: async (search?: string, skip?: number, take?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/v1/Notification/History`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (search !== undefined) {
+                localVarQueryParameter['Search'] = search;
+            }
+
+            if (skip !== undefined) {
+                localVarQueryParameter['Skip'] = skip;
+            }
+
+            if (take !== undefined) {
+                localVarQueryParameter['Take'] = take;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        markAllAsRead: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/v1/Notification/ReadAll`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        markAsRead: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('markAsRead', 'id', id)
+            const localVarPath = `/Api/v1/Notification/{Id}/Read`
+                .replace(`{${"Id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        unreadCount: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/Api/v1/Notification/UnreadCount`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * NotificationApi - functional programming interface
+ */
+export const NotificationApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = NotificationApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} [search] 
+         * @param {number} [skip] 
+         * @param {number} [take] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async history(search?: string, skip?: number, take?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.history(search, skip, take, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NotificationApi.history']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async markAllAsRead(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.markAllAsRead(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NotificationApi.markAllAsRead']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async markAsRead(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.markAsRead(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NotificationApi.markAsRead']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async unreadCount(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.unreadCount(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NotificationApi.unreadCount']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * NotificationApi - factory interface
+ */
+export const NotificationApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = NotificationApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {NotificationApiHistoryRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        history(requestParameters: NotificationApiHistoryRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.history(requestParameters.search, requestParameters.skip, requestParameters.take, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        markAllAsRead(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.markAllAsRead(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {NotificationApiMarkAsReadRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        markAsRead(requestParameters: NotificationApiMarkAsReadRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.markAsRead(requestParameters.id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        unreadCount(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.unreadCount(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for history operation in NotificationApi.
+ */
+export interface NotificationApiHistoryRequest {
+    readonly search?: string
+
+    readonly skip?: number
+
+    readonly take?: number
+}
+
+/**
+ * Request parameters for markAsRead operation in NotificationApi.
+ */
+export interface NotificationApiMarkAsReadRequest {
+    readonly id: string
+}
+
+/**
+ * NotificationApi - object-oriented interface
+ */
+export class NotificationApi extends BaseAPI {
+    /**
+     * 
+     * @param {NotificationApiHistoryRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public history(requestParameters: NotificationApiHistoryRequest = {}, options?: RawAxiosRequestConfig) {
+        return NotificationApiFp(this.configuration).history(requestParameters.search, requestParameters.skip, requestParameters.take, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public markAllAsRead(options?: RawAxiosRequestConfig) {
+        return NotificationApiFp(this.configuration).markAllAsRead(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {NotificationApiMarkAsReadRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public markAsRead(requestParameters: NotificationApiMarkAsReadRequest, options?: RawAxiosRequestConfig) {
+        return NotificationApiFp(this.configuration).markAsRead(requestParameters.id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public unreadCount(options?: RawAxiosRequestConfig) {
+        return NotificationApiFp(this.configuration).unreadCount(options).then((request) => request(this.axios, this.basePath));
     }
 }
 
