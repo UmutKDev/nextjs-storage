@@ -54,11 +54,22 @@ function formatScaledSize(
   file: CloudObjectModel,
   options?: { isFullScreen?: boolean },
 ) {
-  if (!isImageFile(file)) return "Scaled size: —";
+  if (!isImageFile(file)) return null;
+
+  // Check if original dimensions exist
+  const rawWidth = file?.Metadata?.Width;
+  const rawHeight = file?.Metadata?.Height;
+  const width = rawWidth ? Number(rawWidth) : null;
+  const height = rawHeight ? Number(rawHeight) : null;
+  const hasDims =
+    width && height && Number.isFinite(width) && Number.isFinite(height);
+
+  if (!hasDims) return null;
+
   const scaled = getScaledImageDimensions(file, {
     target: options?.isFullScreen ? "fullscreen" : "preview",
   });
-  if (!scaled) return "Scaled size: —";
+  if (!scaled) return null;
   return `Scaled size: ${scaled.width}x${scaled.height}`;
 }
 
@@ -86,11 +97,24 @@ export default function FilePreviewModal({
         target: isFullScreen ? "fullscreen" : "preview",
       })
     : undefined;
+
+  // Check if original dimensions exist for scaled download
+  const rawWidth = file?.Metadata?.Width;
+  const rawHeight = file?.Metadata?.Height;
+  const origWidth = rawWidth ? Number(rawWidth) : null;
+  const origHeight = rawHeight ? Number(rawHeight) : null;
+  const hasDimsForScaledDownload =
+    origWidth &&
+    origHeight &&
+    Number.isFinite(origWidth) &&
+    Number.isFinite(origHeight);
+
   const hasScaledDownload =
     Boolean(downloadUrl) &&
     Boolean(scaledDownloadUrl) &&
     isImageFile(file ?? undefined) &&
-    scaledDownloadUrl !== downloadUrl;
+    scaledDownloadUrl !== downloadUrl &&
+    hasDimsForScaledDownload;
   const displayName = file?.Metadata?.Originalfilename ?? file?.Name ?? "";
 
   const isMedia = React.useCallback((f?: CloudObjectModel | null) => {
@@ -260,15 +284,16 @@ export default function FilePreviewModal({
                 >
                   Original
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  disabled={!hasScaledDownload}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    void handleDownload(scaledDownloadUrl ?? downloadUrl);
-                  }}
-                >
-                  Scaled
-                </DropdownMenuItem>
+                {hasScaledDownload && (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleDownload(scaledDownloadUrl ?? downloadUrl);
+                    }}
+                  >
+                    Scaled
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : null}
@@ -396,7 +421,9 @@ export default function FilePreviewModal({
 
       <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10 text-xs text-muted-foreground shrink-0 hidden sm:flex">
         <div>{formatOriginalSize(file)}</div>
-        <div>{formatScaledSize(file, { isFullScreen })}</div>
+        {formatScaledSize(file, { isFullScreen }) && (
+          <div>{formatScaledSize(file, { isFullScreen })}</div>
+        )}
         <div>
           Modified:{" "}
           {file.LastModified
