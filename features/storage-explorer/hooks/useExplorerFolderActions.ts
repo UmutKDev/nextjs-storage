@@ -2,10 +2,18 @@
 
 import React from "react";
 import { isAxiosError } from "axios";
-import type { CloudDirectoryModel } from "@/Service/Generates/api";
+import type {
+  CloudDirectoryModel,
+  DirectoryCreateRequestModelConflictStrategyEnum,
+  DirectoryRenameRequestModelConflictStrategyEnum,
+} from "@/Service/Generates/api";
 import { cloudDirectoriesApiFactory } from "@/Service/Factories";
 import { useExplorerEncryption } from "../contexts/ExplorerEncryptionContext";
 import { useExplorerQuery } from "../contexts/ExplorerQueryContext";
+import {
+  useConflictResolution,
+  extractConflictDetails,
+} from "../contexts/ConflictResolutionContext";
 import { getFolderNameFromPrefix, normalizeFolderPath } from "../utils/path";
 
 export function useExplorerFolderActions() {
@@ -24,6 +32,7 @@ export function useExplorerFolderActions() {
     requestFolderUnlock,
     refetchManifest,
   } = useExplorerEncryption();
+  const { promptConflictResolution } = useConflictResolution();
   const [folderNameInput, setFolderNameInput] = React.useState("");
   const [isNewFolderEncrypted, setIsNewFolderEncrypted] = React.useState(false);
   const [newFolderPassphrase, setNewFolderPassphrase] = React.useState("");
@@ -39,69 +48,99 @@ export function useExplorerFolderActions() {
   const [convertPassphrase, setConvertPassphrase] = React.useState("");
   const [isConvertingFolder, setIsConvertingFolder] = React.useState(false);
 
-  const createFolder = React.useCallback(async () => {
-    if (isExplorerLocked) {
-      return;
-    }
-    const name = folderNameInput.trim();
-    if (!name) {
-      return;
-    }
-    if (name.includes("/")) {
-      return;
-    }
-
-    if (isNewFolderEncrypted) {
-      if (newFolderPassphrase.length < 8) {
+  const createFolder = React.useCallback(
+    async (
+      conflictStrategy?: DirectoryCreateRequestModelConflictStrategyEnum,
+    ) => {
+      if (isExplorerLocked) {
         return;
       }
-    }
-
-    setIsCreatingFolder(true);
-    try {
-      const prefix = currentPath
-        ? currentPath.endsWith("/")
-          ? currentPath
-          : `${currentPath}/`
-        : "";
-      const sessionToken = getSessionToken(currentPath);
-
-      if (isNewFolderEncrypted) {
-        const path = `${prefix}${name}`.replace(/\/+/g, "/").replace(/\/$/, "");
-        await cloudDirectoriesApiFactory.directoryCreate({
-          directoryCreateRequestModel: { Path: path, IsEncrypted: true },
-          xFolderPassphrase: newFolderPassphrase,
-          xFolderSession: sessionToken || undefined,
-        });
-        await refetchManifest();
-      } else {
-        const key = `${prefix}${name}/`;
-        await cloudDirectoriesApiFactory.directoryCreate({
-          directoryCreateRequestModel: { Path: key, IsEncrypted: false },
-          xFolderSession: sessionToken || undefined,
-        });
+      const name = folderNameInput.trim();
+      if (!name) {
+        return;
+      }
+      if (name.includes("/")) {
+        return;
       }
 
-      await Promise.all([invalidateDirectories()]);
+      if (isNewFolderEncrypted) {
+        if (newFolderPassphrase.length < 8) {
+          return;
+        }
+      }
 
-      setFolderNameInput("");
-      setIsNewFolderEncrypted(false);
-      setNewFolderPassphrase("");
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsCreatingFolder(false);
-    }
-  }, [
-    currentPath,
-    folderNameInput,
-    getSessionToken,
-    invalidateDirectories,
-    isExplorerLocked,
-    isNewFolderEncrypted,
-    newFolderPassphrase,
-    refetchManifest,
-  ]);
+      setIsCreatingFolder(true);
+      try {
+        const prefix = currentPath
+          ? currentPath.endsWith("/")
+            ? currentPath
+            : `${currentPath}/`
+          : "";
+        const sessionToken = getSessionToken(currentPath);
+
+        if (isNewFolderEncrypted) {
+          const path = `${prefix}${name}`
+            .replace(/\/+/g, "/")
+            .replace(/\/$/, "");
+          await cloudDirectoriesApiFactory.directoryCreate({
+            directoryCreateRequestModel: {
+              Path: path,
+              IsEncrypted: true,
+              ConflictStrategy: conflictStrategy,
+            },
+            xFolderPassphrase: newFolderPassphrase,
+            xFolderSession: sessionToken || undefined,
+          });
+          await refetchManifest();
+        } else {
+          const key = `${prefix}${name}/`;
+          await cloudDirectoriesApiFactory.directoryCreate({
+            directoryCreateRequestModel: {
+              Path: key,
+              IsEncrypted: false,
+              ConflictStrategy: conflictStrategy,
+            },
+            xFolderSession: sessionToken || undefined,
+          });
+        }
+
+        await Promise.all([invalidateDirectories()]);
+
+        setFolderNameInput("");
+        setIsNewFolderEncrypted(false);
+        setNewFolderPassphrase("");
+      } catch (error) {
+        const conflictDetails = extractConflictDetails(error);
+        if (conflictDetails) {
+          const strategy = await promptConflictResolution(
+            conflictDetails,
+            "Create Folder",
+          );
+          if (strategy) {
+            await createFolder(
+              strategy as DirectoryCreateRequestModelConflictStrategyEnum,
+            );
+            return;
+          }
+        } else {
+          console.error(error);
+        }
+      } finally {
+        setIsCreatingFolder(false);
+      }
+    },
+    [
+      currentPath,
+      folderNameInput,
+      getSessionToken,
+      invalidateDirectories,
+      isExplorerLocked,
+      isNewFolderEncrypted,
+      newFolderPassphrase,
+      promptConflictResolution,
+      refetchManifest,
+    ],
+  );
 
   const closeConvertModal = React.useCallback(() => {
     setConvertTargetFolder(null);
@@ -188,6 +227,7 @@ export function useExplorerFolderActions() {
       directory: CloudDirectoryModel,
       newName: string,
       passphraseOverride?: string,
+      conflictStrategy?: DirectoryRenameRequestModelConflictStrategyEnum,
     ) => {
       const prefix = directory.Prefix ?? "";
       const normalizedPath = normalizeFolderPath(prefix);
@@ -212,6 +252,7 @@ export function useExplorerFolderActions() {
               directoryRenameRequestModel: {
                 Path: normalizedPath,
                 Name: newName,
+                ConflictStrategy: conflictStrategy,
               },
               xFolderPassphrase: passphrase,
               xFolderSession: getSessionToken(normalizedPath) || undefined,
@@ -224,6 +265,7 @@ export function useExplorerFolderActions() {
               directoryRenameRequestModel: {
                 Path: normalizedPath,
                 Name: newName,
+                ConflictStrategy: conflictStrategy,
               },
               xFolderSession: getSessionToken(normalizedPath) || undefined,
             });
@@ -238,7 +280,24 @@ export function useExplorerFolderActions() {
             invalidateBreadcrumb(),
           ]);
         } catch (error) {
-          console.error(error);
+          const conflictDetails = extractConflictDetails(error);
+          if (conflictDetails) {
+            const strategy = await promptConflictResolution(
+              conflictDetails,
+              "Rename Folder",
+            );
+            if (strategy) {
+              await updateFolderName(
+                directory,
+                newName,
+                passphrase,
+                strategy as DirectoryRenameRequestModelConflictStrategyEnum,
+              );
+              return;
+            }
+          } else {
+            console.error(error);
+          }
           // Folder rename failed
         } finally {
           setIsRenamingFolder(false);
@@ -278,6 +337,7 @@ export function useExplorerFolderActions() {
       invalidateDirectories,
       invalidateObjects,
       isFolderEncryptedExact,
+      promptConflictResolution,
       refetchManifest,
       requestFolderUnlock,
     ],

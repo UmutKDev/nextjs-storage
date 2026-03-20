@@ -381,7 +381,18 @@ export interface CloudCreateMultipartUploadRequestModel {
     'ContentType'?: string;
     'Metadata'?: object;
     'TotalSize': number;
+    'ConflictStrategy'?: CloudCreateMultipartUploadRequestModelConflictStrategyEnum;
 }
+
+export const CloudCreateMultipartUploadRequestModelConflictStrategyEnum = {
+    Fail: 'FAIL',
+    Replace: 'REPLACE',
+    Skip: 'SKIP',
+    KeepBoth: 'KEEP_BOTH'
+} as const;
+
+export type CloudCreateMultipartUploadRequestModelConflictStrategyEnum = typeof CloudCreateMultipartUploadRequestModelConflictStrategyEnum[keyof typeof CloudCreateMultipartUploadRequestModelConflictStrategyEnum];
+
 export interface CloudCreateMultipartUploadResponseBaseModel {
     'Result': CloudCreateMultipartUploadResponseModel;
     'Status': BaseStatusModel;
@@ -396,6 +407,16 @@ export interface CloudDeleteModel {
 }
 export interface CloudDeleteRequestModel {
     'Items': Array<CloudDeleteModel>;
+}
+export interface CloudDeleteVersionRequestModel {
+    /**
+     * File key (relative, without owner prefix)
+     */
+    'Key': string;
+    /**
+     * Version ID to delete
+     */
+    'VersionId': string;
 }
 export interface CloudDirectoryListBaseModel {
     'Result': CloudDirectoryListModelResult;
@@ -470,6 +491,7 @@ export interface CloudMoveItemModel {
 export interface CloudMoveRequestModel {
     'Items': Array<CloudMoveItemModel>;
     'DestinationKey': string;
+    'ConflictResolution'?: ConflictResolutionModel;
 }
 export interface CloudMultipartPartModel {
     'PartNumber': number;
@@ -507,6 +529,16 @@ export interface CloudPathModel {
     'Key': string;
     'Url': string;
 }
+export interface CloudRestoreVersionRequestModel {
+    /**
+     * File key (relative, without owner prefix)
+     */
+    'Key': string;
+    /**
+     * Version ID to restore
+     */
+    'VersionId': string;
+}
 export interface CloudScanStatusResponseBaseModel {
     'Result': CloudScanStatusResponseModel;
     'Status': BaseStatusModel;
@@ -542,7 +574,18 @@ export interface CloudUpdateRequestModel {
     'Key': string;
     'Name'?: string;
     'Metadata'?: object;
+    'ConflictStrategy'?: CloudUpdateRequestModelConflictStrategyEnum;
 }
+
+export const CloudUpdateRequestModelConflictStrategyEnum = {
+    Fail: 'FAIL',
+    Replace: 'REPLACE',
+    Skip: 'SKIP',
+    KeepBoth: 'KEEP_BOTH'
+} as const;
+
+export type CloudUpdateRequestModelConflictStrategyEnum = typeof CloudUpdateRequestModelConflictStrategyEnum[keyof typeof CloudUpdateRequestModelConflictStrategyEnum];
+
 export interface CloudUploadPartRequestModel {
     'Key': string;
     'UploadId': string;
@@ -567,6 +610,81 @@ export interface CloudUserStorageUsageResponseModel {
     'UsagePercentage': number;
     'MaxUploadSizeBytes': number;
 }
+export interface CloudVersionListResponseBaseModel {
+    'Result': CloudVersionListResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface CloudVersionListResponseModel {
+    'Versions': Array<CloudVersionModel>;
+    'Key': string;
+}
+export interface CloudVersionModel {
+    'VersionId': string;
+    'Key': string;
+    'Size': number;
+    'LastModified': string;
+    'IsLatest': boolean;
+    'ETag': string;
+}
+export interface ConflictDetailModel {
+    'Source': ConflictItemInfoModel;
+    'Target': ConflictItemInfoModel;
+}
+export interface ConflictDetailsResponseModel {
+    'Conflicts': Array<ConflictDetailModel>;
+    /**
+     * Total number of items in the original request
+     */
+    'TotalItems': number;
+    /**
+     * Number of items that have conflicts
+     */
+    'ConflictCount': number;
+}
+export interface ConflictItemInfoModel {
+    'Name': string;
+    'Key': string;
+    'Size'?: number;
+    'LastModified'?: string;
+    'IsDirectory': boolean;
+}
+export interface ConflictResolutionItemModel {
+    /**
+     * Source key this resolution applies to
+     */
+    'Key': string;
+    'Strategy': ConflictResolutionItemModelStrategyEnum;
+}
+
+export const ConflictResolutionItemModelStrategyEnum = {
+    Fail: 'FAIL',
+    Replace: 'REPLACE',
+    Skip: 'SKIP',
+    KeepBoth: 'KEEP_BOTH'
+} as const;
+
+export type ConflictResolutionItemModelStrategyEnum = typeof ConflictResolutionItemModelStrategyEnum[keyof typeof ConflictResolutionItemModelStrategyEnum];
+
+export interface ConflictResolutionModel {
+    /**
+     * Global strategy applied to all conflicts. Default: FAIL (return 409)
+     */
+    'Strategy'?: ConflictResolutionModelStrategyEnum;
+    /**
+     * Per-item strategy overrides. Key matches the source item key.
+     */
+    'Items'?: Array<ConflictResolutionItemModel>;
+}
+
+export const ConflictResolutionModelStrategyEnum = {
+    Fail: 'FAIL',
+    Replace: 'REPLACE',
+    Skip: 'SKIP',
+    KeepBoth: 'KEEP_BOTH'
+} as const;
+
+export type ConflictResolutionModelStrategyEnum = typeof ConflictResolutionModelStrategyEnum[keyof typeof ConflictResolutionModelStrategyEnum];
+
 export interface DefinitionGroupResponseListBaseModel {
     'Result': DefinitionGroupResponseListModelResult;
     'Status': BaseStatusModel;
@@ -603,7 +721,18 @@ export interface DirectoryCreateRequestModel {
      * Create as encrypted directory
      */
     'IsEncrypted'?: boolean;
+    'ConflictStrategy'?: DirectoryCreateRequestModelConflictStrategyEnum;
 }
+
+export const DirectoryCreateRequestModelConflictStrategyEnum = {
+    Fail: 'FAIL',
+    Replace: 'REPLACE',
+    Skip: 'SKIP',
+    KeepBoth: 'KEEP_BOTH'
+} as const;
+
+export type DirectoryCreateRequestModelConflictStrategyEnum = typeof DirectoryCreateRequestModelConflictStrategyEnum[keyof typeof DirectoryCreateRequestModelConflictStrategyEnum];
+
 export interface DirectoryDecryptRequestModel {
     /**
      * Encrypted directory path to decrypt
@@ -637,7 +766,18 @@ export interface DirectoryRenameRequestModel {
      * New directory name (not full path)
      */
     'Name': string;
+    'ConflictStrategy'?: DirectoryRenameRequestModelConflictStrategyEnum;
 }
+
+export const DirectoryRenameRequestModelConflictStrategyEnum = {
+    Fail: 'FAIL',
+    Replace: 'REPLACE',
+    Skip: 'SKIP',
+    KeepBoth: 'KEEP_BOTH'
+} as const;
+
+export type DirectoryRenameRequestModelConflictStrategyEnum = typeof DirectoryRenameRequestModelConflictStrategyEnum[keyof typeof DirectoryRenameRequestModelConflictStrategyEnum];
+
 export interface DirectoryResponseBaseModel {
     'Result': DirectoryResponseModel;
     'Status': BaseStatusModel;
@@ -5923,6 +6063,48 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Permanently deletes a non-current version. Cannot delete the current (latest) version.
+         * @summary Delete a specific version of a file
+         * @param {CloudDeleteVersionRequestModel} cloudDeleteVersionRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteVersion: async (cloudDeleteVersionRequestModel: CloudDeleteVersionRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudDeleteVersionRequestModel' is not null or undefined
+            assertParamExists('deleteVersion', 'cloudDeleteVersionRequestModel', cloudDeleteVersionRequestModel)
+            const localVarPath = `/Api/Cloud/Versions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudDeleteVersionRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {string} key Path/key to the file (user-scoped)
@@ -6331,6 +6513,49 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Returns the version history (non-current versions) for the given file key. Requires S3 bucket versioning to be enabled.
+         * @summary List previous versions of a file
+         * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listVersions: async (key: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('listVersions', 'key', key)
+            const localVarPath = `/Api/Cloud/Versions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Move an object from SourceKey to DestinationKey within the user scope.
          * @summary Move/rename an object
          * @param {string} idempotencyKey 
@@ -6372,6 +6597,48 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(cloudMoveRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Copies the specified old version as the new current version. The previous current version becomes a non-current version.
+         * @summary Restore a previous version of a file
+         * @param {CloudRestoreVersionRequestModel} cloudRestoreVersionRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        restoreVersion: async (cloudRestoreVersionRequestModel: CloudRestoreVersionRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cloudRestoreVersionRequestModel' is not null or undefined
+            assertParamExists('restoreVersion', 'cloudRestoreVersionRequestModel', cloudRestoreVersionRequestModel)
+            const localVarPath = `/Api/Cloud/Versions/Restore`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(cloudRestoreVersionRequestModel, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -6605,6 +6872,20 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Permanently deletes a non-current version. Cannot delete the current (latest) version.
+         * @summary Delete a specific version of a file
+         * @param {CloudDeleteVersionRequestModel} cloudDeleteVersionRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteVersion(cloudDeleteVersionRequestModel: CloudDeleteVersionRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteVersion(cloudDeleteVersionRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.deleteVersion']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {string} key Path/key to the file (user-scoped)
@@ -6727,6 +7008,20 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Returns the version history (non-current versions) for the given file key. Requires S3 bucket versioning to be enabled.
+         * @summary List previous versions of a file
+         * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listVersions(key: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CloudVersionListResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listVersions(key, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.listVersions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Move an object from SourceKey to DestinationKey within the user scope.
          * @summary Move/rename an object
          * @param {string} idempotencyKey 
@@ -6739,6 +7034,20 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.move(idempotencyKey, cloudMoveRequestModel, xTeamId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.move']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Copies the specified old version as the new current version. The previous current version becomes a non-current version.
+         * @summary Restore a previous version of a file
+         * @param {CloudRestoreVersionRequestModel} cloudRestoreVersionRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async restoreVersion(cloudRestoreVersionRequestModel: CloudRestoreVersionRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.restoreVersion(cloudRestoreVersionRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.restoreVersion']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -6824,6 +7133,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp._delete(requestParameters.idempotencyKey, requestParameters.cloudDeleteRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
+         * Permanently deletes a non-current version. Cannot delete the current (latest) version.
+         * @summary Delete a specific version of a file
+         * @param {CloudApiDeleteVersionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteVersion(requestParameters: CloudApiDeleteVersionRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteVersion(requestParameters.cloudDeleteVersionRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
          * @summary Download a file for the authenticated user (streamed)
          * @param {CloudApiDownloadRequest} requestParameters Request parameters.
@@ -6894,6 +7213,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.listObjects(requestParameters.xTeamId, requestParameters.search, requestParameters.skip, requestParameters.take, requestParameters.path, requestParameters.delimiter, requestParameters.isMetadataProcessing, requestParameters.xFolderSession, options).then((request) => request(axios, basePath));
         },
         /**
+         * Returns the version history (non-current versions) for the given file key. Requires S3 bucket versioning to be enabled.
+         * @summary List previous versions of a file
+         * @param {CloudApiListVersionsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listVersions(requestParameters: CloudApiListVersionsRequest, options?: RawAxiosRequestConfig): AxiosPromise<CloudVersionListResponseBaseModel> {
+            return localVarFp.listVersions(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Move an object from SourceKey to DestinationKey within the user scope.
          * @summary Move/rename an object
          * @param {CloudApiMoveRequest} requestParameters Request parameters.
@@ -6902,6 +7231,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Copies the specified old version as the new current version. The previous current version becomes a non-current version.
+         * @summary Restore a previous version of a file
+         * @param {CloudApiRestoreVersionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        restoreVersion(requestParameters: CloudApiRestoreVersionRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.restoreVersion(requestParameters.cloudRestoreVersionRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
         },
         /**
          * Returns the latest antivirus scan status for the given object key.
@@ -6953,6 +7292,18 @@ export interface CloudApiDeleteRequest {
     readonly idempotencyKey: string
 
     readonly cloudDeleteRequestModel: CloudDeleteRequestModel
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for deleteVersion operation in CloudApi.
+ */
+export interface CloudApiDeleteVersionRequest {
+    readonly cloudDeleteVersionRequestModel: CloudDeleteVersionRequestModel
 
     /**
      * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
@@ -7111,12 +7462,36 @@ export interface CloudApiListObjectsRequest {
 }
 
 /**
+ * Request parameters for listVersions operation in CloudApi.
+ */
+export interface CloudApiListVersionsRequest {
+    readonly key: string
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
  * Request parameters for move operation in CloudApi.
  */
 export interface CloudApiMoveRequest {
     readonly idempotencyKey: string
 
     readonly cloudMoveRequestModel: CloudMoveRequestModel
+
+    /**
+     * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for restoreVersion operation in CloudApi.
+ */
+export interface CloudApiRestoreVersionRequest {
+    readonly cloudRestoreVersionRequestModel: CloudRestoreVersionRequestModel
 
     /**
      * Optional team ID. When provided, all cloud operations target the team storage instead of personal storage.
@@ -7217,6 +7592,17 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
+     * Permanently deletes a non-current version. Cannot delete the current (latest) version.
+     * @summary Delete a specific version of a file
+     * @param {CloudApiDeleteVersionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteVersion(requestParameters: CloudApiDeleteVersionRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).deleteVersion(requestParameters.cloudDeleteVersionRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Streams a file that belongs to the authenticated user. The server enforces a static per-user download speed (bytes/sec).
      * @summary Download a file for the authenticated user (streamed)
      * @param {CloudApiDownloadRequest} requestParameters Request parameters.
@@ -7294,6 +7680,17 @@ export class CloudApi extends BaseAPI {
     }
 
     /**
+     * Returns the version history (non-current versions) for the given file key. Requires S3 bucket versioning to be enabled.
+     * @summary List previous versions of a file
+     * @param {CloudApiListVersionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listVersions(requestParameters: CloudApiListVersionsRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).listVersions(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Move an object from SourceKey to DestinationKey within the user scope.
      * @summary Move/rename an object
      * @param {CloudApiMoveRequest} requestParameters Request parameters.
@@ -7302,6 +7699,17 @@ export class CloudApi extends BaseAPI {
      */
     public move(requestParameters: CloudApiMoveRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).move(requestParameters.idempotencyKey, requestParameters.cloudMoveRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Copies the specified old version as the new current version. The previous current version becomes a non-current version.
+     * @summary Restore a previous version of a file
+     * @param {CloudApiRestoreVersionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public restoreVersion(requestParameters: CloudApiRestoreVersionRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).restoreVersion(requestParameters.cloudRestoreVersionRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

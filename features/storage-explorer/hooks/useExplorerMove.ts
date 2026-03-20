@@ -6,10 +6,16 @@ import { createIdempotencyKey } from "@/lib/idempotency";
 import { useExplorerQuery } from "../contexts/ExplorerQueryContext";
 import { useExplorerSelection } from "../contexts/ExplorerSelectionContext";
 import { useExplorerEncryption } from "../contexts/ExplorerEncryptionContext";
+import {
+  useConflictResolution,
+  extractConflictDetails,
+} from "../contexts/ConflictResolutionContext";
 import { getFolderNameFromPrefix, normalizeFolderPath } from "../utils/path";
+import type { ConflictResolutionModel } from "@/Service/Generates/api";
 
 type MoveItemsOptions = {
   skipUnlockPrompt?: boolean;
+  conflictResolution?: ConflictResolutionModel;
 };
 
 export function useExplorerMove() {
@@ -21,6 +27,7 @@ export function useExplorerMove() {
     requestFolderUnlock,
     getSessionToken,
   } = useExplorerEncryption();
+  const { promptConflictResolution } = useConflictResolution();
 
   const updateItemsLocation = React.useCallback(
     async function updateItemsLocation(
@@ -80,6 +87,7 @@ export function useExplorerMove() {
                 IsDirectory: key.endsWith("/"),
               })),
               DestinationKey: destinationKey === "" ? "/" : destinationKey,
+              ConflictResolution: options?.conflictResolution,
             },
           },
           moveOptions,
@@ -88,6 +96,20 @@ export function useExplorerMove() {
         await Promise.all([invalidateObjects(), invalidateDirectories()]);
         return true;
       } catch (error) {
+        const conflictDetails = extractConflictDetails(error);
+        if (conflictDetails) {
+          const strategy = await promptConflictResolution(
+            conflictDetails,
+            "Move",
+          );
+          if (strategy) {
+            return updateItemsLocation(sourceKeys, destinationKey, {
+              ...options,
+              conflictResolution: { Strategy: strategy },
+            });
+          }
+          return false;
+        }
         console.error(error);
         return false;
       }
@@ -98,6 +120,7 @@ export function useExplorerMove() {
       invalidateObjects,
       isFolderEncrypted,
       isFolderUnlocked,
+      promptConflictResolution,
       replaceSelectedItemKeys,
       requestFolderUnlock,
     ],

@@ -15,6 +15,7 @@ import { ExplorerUIProvider } from "./contexts/ExplorerUIContext";
 import { ExplorerDnDProvider } from "./contexts/ExplorerDnDContext";
 import { ExplorerUploadProvider } from "./contexts/ExplorerUploadContext";
 import { DialogsProvider } from "./contexts/DialogsContext";
+import { ConflictResolutionProvider } from "./contexts/ConflictResolutionContext";
 
 export default function ExplorerPage() {
   const { currentPath } = useStorage();
@@ -22,26 +23,28 @@ export default function ExplorerPage() {
   return (
     <ExplorerUIProvider>
       <DialogsProvider>
-        <ExplorerQueryProvider currentPath={currentPath}>
-          <ExplorerEncryptionProvider>
-            <ExplorerSelectionProvider>
-              <ExplorerSelectionRangeProvider>
-                <ExplorerNavigationProvider>
-                  <ExplorerActionsProvider>
-                  <ExplorerKeyboardProvider>
-                    <ExplorerUploadProvider>
-                      <ExplorerDnDProvider>
-                        <ExplorerContextMenuEffects />
-                        <ExplorerLayout />
-                      </ExplorerDnDProvider>
-                    </ExplorerUploadProvider>
-                  </ExplorerKeyboardProvider>
-                  </ExplorerActionsProvider>
-                </ExplorerNavigationProvider>
-              </ExplorerSelectionRangeProvider>
-            </ExplorerSelectionProvider>
-          </ExplorerEncryptionProvider>
-        </ExplorerQueryProvider>
+        <ConflictResolutionProvider>
+          <ExplorerQueryProvider currentPath={currentPath}>
+            <ExplorerEncryptionProvider>
+              <ExplorerSelectionProvider>
+                <ExplorerSelectionRangeProvider>
+                  <ExplorerNavigationProvider>
+                    <ExplorerActionsProvider>
+                      <ExplorerKeyboardProvider>
+                        <ExplorerUploadProvider>
+                          <ExplorerDnDProvider>
+                            <ExplorerContextMenuEffects />
+                            <ExplorerLayout />
+                          </ExplorerDnDProvider>
+                        </ExplorerUploadProvider>
+                      </ExplorerKeyboardProvider>
+                    </ExplorerActionsProvider>
+                  </ExplorerNavigationProvider>
+                </ExplorerSelectionRangeProvider>
+              </ExplorerSelectionProvider>
+            </ExplorerEncryptionProvider>
+          </ExplorerQueryProvider>
+        </ConflictResolutionProvider>
       </DialogsProvider>
     </ExplorerUIProvider>
   );

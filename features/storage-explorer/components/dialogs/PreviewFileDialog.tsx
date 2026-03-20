@@ -3,7 +3,9 @@
 import React from "react";
 import FilePreviewModal from "@/components/Storage/FilePreviewModal";
 import { useExplorerFiltering } from "../../hooks/useExplorerFiltering";
+import { useExplorerQuery } from "../../contexts/ExplorerQueryContext";
 import { useDialogs } from "../../contexts/DialogsContext";
+import { cloudApiFactory } from "@/Service/Factories";
 import type { CloudObjectModel } from "@/Service/Generates/api";
 
 type PreviewFileDialogProps = {
@@ -19,7 +21,32 @@ export default function PreviewFileDialog({
 }: PreviewFileDialogProps) {
   const { filteredObjectItems } = useExplorerFiltering();
   const { openDialog } = useDialogs();
-  const file = payload?.file ?? null;
+  const { invalidateObjects } = useExplorerQuery();
+  const [fileOverride, setFileOverride] =
+    React.useState<CloudObjectModel | null>(null);
+
+  const baseFile = payload?.file ?? null;
+  const file = fileOverride ?? baseFile;
+
+  // Reset override when dialog payload changes (e.g. navigating to another file)
+  React.useEffect(() => {
+    setFileOverride(null);
+  }, [baseFile?.Path?.Key]);
+
+  const handleRestored = React.useCallback(async () => {
+    await invalidateObjects();
+    if (!file?.Path?.Key) return;
+    try {
+      const resp = await cloudApiFactory.find({ key: file.Path.Key });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updated = (resp.data as any)?.Result;
+      if (updated) {
+        setFileOverride(updated as CloudObjectModel);
+      }
+    } catch {
+      // File still shows stale data if re-fetch fails
+    }
+  }, [invalidateObjects, file?.Path?.Key]);
 
   return (
     <FilePreviewModal
@@ -32,6 +59,7 @@ export default function PreviewFileDialog({
       onDelete={(target) => {
         openDialog("delete-item", { item: target });
       }}
+      onRestored={handleRestored}
     />
   );
 }

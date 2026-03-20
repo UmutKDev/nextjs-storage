@@ -61,6 +61,11 @@ const onError = (error: AxiosError<any>) => {
     return Promise.reject(error);
   }
 
+  // Don't transform 409 errors - let them pass through for conflict resolution handling
+  if (error.response?.status === 409) {
+    return Promise.reject(error);
+  }
+
   if (error.response && error.response.data) {
     if (process.env.NODE_ENV === "development") {
       console.log(error.response.data);

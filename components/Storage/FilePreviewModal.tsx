@@ -12,6 +12,7 @@ import {
   Share2,
 } from "lucide-react";
 import LazyPreview from "./LazyPreview";
+import VersionHistoryPanel from "./VersionHistoryPanel";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -67,12 +68,14 @@ export default function FilePreviewModal({
   onChange,
   files = [],
   onDelete,
+  onRestored,
 }: {
   file: CloudObjectModel | null;
   onClose: () => void;
   onChange?: (file: CloudObjectModel) => void;
   files?: CloudObjectModel[];
   onDelete?: (file: CloudObjectModel) => void;
+  onRestored?: () => void;
 }) {
   const [isFullScreen, setIsFullScreen] = React.useState(false);
   const downloadUrl = getCloudObjectUrl(file ?? undefined);
@@ -382,6 +385,13 @@ export default function FilePreviewModal({
         <div className="p-0 pt-14 sm:pt-4 sm:p-4 overflow-hidden sm:overflow-auto flex-1 flex flex-col">
           <LazyPreview file={file} isFullScreen={isFullScreen} />
         </div>
+      </div>
+
+      <div className="hidden sm:block shrink-0">
+        <VersionHistoryPanel
+          fileKey={file.Path?.Key ?? ""}
+          onRestored={onRestored}
+        />
       </div>
 
       <div className="flex items-center justify-end gap-3 p-4 border-t border-muted/10 text-xs text-muted-foreground shrink-0 hidden sm:flex">

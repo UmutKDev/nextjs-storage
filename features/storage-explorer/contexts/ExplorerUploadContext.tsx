@@ -3,7 +3,12 @@
 import React from "react";
 import useUserStorageUsage from "@/hooks/useUserStorageUsage";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import type { CloudCreateMultipartUploadRequestModelConflictStrategyEnum } from "@/Service/Generates/api";
 import { useExplorerQuery } from "./ExplorerQueryContext";
+import {
+  useConflictResolution,
+  extractConflictDetails,
+} from "./ConflictResolutionContext";
 
 type ExplorerUploadContextValue = {
   uploadQueue: ReturnType<typeof useFileUpload>["uploads"];
@@ -30,8 +35,24 @@ export function ExplorerUploadProvider({
 }) {
   const { currentPath } = useExplorerQuery();
   const { userStorageUsageQuery } = useUserStorageUsage();
+  const { promptConflictResolution } = useConflictResolution();
   const maxUploadBytes = userStorageUsageQuery.data?.MaxUploadSizeBytes;
-  const { handleFiles, uploads } = useFileUpload(currentPath);
+
+  const handleUploadConflict = React.useCallback(
+    async (
+      error: unknown,
+    ): Promise<CloudCreateMultipartUploadRequestModelConflictStrategyEnum | null> => {
+      const conflicts = extractConflictDetails(error);
+      if (!conflicts) return null;
+      const strategy = await promptConflictResolution(conflicts, "Upload");
+      return strategy as CloudCreateMultipartUploadRequestModelConflictStrategyEnum | null;
+    },
+    [promptConflictResolution],
+  );
+
+  const { handleFiles, uploads } = useFileUpload(currentPath, {
+    onConflict: handleUploadConflict,
+  });
   const [isFileDragActive, setIsFileDragActive] = React.useState(false);
   const fileDragDepthRef = React.useRef(0);
 

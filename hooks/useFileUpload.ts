@@ -9,6 +9,7 @@ import { useStorage } from "@/components/Storage/StorageProvider";
 import { md5Base64 } from "@/lib/md5";
 import { retryWithBackoff } from "@/lib/retry";
 import { createIdempotencyKey } from "@/lib/idempotency";
+import type { CloudCreateMultipartUploadRequestModelConflictStrategyEnum } from "@/Service/Generates/api";
 
 export type UploadStatus = "uploading" | "completed" | "failed" | "cancelled";
 
@@ -21,7 +22,14 @@ export interface UploadItem {
   file?: File;
 }
 
-export function useFileUpload(currentPath: string | null) {
+export type UploadConflictHandler = (
+  error: unknown,
+) => Promise<CloudCreateMultipartUploadRequestModelConflictStrategyEnum | null>;
+
+export function useFileUpload(
+  currentPath: string | null,
+  options?: { onConflict?: UploadConflictHandler },
+) {
   const { isCurrentLocked } = useStorage();
   // We only need invalidation helpers here — don't run the list queries when
   // the upload modal/component mounts to avoid unnecessary network requests.
@@ -35,8 +43,8 @@ export function useFileUpload(currentPath: string | null) {
     }));
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const controllersRef = useRef<Record<string, AbortController>>({});
-  // query client is not required here; invalidation helpers from useCloudList
-  // and useUserStorageUsage are used instead, so remove unused qc.
+  const onConflictRef = useRef(options?.onConflict);
+  onConflictRef.current = options?.onConflict;
 
   const updateUpload = useCallback((id: string, patch: Partial<UploadItem>) => {
     setUploads((prev) =>
@@ -101,28 +109,55 @@ export function useFileUpload(currentPath: string | null) {
           : "";
         const key = `${prefix}${file.name}`;
 
-        // 1. Create Multipart Upload
-        const createResp = await retryWithBackoff(
-          () =>
-            cloudUploadApiFactory.uploadCreateMultipartUpload(
-              {
-                cloudCreateMultipartUploadRequestModel: {
-                  Key: key,
-                  ContentType: file.type || undefined,
-                  TotalSize: file.size,
-                  Metadata: {
-                    originalFileName: file.name,
+        // 1. Create Multipart Upload (with conflict handling)
+        let conflictStrategy:
+          | CloudCreateMultipartUploadRequestModelConflictStrategyEnum
+          | undefined;
+
+        const attemptCreate = async () => {
+          try {
+            return await retryWithBackoff(
+              () =>
+                cloudUploadApiFactory.uploadCreateMultipartUpload(
+                  {
+                    cloudCreateMultipartUploadRequestModel: {
+                      Key: key,
+                      ContentType: file.type || undefined,
+                      TotalSize: file.size,
+                      Metadata: {
+                        originalFileName: file.name,
+                      },
+                      ConflictStrategy: conflictStrategy,
+                    },
+                    xFolderSession: sessionToken || undefined,
                   },
-                },
-                xFolderSession: sessionToken || undefined,
+                  { headers },
+                ),
+              {
+                shouldRetry: (err) =>
+                  isAxiosError(err) && err.response?.status === 429,
               },
-              { headers },
-            ),
-          {
-            shouldRetry: (err) =>
-              isAxiosError(err) && err.response?.status === 429,
-          },
-        );
+            );
+          } catch (createErr) {
+            if (
+              isAxiosError(createErr) &&
+              createErr.response?.status === 409 &&
+              onConflictRef.current &&
+              !conflictStrategy
+            ) {
+              const strategy = await onConflictRef.current(createErr);
+              if (strategy) {
+                conflictStrategy = strategy;
+                return attemptCreate();
+              }
+              // User cancelled
+              throw new Error("cancelled");
+            }
+            throw createErr;
+          }
+        };
+
+        const createResp = await attemptCreate();
 
         uploadId = createResp.data?.Result?.UploadId;
         finalKey = createResp.data?.Result?.Key ?? key;
