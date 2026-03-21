@@ -10,11 +10,12 @@ import type {
 } from "@/components/storage-browser/types/storage-browser.types";
 import { useDialogs } from "./DialogsContext";
 import { useExplorerSelectionRange } from "./ExplorerSelectionRangeContext";
+import { isSupportedDocumentExtension } from "@/features/document-editor";
 
 type ExplorerNavigationContextValue = {
   openEntry: (
     item: CloudObject | Directory,
-    itemType: "file" | "folder"
+    itemType: "file" | "folder",
   ) => void;
   openItemByKey: (key: string) => void;
   renameItem: (item: CloudObject | Directory) => void;
@@ -53,10 +54,16 @@ export function ExplorerNavigationProvider({
         }
         setCurrentPath(directoryMetadata.normalizedPath);
       } else {
-        openDialog("preview-file", { file: item as CloudObject });
+        const fileObj = item as CloudObject;
+        const ext = fileObj.Extension?.toLowerCase() ?? "";
+        if (isSupportedDocumentExtension(ext)) {
+          openDialog("document-editor", { file: fileObj });
+        } else {
+          openDialog("preview-file", { file: fileObj });
+        }
       }
     },
-    [getDirectoryMetadata, openDialog, promptUnlock, setCurrentPath]
+    [getDirectoryMetadata, openDialog, promptUnlock, setCurrentPath],
   );
 
   const openItemByKey = React.useCallback(
@@ -65,7 +72,7 @@ export function ExplorerNavigationProvider({
       if (!entry) return;
       openEntry(entry.item, entry.type);
     },
-    [openEntry, orderedItemByKey]
+    [openEntry, orderedItemByKey],
   );
 
   const renameItem = React.useCallback(
@@ -76,7 +83,7 @@ export function ExplorerNavigationProvider({
         openDialog("edit-file", { file: item as CloudObject });
       }
     },
-    [openDialog]
+    [openDialog],
   );
 
   const renameItemByKey = React.useCallback(
@@ -85,7 +92,7 @@ export function ExplorerNavigationProvider({
       if (!entry) return;
       renameItem(entry.item);
     },
-    [orderedItemByKey, renameItem]
+    [orderedItemByKey, renameItem],
   );
 
   const value = React.useMemo<ExplorerNavigationContextValue>(
@@ -95,7 +102,7 @@ export function ExplorerNavigationProvider({
       renameItem,
       renameItemByKey,
     }),
-    [openEntry, openItemByKey, renameItem, renameItemByKey]
+    [openEntry, openItemByKey, renameItem, renameItemByKey],
   );
 
   return (
@@ -109,7 +116,7 @@ export function useExplorerItemNavigation() {
   const context = React.useContext(ExplorerNavigationContext);
   if (!context) {
     throw new Error(
-      "useExplorerItemNavigation must be used within ExplorerNavigationProvider"
+      "useExplorerItemNavigation must be used within ExplorerNavigationProvider",
     );
   }
   return context;

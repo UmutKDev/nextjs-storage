@@ -858,6 +858,208 @@ export interface DirectoryUnlockResponseModel {
      */
     'TTL': number;
 }
+export interface DocumentContentResponseBaseModel {
+    'Result': DocumentContentResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface DocumentContentResponseModel {
+    'Content': string;
+    'Key': string;
+    'ContentHash': string;
+    'SizeInBytes': number;
+    'LineCount': number;
+    'CharacterCount': number;
+    'IsDraft': boolean;
+    'LastModified': string;
+    'LockStatus': DocumentContentResponseModelLockStatusEnum;
+    'LockedBy'?: string;
+    'LockExpiresAt'?: number;
+}
+
+export const DocumentContentResponseModelLockStatusEnum = {
+    Unlocked: 'UNLOCKED',
+    LockedByMe: 'LOCKED_BY_ME',
+    LockedByOther: 'LOCKED_BY_OTHER'
+} as const;
+
+export type DocumentContentResponseModelLockStatusEnum = typeof DocumentContentResponseModelLockStatusEnum[keyof typeof DocumentContentResponseModelLockStatusEnum];
+
+export interface DocumentCreateRequestModel {
+    /**
+     * Directory path (e.g., \"documents/\")
+     */
+    'Path': string;
+    /**
+     * Filename with extension (e.g., \"readme.md\")
+     */
+    'Name': string;
+    /**
+     * Initial document content
+     */
+    'Content'?: string;
+    'ConflictStrategy'?: DocumentCreateRequestModelConflictStrategyEnum;
+}
+
+export const DocumentCreateRequestModelConflictStrategyEnum = {
+    Fail: 'FAIL',
+    Replace: 'REPLACE',
+    Skip: 'SKIP',
+    KeepBoth: 'KEEP_BOTH'
+} as const;
+
+export type DocumentCreateRequestModelConflictStrategyEnum = typeof DocumentCreateRequestModelConflictStrategyEnum[keyof typeof DocumentCreateRequestModelConflictStrategyEnum];
+
+export interface DocumentDeleteVersionRequestModel {
+    'Key': string;
+    /**
+     * Version ID to delete
+     */
+    'VersionId': string;
+}
+export interface DocumentDiffHunkModel {
+    'OldStart': number;
+    'OldLines': number;
+    'NewStart': number;
+    'NewLines': number;
+    'Lines': Array<string>;
+}
+export interface DocumentDiffResponseBaseModel {
+    'Result': DocumentDiffResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface DocumentDiffResponseModel {
+    'Key': string;
+    'SourceVersionId': string;
+    'TargetVersionId': string;
+    'Hunks': Array<DocumentDiffHunkModel>;
+    'Stats': DocumentDiffStatsModel;
+}
+export interface DocumentDiffStatsModel {
+    'Additions': number;
+    'Deletions': number;
+    'Changes': number;
+}
+export interface DocumentDraftRequestModel {
+    'Key': string;
+    /**
+     * Draft document content
+     */
+    'Content': string;
+}
+export interface DocumentDraftResponseBaseModel {
+    'Result': DocumentDraftResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface DocumentDraftResponseModel {
+    'Key': string;
+    'SavedAt': string;
+    'SizeInBytes': number;
+    'NextAllowedSaveAt'?: string;
+}
+export interface DocumentKeyRequestModel {
+    'Key': string;
+}
+export interface DocumentLockResponseBaseModel {
+    'Result': DocumentLockResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface DocumentLockResponseModel {
+    'Key': string;
+    'LockStatus': DocumentLockResponseModelLockStatusEnum;
+    'LockedBy': string;
+    'LockedByName': string;
+    /**
+     * Unix epoch seconds when lock expires
+     */
+    'ExpiresAt': number;
+    /**
+     * Seconds remaining until lock expires
+     */
+    'TTL': number;
+}
+
+export const DocumentLockResponseModelLockStatusEnum = {
+    Unlocked: 'UNLOCKED',
+    LockedByMe: 'LOCKED_BY_ME',
+    LockedByOther: 'LOCKED_BY_OTHER'
+} as const;
+
+export type DocumentLockResponseModelLockStatusEnum = typeof DocumentLockResponseModelLockStatusEnum[keyof typeof DocumentLockResponseModelLockStatusEnum];
+
+export interface DocumentResponseBaseModel {
+    'Result': DocumentResponseModel;
+    'Status': BaseStatusModel;
+}
+export interface DocumentResponseModel {
+    'Key': string;
+    'Name': string;
+    'Extension': string;
+    'Type': DocumentResponseModelTypeEnum;
+    'Language': DocumentResponseModelLanguageEnum;
+    'MimeType': string;
+    'SizeInBytes': number;
+    'LineCount': number;
+    'CharacterCount': number;
+    'EditCount': number;
+    'CreatedBy': string;
+    'LastEditedBy': string;
+    'HasDraft': boolean;
+    'ContentHash': string;
+    'LastModified': string;
+    'LockStatus': DocumentResponseModelLockStatusEnum;
+    'LockedBy'?: string;
+}
+
+export const DocumentResponseModelTypeEnum = {
+    PlainText: 'PLAIN_TEXT',
+    Markdown: 'MARKDOWN',
+    Code: 'CODE'
+} as const;
+
+export type DocumentResponseModelTypeEnum = typeof DocumentResponseModelTypeEnum[keyof typeof DocumentResponseModelTypeEnum];
+export const DocumentResponseModelLanguageEnum = {
+    Javascript: 'javascript',
+    Typescript: 'typescript',
+    Python: 'python',
+    Css: 'css',
+    Html: 'html',
+    Json: 'json',
+    Xml: 'xml',
+    Yaml: 'yaml',
+    Env: 'env',
+    Sql: 'sql',
+    Shell: 'shell',
+    Plain: 'plain',
+    Markdown: 'markdown'
+} as const;
+
+export type DocumentResponseModelLanguageEnum = typeof DocumentResponseModelLanguageEnum[keyof typeof DocumentResponseModelLanguageEnum];
+export const DocumentResponseModelLockStatusEnum = {
+    Unlocked: 'UNLOCKED',
+    LockedByMe: 'LOCKED_BY_ME',
+    LockedByOther: 'LOCKED_BY_OTHER'
+} as const;
+
+export type DocumentResponseModelLockStatusEnum = typeof DocumentResponseModelLockStatusEnum[keyof typeof DocumentResponseModelLockStatusEnum];
+
+export interface DocumentRestoreVersionRequestModel {
+    'Key': string;
+    /**
+     * Version ID to restore
+     */
+    'VersionId': string;
+}
+export interface DocumentUpdateContentRequestModel {
+    'Key': string;
+    /**
+     * Full document content
+     */
+    'Content': string;
+    /**
+     * SHA-256 hash of the content the client last read. If provided, the server will reject updates where the current content has changed (optimistic concurrency).
+     */
+    'ExpectedContentHash'?: string;
+}
 export interface InternalServerErrorResponseModel {
     'Result': any;
     'Status': InternalServerErrorResponseModelAllOfStatus;
@@ -9420,6 +9622,1237 @@ export class CloudDirectoriesApi extends BaseAPI {
      */
     public directoryUnlock(requestParameters: CloudDirectoriesApiDirectoryUnlockRequest, options?: RawAxiosRequestConfig) {
         return CloudDirectoriesApiFp(this.configuration).directoryUnlock(requestParameters.xFolderPassphrase, requestParameters.directoryUnlockRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * CloudDocumentsApi - axios parameter creator
+ */
+export const CloudDocumentsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Acquires a pessimistic edit lock (5-minute TTL). If already locked by the same user, extends the lock. If locked by another user, returns 423.
+         * @summary Acquire edit lock on a document
+         * @param {DocumentKeyRequestModel} documentKeyRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        acquireLock: async (documentKeyRequestModel: DocumentKeyRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentKeyRequestModel' is not null or undefined
+            assertParamExists('acquireLock', 'documentKeyRequestModel', documentKeyRequestModel)
+            const localVarPath = `/Api/Cloud/Documents/Lock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentKeyRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Creates a new text document with optional initial content. Supported extensions: txt, md, js, ts, py, css, html, json, xml, yaml, yml, env, sql, sh, bash, csv, log, ini, cfg, conf.
+         * @summary Create a new text document
+         * @param {DocumentCreateRequestModel} documentCreateRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create: async (documentCreateRequestModel: DocumentCreateRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentCreateRequestModel' is not null or undefined
+            assertParamExists('create', 'documentCreateRequestModel', documentCreateRequestModel)
+            const localVarPath = `/Api/Cloud/Documents`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentCreateRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Permanently deletes a non-current version of the document.
+         * @summary Delete a specific version
+         * @param {DocumentDeleteVersionRequestModel} documentDeleteVersionRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteVersion: async (documentDeleteVersionRequestModel: DocumentDeleteVersionRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentDeleteVersionRequestModel' is not null or undefined
+            assertParamExists('deleteVersion', 'documentDeleteVersionRequestModel', documentDeleteVersionRequestModel)
+            const localVarPath = `/Api/Cloud/Documents/Versions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentDeleteVersionRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Computes a line-by-line diff between two document versions. Use \"current\" as a version ID to reference the latest content.
+         * @summary Diff between two versions
+         * @param {string} key 
+         * @param {string} sourceVersionId Source version ID. Use \&quot;current\&quot; for the current live version.
+         * @param {string} targetVersionId Target version ID to compare against
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        diffVersions: async (key: string, sourceVersionId: string, targetVersionId: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('diffVersions', 'key', key)
+            // verify required parameter 'sourceVersionId' is not null or undefined
+            assertParamExists('diffVersions', 'sourceVersionId', sourceVersionId)
+            // verify required parameter 'targetVersionId' is not null or undefined
+            assertParamExists('diffVersions', 'targetVersionId', targetVersionId)
+            const localVarPath = `/Api/Cloud/Documents/Versions/Diff`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+            if (sourceVersionId !== undefined) {
+                localVarQueryParameter['SourceVersionId'] = sourceVersionId;
+            }
+
+            if (targetVersionId !== undefined) {
+                localVarQueryParameter['TargetVersionId'] = targetVersionId;
+            }
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Deletes the draft from both Redis and S3 backup.
+         * @summary Discard draft
+         * @param {DocumentKeyRequestModel} documentKeyRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        discardDraft: async (documentKeyRequestModel: DocumentKeyRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentKeyRequestModel' is not null or undefined
+            assertParamExists('discardDraft', 'documentKeyRequestModel', documentKeyRequestModel)
+            const localVarPath = `/Api/Cloud/Documents/Draft`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentKeyRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Extends the lock TTL by another 5 minutes. Client should call this every ~3 minutes to keep the lock alive.
+         * @summary Extend lock TTL (heartbeat)
+         * @param {DocumentKeyRequestModel} documentKeyRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        extendLock: async (documentKeyRequestModel: DocumentKeyRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentKeyRequestModel' is not null or undefined
+            assertParamExists('extendLock', 'documentKeyRequestModel', documentKeyRequestModel)
+            const localVarPath = `/Api/Cloud/Documents/Lock/Heartbeat`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentKeyRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns metadata for a document by its S3 key.
+         * @summary Find document metadata
+         * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        find: async (key: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('find', 'key', key)
+            const localVarPath = `/Api/Cloud/Documents/Find`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns the version history for the document.
+         * @summary List document versions
+         * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listVersions: async (key: string, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('listVersions', 'key', key)
+            const localVarPath = `/Api/Cloud/Documents/Versions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns the text content of a document. If IncludeDraft=true and a draft exists, returns the draft content instead.
+         * @summary Read document content
+         * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {boolean} [includeDraft] If true and a draft exists, return draft content instead
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        readContent: async (key: string, xTeamId?: string, includeDraft?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'key' is not null or undefined
+            assertParamExists('readContent', 'key', key)
+            const localVarPath = `/Api/Cloud/Documents/Content`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+            if (key !== undefined) {
+                localVarQueryParameter['Key'] = key;
+            }
+
+            if (includeDraft !== undefined) {
+                localVarQueryParameter['IncludeDraft'] = includeDraft;
+            }
+
+
+    
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Releases the edit lock. Only the lock owner can release it.
+         * @summary Release edit lock on a document
+         * @param {DocumentKeyRequestModel} documentKeyRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        releaseLock: async (documentKeyRequestModel: DocumentKeyRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentKeyRequestModel' is not null or undefined
+            assertParamExists('releaseLock', 'documentKeyRequestModel', documentKeyRequestModel)
+            const localVarPath = `/Api/Cloud/Documents/Lock`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentKeyRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Copies the specified version as the new current version. Updates document metadata.
+         * @summary Restore a previous version
+         * @param {DocumentRestoreVersionRequestModel} documentRestoreVersionRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        restoreVersion: async (documentRestoreVersionRequestModel: DocumentRestoreVersionRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentRestoreVersionRequestModel' is not null or undefined
+            assertParamExists('restoreVersion', 'documentRestoreVersionRequestModel', documentRestoreVersionRequestModel)
+            const localVarPath = `/Api/Cloud/Documents/Versions/Restore`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentRestoreVersionRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Saves a draft version of the document to Redis. Throttled to 1 save per 10 seconds. Every 5th save is also persisted to S3 for durability.
+         * @summary Save draft (auto-save)
+         * @param {DocumentDraftRequestModel} documentDraftRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        saveDraft: async (documentDraftRequestModel: DocumentDraftRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentDraftRequestModel' is not null or undefined
+            assertParamExists('saveDraft', 'documentDraftRequestModel', documentDraftRequestModel)
+            const localVarPath = `/Api/Cloud/Documents/Draft`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentDraftRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Saves new content to the document. If ExpectedContentHash is provided and does not match the current hash, returns 409 Conflict. Creates a new S3 version automatically.
+         * @summary Update document content
+         * @param {DocumentUpdateContentRequestModel} documentUpdateContentRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateContent: async (documentUpdateContentRequestModel: DocumentUpdateContentRequestModel, xTeamId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'documentUpdateContentRequestModel' is not null or undefined
+            assertParamExists('updateContent', 'documentUpdateContentRequestModel', documentUpdateContentRequestModel)
+            const localVarPath = `/Api/Cloud/Documents/Content`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication cookie required
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            if (xTeamId != null) {
+                localVarHeaderParameter['x-team-id'] = String(xTeamId);
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(documentUpdateContentRequestModel, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CloudDocumentsApi - functional programming interface
+ */
+export const CloudDocumentsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CloudDocumentsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Acquires a pessimistic edit lock (5-minute TTL). If already locked by the same user, extends the lock. If locked by another user, returns 423.
+         * @summary Acquire edit lock on a document
+         * @param {DocumentKeyRequestModel} documentKeyRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async acquireLock(documentKeyRequestModel: DocumentKeyRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentLockResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.acquireLock(documentKeyRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.acquireLock']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Creates a new text document with optional initial content. Supported extensions: txt, md, js, ts, py, css, html, json, xml, yaml, yml, env, sql, sh, bash, csv, log, ini, cfg, conf.
+         * @summary Create a new text document
+         * @param {DocumentCreateRequestModel} documentCreateRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async create(documentCreateRequestModel: DocumentCreateRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.create(documentCreateRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.create']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Permanently deletes a non-current version of the document.
+         * @summary Delete a specific version
+         * @param {DocumentDeleteVersionRequestModel} documentDeleteVersionRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteVersion(documentDeleteVersionRequestModel: DocumentDeleteVersionRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteVersion(documentDeleteVersionRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.deleteVersion']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Computes a line-by-line diff between two document versions. Use \"current\" as a version ID to reference the latest content.
+         * @summary Diff between two versions
+         * @param {string} key 
+         * @param {string} sourceVersionId Source version ID. Use \&quot;current\&quot; for the current live version.
+         * @param {string} targetVersionId Target version ID to compare against
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async diffVersions(key: string, sourceVersionId: string, targetVersionId: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentDiffResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.diffVersions(key, sourceVersionId, targetVersionId, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.diffVersions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Deletes the draft from both Redis and S3 backup.
+         * @summary Discard draft
+         * @param {DocumentKeyRequestModel} documentKeyRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async discardDraft(documentKeyRequestModel: DocumentKeyRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.discardDraft(documentKeyRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.discardDraft']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Extends the lock TTL by another 5 minutes. Client should call this every ~3 minutes to keep the lock alive.
+         * @summary Extend lock TTL (heartbeat)
+         * @param {DocumentKeyRequestModel} documentKeyRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async extendLock(documentKeyRequestModel: DocumentKeyRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentLockResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.extendLock(documentKeyRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.extendLock']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns metadata for a document by its S3 key.
+         * @summary Find document metadata
+         * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async find(key: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.find(key, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.find']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns the version history for the document.
+         * @summary List document versions
+         * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listVersions(key: string, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listVersions(key, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.listVersions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns the text content of a document. If IncludeDraft=true and a draft exists, returns the draft content instead.
+         * @summary Read document content
+         * @param {string} key 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {boolean} [includeDraft] If true and a draft exists, return draft content instead
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async readContent(key: string, xTeamId?: string, includeDraft?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentContentResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.readContent(key, xTeamId, includeDraft, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.readContent']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Releases the edit lock. Only the lock owner can release it.
+         * @summary Release edit lock on a document
+         * @param {DocumentKeyRequestModel} documentKeyRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async releaseLock(documentKeyRequestModel: DocumentKeyRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.releaseLock(documentKeyRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.releaseLock']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Copies the specified version as the new current version. Updates document metadata.
+         * @summary Restore a previous version
+         * @param {DocumentRestoreVersionRequestModel} documentRestoreVersionRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async restoreVersion(documentRestoreVersionRequestModel: DocumentRestoreVersionRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.restoreVersion(documentRestoreVersionRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.restoreVersion']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Saves a draft version of the document to Redis. Throttled to 1 save per 10 seconds. Every 5th save is also persisted to S3 for durability.
+         * @summary Save draft (auto-save)
+         * @param {DocumentDraftRequestModel} documentDraftRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async saveDraft(documentDraftRequestModel: DocumentDraftRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentDraftResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.saveDraft(documentDraftRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.saveDraft']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Saves new content to the document. If ExpectedContentHash is provided and does not match the current hash, returns 409 Conflict. Creates a new S3 version automatically.
+         * @summary Update document content
+         * @param {DocumentUpdateContentRequestModel} documentUpdateContentRequestModel 
+         * @param {string} [xTeamId] Optional team ID. When provided, document operations target the team storage.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateContent(documentUpdateContentRequestModel: DocumentUpdateContentRequestModel, xTeamId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DocumentContentResponseBaseModel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateContent(documentUpdateContentRequestModel, xTeamId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudDocumentsApi.updateContent']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * CloudDocumentsApi - factory interface
+ */
+export const CloudDocumentsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CloudDocumentsApiFp(configuration)
+    return {
+        /**
+         * Acquires a pessimistic edit lock (5-minute TTL). If already locked by the same user, extends the lock. If locked by another user, returns 423.
+         * @summary Acquire edit lock on a document
+         * @param {CloudDocumentsApiAcquireLockRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        acquireLock(requestParameters: CloudDocumentsApiAcquireLockRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentLockResponseBaseModel> {
+            return localVarFp.acquireLock(requestParameters.documentKeyRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Creates a new text document with optional initial content. Supported extensions: txt, md, js, ts, py, css, html, json, xml, yaml, yml, env, sql, sh, bash, csv, log, ini, cfg, conf.
+         * @summary Create a new text document
+         * @param {CloudDocumentsApiCreateRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        create(requestParameters: CloudDocumentsApiCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentResponseBaseModel> {
+            return localVarFp.create(requestParameters.documentCreateRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Permanently deletes a non-current version of the document.
+         * @summary Delete a specific version
+         * @param {CloudDocumentsApiDeleteVersionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteVersion(requestParameters: CloudDocumentsApiDeleteVersionRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteVersion(requestParameters.documentDeleteVersionRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Computes a line-by-line diff between two document versions. Use \"current\" as a version ID to reference the latest content.
+         * @summary Diff between two versions
+         * @param {CloudDocumentsApiDiffVersionsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        diffVersions(requestParameters: CloudDocumentsApiDiffVersionsRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentDiffResponseBaseModel> {
+            return localVarFp.diffVersions(requestParameters.key, requestParameters.sourceVersionId, requestParameters.targetVersionId, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Deletes the draft from both Redis and S3 backup.
+         * @summary Discard draft
+         * @param {CloudDocumentsApiDiscardDraftRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        discardDraft(requestParameters: CloudDocumentsApiDiscardDraftRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.discardDraft(requestParameters.documentKeyRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Extends the lock TTL by another 5 minutes. Client should call this every ~3 minutes to keep the lock alive.
+         * @summary Extend lock TTL (heartbeat)
+         * @param {CloudDocumentsApiExtendLockRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        extendLock(requestParameters: CloudDocumentsApiExtendLockRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentLockResponseBaseModel> {
+            return localVarFp.extendLock(requestParameters.documentKeyRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns metadata for a document by its S3 key.
+         * @summary Find document metadata
+         * @param {CloudDocumentsApiFindRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        find(requestParameters: CloudDocumentsApiFindRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentResponseBaseModel> {
+            return localVarFp.find(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns the version history for the document.
+         * @summary List document versions
+         * @param {CloudDocumentsApiListVersionsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listVersions(requestParameters: CloudDocumentsApiListVersionsRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.listVersions(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns the text content of a document. If IncludeDraft=true and a draft exists, returns the draft content instead.
+         * @summary Read document content
+         * @param {CloudDocumentsApiReadContentRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        readContent(requestParameters: CloudDocumentsApiReadContentRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentContentResponseBaseModel> {
+            return localVarFp.readContent(requestParameters.key, requestParameters.xTeamId, requestParameters.includeDraft, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Releases the edit lock. Only the lock owner can release it.
+         * @summary Release edit lock on a document
+         * @param {CloudDocumentsApiReleaseLockRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        releaseLock(requestParameters: CloudDocumentsApiReleaseLockRequest, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.releaseLock(requestParameters.documentKeyRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Copies the specified version as the new current version. Updates document metadata.
+         * @summary Restore a previous version
+         * @param {CloudDocumentsApiRestoreVersionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        restoreVersion(requestParameters: CloudDocumentsApiRestoreVersionRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.restoreVersion(requestParameters.documentRestoreVersionRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Saves a draft version of the document to Redis. Throttled to 1 save per 10 seconds. Every 5th save is also persisted to S3 for durability.
+         * @summary Save draft (auto-save)
+         * @param {CloudDocumentsApiSaveDraftRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        saveDraft(requestParameters: CloudDocumentsApiSaveDraftRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentDraftResponseBaseModel> {
+            return localVarFp.saveDraft(requestParameters.documentDraftRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Saves new content to the document. If ExpectedContentHash is provided and does not match the current hash, returns 409 Conflict. Creates a new S3 version automatically.
+         * @summary Update document content
+         * @param {CloudDocumentsApiUpdateContentRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateContent(requestParameters: CloudDocumentsApiUpdateContentRequest, options?: RawAxiosRequestConfig): AxiosPromise<DocumentContentResponseBaseModel> {
+            return localVarFp.updateContent(requestParameters.documentUpdateContentRequestModel, requestParameters.xTeamId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for acquireLock operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiAcquireLockRequest {
+    readonly documentKeyRequestModel: DocumentKeyRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for create operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiCreateRequest {
+    readonly documentCreateRequestModel: DocumentCreateRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for deleteVersion operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiDeleteVersionRequest {
+    readonly documentDeleteVersionRequestModel: DocumentDeleteVersionRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for diffVersions operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiDiffVersionsRequest {
+    readonly key: string
+
+    /**
+     * Source version ID. Use \&quot;current\&quot; for the current live version.
+     */
+    readonly sourceVersionId: string
+
+    /**
+     * Target version ID to compare against
+     */
+    readonly targetVersionId: string
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for discardDraft operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiDiscardDraftRequest {
+    readonly documentKeyRequestModel: DocumentKeyRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for extendLock operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiExtendLockRequest {
+    readonly documentKeyRequestModel: DocumentKeyRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for find operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiFindRequest {
+    readonly key: string
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for listVersions operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiListVersionsRequest {
+    readonly key: string
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for readContent operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiReadContentRequest {
+    readonly key: string
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+
+    /**
+     * If true and a draft exists, return draft content instead
+     */
+    readonly includeDraft?: boolean
+}
+
+/**
+ * Request parameters for releaseLock operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiReleaseLockRequest {
+    readonly documentKeyRequestModel: DocumentKeyRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for restoreVersion operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiRestoreVersionRequest {
+    readonly documentRestoreVersionRequestModel: DocumentRestoreVersionRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for saveDraft operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiSaveDraftRequest {
+    readonly documentDraftRequestModel: DocumentDraftRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * Request parameters for updateContent operation in CloudDocumentsApi.
+ */
+export interface CloudDocumentsApiUpdateContentRequest {
+    readonly documentUpdateContentRequestModel: DocumentUpdateContentRequestModel
+
+    /**
+     * Optional team ID. When provided, document operations target the team storage.
+     */
+    readonly xTeamId?: string
+}
+
+/**
+ * CloudDocumentsApi - object-oriented interface
+ */
+export class CloudDocumentsApi extends BaseAPI {
+    /**
+     * Acquires a pessimistic edit lock (5-minute TTL). If already locked by the same user, extends the lock. If locked by another user, returns 423.
+     * @summary Acquire edit lock on a document
+     * @param {CloudDocumentsApiAcquireLockRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public acquireLock(requestParameters: CloudDocumentsApiAcquireLockRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).acquireLock(requestParameters.documentKeyRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Creates a new text document with optional initial content. Supported extensions: txt, md, js, ts, py, css, html, json, xml, yaml, yml, env, sql, sh, bash, csv, log, ini, cfg, conf.
+     * @summary Create a new text document
+     * @param {CloudDocumentsApiCreateRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public create(requestParameters: CloudDocumentsApiCreateRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).create(requestParameters.documentCreateRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Permanently deletes a non-current version of the document.
+     * @summary Delete a specific version
+     * @param {CloudDocumentsApiDeleteVersionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteVersion(requestParameters: CloudDocumentsApiDeleteVersionRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).deleteVersion(requestParameters.documentDeleteVersionRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Computes a line-by-line diff between two document versions. Use \"current\" as a version ID to reference the latest content.
+     * @summary Diff between two versions
+     * @param {CloudDocumentsApiDiffVersionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public diffVersions(requestParameters: CloudDocumentsApiDiffVersionsRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).diffVersions(requestParameters.key, requestParameters.sourceVersionId, requestParameters.targetVersionId, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Deletes the draft from both Redis and S3 backup.
+     * @summary Discard draft
+     * @param {CloudDocumentsApiDiscardDraftRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public discardDraft(requestParameters: CloudDocumentsApiDiscardDraftRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).discardDraft(requestParameters.documentKeyRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Extends the lock TTL by another 5 minutes. Client should call this every ~3 minutes to keep the lock alive.
+     * @summary Extend lock TTL (heartbeat)
+     * @param {CloudDocumentsApiExtendLockRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public extendLock(requestParameters: CloudDocumentsApiExtendLockRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).extendLock(requestParameters.documentKeyRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns metadata for a document by its S3 key.
+     * @summary Find document metadata
+     * @param {CloudDocumentsApiFindRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public find(requestParameters: CloudDocumentsApiFindRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).find(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns the version history for the document.
+     * @summary List document versions
+     * @param {CloudDocumentsApiListVersionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public listVersions(requestParameters: CloudDocumentsApiListVersionsRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).listVersions(requestParameters.key, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns the text content of a document. If IncludeDraft=true and a draft exists, returns the draft content instead.
+     * @summary Read document content
+     * @param {CloudDocumentsApiReadContentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public readContent(requestParameters: CloudDocumentsApiReadContentRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).readContent(requestParameters.key, requestParameters.xTeamId, requestParameters.includeDraft, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Releases the edit lock. Only the lock owner can release it.
+     * @summary Release edit lock on a document
+     * @param {CloudDocumentsApiReleaseLockRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public releaseLock(requestParameters: CloudDocumentsApiReleaseLockRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).releaseLock(requestParameters.documentKeyRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Copies the specified version as the new current version. Updates document metadata.
+     * @summary Restore a previous version
+     * @param {CloudDocumentsApiRestoreVersionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public restoreVersion(requestParameters: CloudDocumentsApiRestoreVersionRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).restoreVersion(requestParameters.documentRestoreVersionRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Saves a draft version of the document to Redis. Throttled to 1 save per 10 seconds. Every 5th save is also persisted to S3 for durability.
+     * @summary Save draft (auto-save)
+     * @param {CloudDocumentsApiSaveDraftRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public saveDraft(requestParameters: CloudDocumentsApiSaveDraftRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).saveDraft(requestParameters.documentDraftRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Saves new content to the document. If ExpectedContentHash is provided and does not match the current hash, returns 409 Conflict. Creates a new S3 version automatically.
+     * @summary Update document content
+     * @param {CloudDocumentsApiUpdateContentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateContent(requestParameters: CloudDocumentsApiUpdateContentRequest, options?: RawAxiosRequestConfig) {
+        return CloudDocumentsApiFp(this.configuration).updateContent(requestParameters.documentUpdateContentRequestModel, requestParameters.xTeamId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

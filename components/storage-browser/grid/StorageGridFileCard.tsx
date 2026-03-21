@@ -2,6 +2,7 @@ import React from "react";
 import {
   Archive,
   Eye,
+  FileCode,
   FolderInput,
   MoreHorizontal,
   Pencil,
@@ -26,6 +27,7 @@ import { useStorageGridThumbnailContext } from "@/components/storage-browser/con
 import { useArchiveExtractStatus } from "@/components/storage-browser/hooks/useArchiveExtractStatus";
 import { ArchiveJobIndicator } from "@/components/storage-browser/shared/ArchiveJobIndicator";
 import { isArchiveFile } from "@/features/storage-explorer/utils/archive";
+import { isSupportedDocumentExtension } from "@/features/document-editor";
 
 type StorageGridFileCardProps = {
   file: CloudObject;
@@ -45,6 +47,7 @@ export const StorageGridFileCard = ({
     cancelArchiveExtraction,
     previewFile,
     editFile,
+    openDocumentEditor,
     moveItems,
     deleteItem,
   } = useExplorerActions();
@@ -218,6 +221,24 @@ export const StorageGridFileCard = ({
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
+              {isSupportedDocumentExtension(
+                file.Extension?.toLowerCase() ?? "",
+              ) && (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) openDocumentEditor(file);
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (!isLoading) openDocumentEditor(file);
+                  }}
+                  data-dnd-ignore
+                >
+                  <FileCode className="mr-2 h-4 w-4" />
+                  Open in Editor
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onSelect={(event) => {
                   event.stopPropagation();

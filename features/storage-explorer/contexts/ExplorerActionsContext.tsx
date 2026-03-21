@@ -42,6 +42,7 @@ type ExplorerActionsContextValue = {
   cancelArchiveCreation: (jobKey: string) => void;
   previewFile: (file: CloudObject) => void;
   editFile: (file: CloudObject) => void;
+  openDocumentEditor: (file: CloudObject) => void;
   deletingStatusByKey: Record<string, boolean>;
   extractJobs: ArchiveExtractJobsByKey;
   createJobs: ArchiveCreateJobsByKey;
@@ -150,6 +151,13 @@ export function ExplorerActionsProvider({
     [openDialog],
   );
 
+  const openDocumentEditor = React.useCallback(
+    (file: CloudObject) => {
+      openDialog("document-editor", { file });
+    },
+    [openDialog],
+  );
+
   const value = React.useMemo<ExplorerActionsContextValue>(
     () => ({
       deleteItem,
@@ -168,6 +176,7 @@ export function ExplorerActionsProvider({
       cancelArchiveCreation,
       previewFile,
       editFile,
+      openDocumentEditor,
       deletingStatusByKey,
       extractJobs,
       createJobs,
@@ -188,6 +197,7 @@ export function ExplorerActionsProvider({
       extractJobs,
       hideFolder,
       moveItems,
+      openDocumentEditor,
       previewFile,
       renameItem,
       startArchiveCreation,

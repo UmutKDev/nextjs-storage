@@ -17,6 +17,8 @@ import ConfirmMoveDragDialog from "./dialogs/ConfirmMoveDragDialog";
 import UploadFilesDialog from "./dialogs/UploadFilesDialog";
 import EditFileDialog from "./dialogs/EditFileDialog";
 import PreviewFileDialog from "./dialogs/PreviewFileDialog";
+import DocumentEditorDialogWrapper from "./dialogs/DocumentEditorDialogWrapper";
+import CreateDocumentDialogWrapper from "./dialogs/CreateDocumentDialogWrapper";
 
 export default function DialogsHost() {
   const { dialog, closeDialog } = useDialogs();
@@ -98,6 +100,15 @@ export default function DialogsHost() {
       <PreviewFileDialog
         open={dialog?.type === "preview-file"}
         payload={dialog?.type === "preview-file" ? dialog.payload : null}
+        onClose={closeDialog}
+      />
+      <DocumentEditorDialogWrapper
+        open={dialog?.type === "document-editor"}
+        payload={dialog?.type === "document-editor" ? dialog.payload : null}
+        onClose={closeDialog}
+      />
+      <CreateDocumentDialogWrapper
+        open={dialog?.type === "create-document"}
         onClose={closeDialog}
       />
     </>

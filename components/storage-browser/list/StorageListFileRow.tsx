@@ -2,6 +2,7 @@ import React from "react";
 import {
   Eye,
   Archive,
+  FileCode,
   FolderInput,
   MoreHorizontal,
   Pencil,
@@ -24,6 +25,7 @@ import { useStorageBrowserInteractions } from "@/components/storage-browser/cont
 import { useArchiveExtractStatus } from "@/components/storage-browser/hooks/useArchiveExtractStatus";
 import { ArchiveJobIndicator } from "@/components/storage-browser/shared/ArchiveJobIndicator";
 import { isArchiveFile } from "@/features/storage-explorer/utils/archive";
+import { isSupportedDocumentExtension } from "@/features/document-editor";
 
 type StorageListFileRowProps = {
   file: CloudObject;
@@ -43,6 +45,7 @@ export const StorageListFileRow = ({
     cancelArchiveExtraction,
     previewFile,
     editFile,
+    openDocumentEditor,
     moveItems,
     deleteItem,
   } = useExplorerActions();
@@ -217,6 +220,24 @@ export const StorageListFileRow = ({
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
+                {isSupportedDocumentExtension(
+                  file.Extension?.toLowerCase() ?? "",
+                ) && (
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.stopPropagation();
+                      if (!isLoading) openDocumentEditor(file);
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (!isLoading) openDocumentEditor(file);
+                    }}
+                    data-dnd-ignore
+                  >
+                    <FileCode className="mr-2 h-4 w-4" />
+                    Open in Editor
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onSelect={(event) => {
                     event.stopPropagation();

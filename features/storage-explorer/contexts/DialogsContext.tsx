@@ -27,6 +27,8 @@ type DialogPayloads = {
   "upload-files": Record<string, never>;
   "edit-file": { file: CloudObjectModel };
   "preview-file": { file: CloudObjectModel };
+  "document-editor": { file: CloudObjectModel };
+  "create-document": Record<string, never>;
 };
 
 export type DialogType = keyof DialogPayloads;

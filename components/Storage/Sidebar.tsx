@@ -10,6 +10,7 @@ import {
   Plus,
   UploadCloud,
   FolderPlus,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -123,6 +124,18 @@ export default function Sidebar({ className }: SidebarProps) {
           >
             <FolderPlus className="w-4 h-4 text-yellow-500" />
             <span>Create Folder</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={
+              isUploadBlocked
+                ? undefined
+                : () => openDialog("create-document", {})
+            }
+            disabled={isUploadBlocked}
+            className="gap-2 p-3 rounded-lg cursor-pointer"
+          >
+            <FileText className="w-4 h-4 text-green-500" />
+            <span>Create Document</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
