@@ -7,9 +7,17 @@ import {
   FolderInput,
   LayoutGrid,
   List,
+  Menu,
+  SearchCheck,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import SearchBar from "@/components/Storage/SearchBar";
 import { useExplorerUI } from "../../contexts/ExplorerUIContext";
 import { useExplorerSelection } from "../../contexts/ExplorerSelectionContext";
@@ -29,7 +37,8 @@ export default function ExplorerToolbar() {
   const { selectedItemKeys, selectAllVisibleItems } = useExplorerSelection();
   const { filteredDirectoryItems, filteredObjectItems } =
     useExplorerFiltering();
-  const { extractArchiveSelection, createArchive } = useExplorerActions();
+  const { extractArchiveSelection, createArchive, scanForDuplicates } =
+    useExplorerActions();
   const { openDialog } = useDialogs();
   const { currentPath } = useExplorerQuery();
   const queryClient = useQueryClient();
@@ -146,17 +155,31 @@ export default function ExplorerToolbar() {
         </div>
       ) : (
         <div className="flex items-center gap-2 w-full md:w-auto">
-          {isRevealed ? (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => void handleConceal()}
-              className="shrink-0 whitespace-nowrap"
-            >
-              <EyeOff size={16} className="mr-2" />
-              <span className="hidden sm:inline">Hide</span>
-            </Button>
-          ) : null}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="outline"
+                className="shrink-0 h-10 w-10"
+              >
+                <Menu size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {isRevealed ? (
+                <DropdownMenuItem onClick={() => void handleConceal()}>
+                  <EyeOff size={16} />
+                  Hide
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem
+                onClick={() => scanForDuplicates(currentPath || "/")}
+              >
+                <SearchCheck size={16} />
+                Scan Duplicates
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
         </div>
       )}

@@ -16,6 +16,8 @@ import { useExplorerDelete } from "../hooks/useExplorerDelete";
 import { useExplorerArchiveExtract } from "../hooks/useExplorerArchiveExtract";
 import { useExplorerArchiveCreate } from "../hooks/useExplorerArchiveCreate";
 import { useExplorerItemNavigation } from "./ExplorerNavigationContext";
+import { useDuplicateScan } from "../hooks/useDuplicateScan";
+import type { DuplicateScanJob } from "../types/explorer.types";
 
 type ExplorerActionsContextValue = {
   deleteItem: (item: CloudObject | Directory) => void;
@@ -46,6 +48,15 @@ type ExplorerActionsContextValue = {
   deletingStatusByKey: Record<string, boolean>;
   extractJobs: ArchiveExtractJobsByKey;
   createJobs: ArchiveCreateJobsByKey;
+  scanForDuplicates: (path: string) => void;
+  startDuplicateScan: (
+    path: string,
+    recursive?: boolean,
+    similarityThreshold?: number,
+  ) => Promise<void>;
+  cancelDuplicateScan: () => Promise<void>;
+  duplicateScanJob: DuplicateScanJob | null;
+  clearDuplicateScanJob: () => void;
 };
 
 const ExplorerActionsContext =
@@ -66,6 +77,12 @@ export function ExplorerActionsProvider({
   const { createJobs, startArchiveCreation, cancelArchiveCreation } =
     useExplorerArchiveCreate();
   const { renameItem } = useExplorerItemNavigation();
+  const {
+    scanJob: duplicateScanJob,
+    startDuplicateScan,
+    cancelDuplicateScan,
+    clearScanJob: clearDuplicateScanJob,
+  } = useDuplicateScan();
 
   const deleteItem = React.useCallback(
     (item: CloudObject | Directory) => {
@@ -158,6 +175,13 @@ export function ExplorerActionsProvider({
     [openDialog],
   );
 
+  const scanForDuplicates = React.useCallback(
+    (path: string) => {
+      openDialog("duplicate-scan", { path });
+    },
+    [openDialog],
+  );
+
   const value = React.useMemo<ExplorerActionsContextValue>(
     () => ({
       deleteItem,
@@ -180,10 +204,17 @@ export function ExplorerActionsProvider({
       deletingStatusByKey,
       extractJobs,
       createJobs,
+      scanForDuplicates,
+      startDuplicateScan,
+      cancelDuplicateScan,
+      duplicateScanJob,
+      clearDuplicateScanJob,
     }),
     [
       cancelArchiveCreation,
       cancelArchiveExtraction,
+      cancelDuplicateScan,
+      clearDuplicateScanJob,
       convertFolder,
       createArchive,
       createArchiveExtractionJob,
@@ -191,6 +222,7 @@ export function ExplorerActionsProvider({
       deleteItem,
       deleteSelection,
       deletingStatusByKey,
+      duplicateScanJob,
       editFile,
       extractArchive,
       extractArchiveSelection,
@@ -200,7 +232,9 @@ export function ExplorerActionsProvider({
       openDocumentEditor,
       previewFile,
       renameItem,
+      scanForDuplicates,
       startArchiveCreation,
+      startDuplicateScan,
       unhideFolder,
     ],
   );

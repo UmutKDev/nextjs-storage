@@ -33,6 +33,49 @@ export type ArchiveExtractJob = {
   updatedAt: number;
 };
 
+export type DuplicateScanJob = {
+  scanId: string;
+  path: string;
+  state:
+    | "starting"
+    | "pending"
+    | "scanning"
+    | "completed"
+    | "cancelled"
+    | "failed";
+  progress?: {
+    totalFiles?: number;
+    processedFiles?: number;
+    phase?: string;
+    percentage?: number;
+  };
+  result?: {
+    totalFilesScanned?: number;
+    totalDuplicateGroups?: number;
+    totalPotentialSavingsBytes?: number;
+    groups?: Array<{
+      groupId?: string;
+      matchType?: string;
+      similarity?: number;
+      files?: Array<{
+        key?: string;
+        name?: string;
+        size?: number;
+        lastModified?: string;
+        mimeType?: string;
+        path?: {
+          host?: string;
+          key?: string;
+          url?: string;
+        };
+      }>;
+      potentialSavingsBytes?: number;
+    }>;
+  };
+  error?: string;
+  updatedAt: number;
+};
+
 export type ArchiveCreateJob = {
   jobId?: string;
   state: string;

@@ -8,6 +8,7 @@ import {
   FolderInput,
   Lock,
   Pencil,
+  SearchCheck,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -76,6 +77,7 @@ export default function ExplorerContextMenu({
     convertFolder,
     hideFolder,
     unhideFolder,
+    scanForDuplicates,
   } = useExplorerActions();
   const { getDirectoryMetadata } = useDirectoryMetadata();
   const { getArchiveActionState } = useArchiveExtractStatus();
@@ -216,6 +218,17 @@ export default function ExplorerContextMenu({
                 Unhide
               </MenuItem>
             ) : null}
+            <MenuItem
+              icon={SearchCheck}
+              disabled={isLoading}
+              onClick={() =>
+                handleAction(() =>
+                  scanForDuplicates(targetDirectory.Prefix || "/"),
+                )
+              }
+            >
+              Scan duplicates
+            </MenuItem>
             <MenuItem
               icon={Trash2}
               disabled={isLoading || Boolean(deletingStatusByKey[key])}

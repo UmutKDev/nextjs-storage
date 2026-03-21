@@ -29,6 +29,7 @@ type DialogPayloads = {
   "preview-file": { file: CloudObjectModel };
   "document-editor": { file: CloudObjectModel };
   "create-document": Record<string, never>;
+  "duplicate-scan": { path: string };
 };
 
 export type DialogType = keyof DialogPayloads;

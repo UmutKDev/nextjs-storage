@@ -28,6 +28,7 @@ function showNotificationToast(payload: NotificationPayload): void {
     case NotificationType.UPLOAD_FAILED:
     case NotificationType.ARCHIVE_CREATE_FAILED:
     case NotificationType.ARCHIVE_EXTRACT_FAILED:
+    case NotificationType.DUPLICATE_SCAN_FAILED:
       toast.error(Title, { description: Message });
       break;
 
@@ -42,17 +43,20 @@ function showNotificationToast(payload: NotificationPayload): void {
     case NotificationType.SUBSCRIPTION_CHANGED:
     case NotificationType.ARCHIVE_CREATE_COMPLETE:
     case NotificationType.ARCHIVE_EXTRACT_COMPLETE:
+    case NotificationType.DUPLICATE_SCAN_COMPLETE:
       toast.success(Title, { description: Message });
       break;
 
     case NotificationType.TEAM_INVITATION_RECEIVED:
     case NotificationType.TEAM_INVITATION_DECLINED:
     case NotificationType.SUBSCRIPTION_CANCELLED:
+    case NotificationType.DUPLICATE_SCAN_CANCELLED:
       toast.info(Title, { description: Message });
       break;
 
     case NotificationType.ARCHIVE_CREATE_PROGRESS:
     case NotificationType.ARCHIVE_EXTRACT_PROGRESS:
+    case NotificationType.DUPLICATE_SCAN_PROGRESS:
       return;
 
     default:

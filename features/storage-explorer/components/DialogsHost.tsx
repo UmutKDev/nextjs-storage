@@ -19,6 +19,7 @@ import EditFileDialog from "./dialogs/EditFileDialog";
 import PreviewFileDialog from "./dialogs/PreviewFileDialog";
 import DocumentEditorDialogWrapper from "./dialogs/DocumentEditorDialogWrapper";
 import CreateDocumentDialogWrapper from "./dialogs/CreateDocumentDialogWrapper";
+import DuplicateScanDialog from "./dialogs/DuplicateScanDialog";
 
 export default function DialogsHost() {
   const { dialog, closeDialog } = useDialogs();
@@ -109,6 +110,11 @@ export default function DialogsHost() {
       />
       <CreateDocumentDialogWrapper
         open={dialog?.type === "create-document"}
+        onClose={closeDialog}
+      />
+      <DuplicateScanDialog
+        open={dialog?.type === "duplicate-scan"}
+        payload={dialog?.type === "duplicate-scan" ? dialog.payload : null}
         onClose={closeDialog}
       />
     </>
