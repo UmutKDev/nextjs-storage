@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EyeOff, X } from "lucide-react";
-import { cloudDirectoriesApiFactory } from "@/Service/Factories";
+import { cloudDirectoryApiFactory } from "@/Service/Factories";
 import { useQueryClient } from "@tanstack/react-query";
 import { CLOUD_DIRECTORIES_QUERY_KEY } from "@/hooks/useCloudList";
 import { isAxiosError } from "axios";
@@ -58,7 +58,7 @@ export default function HideFolderDialog({
 
     setLoading(true);
     try {
-      await cloudDirectoriesApiFactory.directoryHide({
+      await cloudDirectoryApiFactory.directoryHide({
         xFolderPassphrase: passphrase,
         directoryHideRequestModel: { Path: folderPath || "/" },
       });

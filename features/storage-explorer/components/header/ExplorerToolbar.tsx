@@ -26,7 +26,7 @@ import { useExplorerActions } from "../../contexts/ExplorerActionsContext";
 import { useDialogs } from "../../contexts/DialogsContext";
 import { useExplorerQuery } from "../../contexts/ExplorerQueryContext";
 import { useHiddenFolders } from "@/components/Storage/stores/hiddenFolders.store";
-import { cloudDirectoriesApiFactory } from "@/Service/Factories";
+import { cloudDirectoryApiFactory } from "@/Service/Factories";
 import { useQueryClient } from "@tanstack/react-query";
 import { CLOUD_DIRECTORIES_QUERY_KEY } from "@/hooks/useCloudList";
 import { isArchiveFile } from "../../utils/archive";
@@ -71,7 +71,7 @@ export default function ExplorerToolbar() {
 
   const handleConceal = React.useCallback(async () => {
     try {
-      await cloudDirectoriesApiFactory.directoryConceal({
+      await cloudDirectoryApiFactory.directoryConceal({
         directoryConcealRequestModel: { Path: currentPath || "/" },
       });
       clearSession(currentPath ?? "");

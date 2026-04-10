@@ -4,7 +4,7 @@ import {
   AuthenticationApiFactory,
   CloudApiFactory,
   CloudArchiveApiFactory,
-  CloudDirectoriesApiFactory,
+  CloudDirectoryApiFactory,
   CloudDocumentsApiFactory,
   CloudUploadApiFactory,
   TeamApiFactory,
@@ -33,7 +33,7 @@ export const accountApiFactory = AccountApiFactory(
 
 export const cloudApiFactory = CloudApiFactory(undefined, undefined, Instance);
 
-export const cloudDirectoriesApiFactory = CloudDirectoriesApiFactory(
+export const cloudDirectoryApiFactory = CloudDirectoryApiFactory(
   undefined,
   undefined,
   Instance,

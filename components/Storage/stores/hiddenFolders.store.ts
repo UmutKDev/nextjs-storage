@@ -3,7 +3,7 @@
 import { createWithEqualityFn } from "zustand/traditional";
 import { devtools, persist, createJSONStorage } from "zustand/middleware";
 import { shallow } from "zustand/shallow";
-import { cloudDirectoriesApiFactory } from "@/Service/Factories";
+import { cloudDirectoryApiFactory } from "@/Service/Factories";
 import { hiddenSessionManager } from "@/lib/SessionManager";
 
 type RevealPrompt = {
@@ -141,7 +141,7 @@ export const useHiddenFoldersStore = createWithEqualityFn<HiddenFoldersState>()(
         revealFolder: async (path, passphrase) => {
           const normalized = normalizeFolderPath(path);
 
-          const response = await cloudDirectoriesApiFactory.directoryReveal({
+          const response = await cloudDirectoryApiFactory.directoryReveal({
             xFolderPassphrase: passphrase,
             directoryRevealRequestModel: {
               Path: normalized || "/",

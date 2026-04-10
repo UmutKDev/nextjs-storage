@@ -7,7 +7,7 @@ import type {
   DirectoryCreateRequestModelConflictStrategyEnum,
   DirectoryRenameRequestModelConflictStrategyEnum,
 } from "@/Service/Generates/api";
-import { cloudDirectoriesApiFactory } from "@/Service/Factories";
+import { cloudDirectoryApiFactory } from "@/Service/Factories";
 import { useExplorerEncryption } from "../contexts/ExplorerEncryptionContext";
 import { useExplorerQuery } from "../contexts/ExplorerQueryContext";
 import {
@@ -82,7 +82,7 @@ export function useExplorerFolderActions() {
           const path = `${prefix}${name}`
             .replace(/\/+/g, "/")
             .replace(/\/$/, "");
-          await cloudDirectoriesApiFactory.directoryCreate({
+          await cloudDirectoryApiFactory.directoryCreate({
             directoryCreateRequestModel: {
               Path: path,
               IsEncrypted: true,
@@ -94,7 +94,7 @@ export function useExplorerFolderActions() {
           await refetchManifest();
         } else {
           const key = `${prefix}${name}/`;
-          await cloudDirectoriesApiFactory.directoryCreate({
+          await cloudDirectoryApiFactory.directoryCreate({
             directoryCreateRequestModel: {
               Path: key,
               IsEncrypted: false,
@@ -175,7 +175,7 @@ export function useExplorerFolderActions() {
 
     setIsConvertingFolder(true);
     try {
-      await cloudDirectoriesApiFactory.directoryConvertToEncrypted({
+      await cloudDirectoryApiFactory.directoryConvertToEncrypted({
         directoryConvertToEncryptedRequestModel: {
           Path: normalizedPath,
         },
@@ -248,7 +248,7 @@ export function useExplorerFolderActions() {
             if (!passphrase) {
               throw new Error("Password required for folder");
             }
-            await cloudDirectoriesApiFactory.directoryRename({
+            await cloudDirectoryApiFactory.directoryRename({
               directoryRenameRequestModel: {
                 Path: normalizedPath,
                 Name: newName,
@@ -261,7 +261,7 @@ export function useExplorerFolderActions() {
           } else {
             if (!normalizedPath) throw new Error("Invalid path");
 
-            await cloudDirectoriesApiFactory.directoryRename({
+            await cloudDirectoryApiFactory.directoryRename({
               directoryRenameRequestModel: {
                 Path: normalizedPath,
                 Name: newName,
